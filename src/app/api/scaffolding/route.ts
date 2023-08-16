@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest):Promise<NextResponse> {
-    const res:Record<string,string> = await request.json()
-    console.log(res)
-    return new NextResponse("OK", {
-      status: 200,
-    })
+    return NextResponse.json({message: "Endpoint hit."})
+
   }
   
 
@@ -14,9 +11,7 @@ export async function POST(request: NextRequest):Promise<NextResponse> {
     const response = {
         message: body
     }
-    return new NextResponse(JSON.stringify(response), {
-        status: 200,
-    })
+    return NextResponse.json(response)
   }
 
   
