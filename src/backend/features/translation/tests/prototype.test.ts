@@ -9,6 +9,10 @@ describe("translation prototype", () => {
     it("should translate text", async () => {
         const expected = { detected_source_language: 'EN', text: 'hola mundo' }
         const res = await TranslationPrototype.main()
-        console.log(res)
+        const {text, detected_source_language} = res.translations[0]
+        expect(text).toEqual(expected.text)
+        expect(detected_source_language).toEqual(expected.detected_source_language)
+        
+        
     })
 })
