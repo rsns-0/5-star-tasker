@@ -15,28 +15,6 @@ type TranslateTextArgs = {
 
 type ValidateTranslateTextArgs = O.Overwrite<TranslateTextArgs, { text: string | string[] }>;
 
-function overwrite(originalObject:any, replacementObject:any){
-	for (const key in replacementObject){
-		const replacementObjectValue = replacementObject[key]
-		originalObject[key] = replacementObjectValue
-	}
-	return originalObject
-}
-
-const person1 = {
-	name: "john",
-	age: 20,
-	job: "programmer",
-}
-
-const replacementObject = {
-	name: "jane",
-	age: 44,
-}
-
-const res = overwrite(person1, replacementObject)
-console.log(res)
-
 export class DeepLService {
 	private apiEndpoint = "https://api-free.deepl.com/v2/translate";
 	private axiosConfig = { // test fails with static scope
