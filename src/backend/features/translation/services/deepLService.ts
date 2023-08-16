@@ -10,9 +10,32 @@ import { O } from "ts-toolbelt";
 type TranslateTextArgs = {
 	text: string[];
 	targetLanguage: string;
+	
 };
 
 type ValidateTranslateTextArgs = O.Overwrite<TranslateTextArgs, { text: string | string[] }>;
+
+function overwrite(originalObject:any, replacementObject:any){
+	for (const key in replacementObject){
+		const replacementObjectValue = replacementObject[key]
+		originalObject[key] = replacementObjectValue
+	}
+	return originalObject
+}
+
+const person1 = {
+	name: "john",
+	age: 20,
+	job: "programmer",
+}
+
+const replacementObject = {
+	name: "jane",
+	age: 44,
+}
+
+const res = overwrite(person1, replacementObject)
+console.log(res)
 
 export class DeepLService {
 	private apiEndpoint = "https://api-free.deepl.com/v2/translate";
@@ -32,13 +55,13 @@ export class DeepLService {
 		}
 		const cleanText = DeepLService.cleanText(text);
 		const cleanLanguage = validLangSchema.parse(targetLanguage);
-		return this.translateText({
+		return this.sendTranslationDataToAPI({
 			text: cleanText,
 			targetLanguage: cleanLanguage,
 		});
 	}
 
-	public async translateText({ text, targetLanguage }: TranslateTextArgs) {
+	public async sendTranslationDataToAPI({ text, targetLanguage }: TranslateTextArgs) {
 		const body = DeepLService.makeBody(text, targetLanguage);
 		try {
 			const { data } = await this.client.post<DeepLData>(this.apiEndpoint, body);
@@ -50,9 +73,11 @@ export class DeepLService {
 		}
 	}
 
-	private static cleanText(text: string | string[]) {
-		let textArr: string[] = [];
-		textArr = typeof text === "string" ? [text] : text;
+	private static cleanText(textStrOrTextArr: string | string[]) {
+		
+		const textArr = typeof textStrOrTextArr === "string"
+			? [textStrOrTextArr]
+			: textStrOrTextArr
 		return textArr.map(text => validTextSchema.parse(text));
 	}
 

@@ -1,5 +1,6 @@
 import { AxiosError } from 'axios';
 import { DeepLService } from './deepLService';
+import { O } from 'ts-toolbelt';
 import { ZodError } from 'zod';
 
 type TranslateTextArgs = {
@@ -7,6 +8,8 @@ type TranslateTextArgs = {
     targetLanguage:string,
     sourceLanguage?:string
 }
+
+type TranslateTextWithoutValidationArgs = O.Overwrite<TranslateTextArgs, { text: string[] }>;
 
 
 export class TranslationService{
@@ -16,7 +19,7 @@ export class TranslationService{
     ){}
     
     /**
-     * For each text, validates text length (<= 500) and whether or not target language is in deepL API available types.
+     * Validates text length <= 500, whether language is available, then calls API to translate.
      * 
      * @throws {ZodError, AxiosError, ReferenceError}
      * 
@@ -25,6 +28,19 @@ export class TranslationService{
      */
     public translateText({text,targetLanguage}:TranslateTextArgs){
         return this.deepLService.validateThenTranslate({text,targetLanguage})
+            .then(res => res.translations)
+    }
+
+
+    /**
+     * Sends text directly to API without validation for translation.
+     * 
+     * @throws {AxiosError}
+     * Throws AxiosError if network fails.
+     * @returns 
+     */
+    public translateTextWithoutValidation({text,targetLanguage}:TranslateTextWithoutValidationArgs){
+        return this.deepLService.sendTranslationDataToAPI({text,targetLanguage})
             .then(res => res.translations)
     }
 
