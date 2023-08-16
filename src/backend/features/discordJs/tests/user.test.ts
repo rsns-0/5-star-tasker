@@ -2,17 +2,18 @@ import { describe, expect, it } from "vitest";
 
 import { User } from "../models/user";
 
-describe("user.toJson", () => {
-	it("should return a string equal to the expected test object", () => {
-		const expectedPre = {
+describe("user.toJsonString", () => {
+
+	it("When given the same user data, a regular object that is stringified and the model that is stringified should end up being equivalent strings.", () => {
+		const preExpectedData = {
 			id: 1,
 			username: "test",
 			role: "admin",
 		};
-		const expected = JSON.stringify(expectedPre);
-		const user = new User(1, "test", "admin");
-		const actual = user.toJsonString();
-		expect(actual).toEqual(expected);
+		const stringifiedExpectedData = JSON.stringify(preExpectedData);
+		const userModel = new User(1, "test", "admin");
+		const modelStringifiedData = userModel.toJsonString();
+		expect(modelStringifiedData).toEqual(stringifiedExpectedData);
 	});
 
 	it("should return a string object not equal to the test object", () => {
