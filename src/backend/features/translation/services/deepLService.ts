@@ -1,23 +1,17 @@
 import axios, { AxiosInstance } from "axios";
-
-import { deepLResponseSchema } from "../schemas/deepL";
-import { DeepLData } from "../schemas/types";
-
-import { Logger } from "@/backend/logger/logger";
 import { validLangSchema, validTextSchema } from "../schemas/validTextArg";
-import { O } from "ts-toolbelt";
 
-type TranslateTextArgs = {
-	text: string[];
-	targetLanguage: string;
-	
-};
-
-type ValidateTranslateTextArgs = O.Overwrite<TranslateTextArgs, { text: string | string[] }>;
+import { DeepLDataCollection } from "../types/types";
+import { Logger } from "@/backend/logger/logger";
+import { TranslateTextArgs } from "../types/types";
+import { TranslationData } from "../models/translationData";
+import { ValidateTranslateTextArgs } from "../types/types";
+import { deepLResponseSchema } from "../schemas/deepL";
 
 export class DeepLService {
 	private apiEndpoint = "https://api-free.deepl.com/v2/translate";
-	private axiosConfig = { // test fails with static scope
+	private axiosConfig = {
+		// test fails with static scope
 		headers: {
 			Authorization: `DeepL-Auth-Key ${process.env.DEEPL_KEY}`,
 			"Content-Type": "application/json",
@@ -28,8 +22,8 @@ export class DeepLService {
 	constructor(private logger: Logger = new Logger()) {}
 
 	public validateThenTranslate({ text, targetLanguage }: ValidateTranslateTextArgs) {
-		if(!this.client.defaults.headers.Authorization){
-			throw new ReferenceError("Missing deepL API key")
+		if (!this.client.defaults.headers.Authorization) {
+			throw new ReferenceError("Missing deepL API key");
 		}
 		const cleanText = DeepLService.cleanText(text);
 		const cleanLanguage = validLangSchema.parse(targetLanguage);
@@ -42,9 +36,11 @@ export class DeepLService {
 	public async sendTranslationDataToAPI({ text, targetLanguage }: TranslateTextArgs) {
 		const body = DeepLService.makeBody(text, targetLanguage);
 		try {
-			const { data } = await this.client.post<DeepLData>(this.apiEndpoint, body);
+			const { data } = await this.client.post<DeepLDataCollection>(this.apiEndpoint, body);
 
-			return deepLResponseSchema.parse(data) satisfies DeepLData;
+			return deepLResponseSchema
+				.parse(data)
+				.translations.map((translationData) => new TranslationData(translationData, targetLanguage));
 		} catch (e) {
 			this.logger.logError(e);
 			throw e;
@@ -52,11 +48,8 @@ export class DeepLService {
 	}
 
 	private static cleanText(textStrOrTextArr: string | string[]) {
-		
-		const textArr = typeof textStrOrTextArr === "string"
-			? [textStrOrTextArr]
-			: textStrOrTextArr
-		return textArr.map(text => validTextSchema.parse(text));
+		const textArr = typeof textStrOrTextArr === "string" ? [textStrOrTextArr] : textStrOrTextArr;
+		return textArr.map((text) => validTextSchema.parse(text));
 	}
 
 	private static makeBody(text: string[], targetLanguage: string) {
