@@ -12,15 +12,15 @@ describe("translateText", () => {
 
     it("should return 'hola mundo' when translating 'hello world' to ES", async () => {
         // test may be flaky given that deepL is an AI service, check returned text if it fails
-        const expected = { detected_source_language: 'EN', text: 'hola mundo' }
+        const expected = { detectedSourceLanguage: 'EN', text: 'hola mundo' }
         
         const res = await service.translateText({
             text: ["hello world"],
             targetLanguage: "ES"
         })
         
-        const {detected_source_language, text} = res[0]
-        expect(detected_source_language).toBe(expected.detected_source_language)
+        const {detectedSourceLanguage, text} = res[0]
+        expect(detectedSourceLanguage).toBe(expected.detectedSourceLanguage)
         expect(text).toBe(expected.text)
         
     })
