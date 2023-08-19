@@ -12,16 +12,13 @@ type DeepLHeader = {
 
 export class TranslationPrototype {
 	public static async main() {
-		const instance = axios.create(
-			{
-				headers:{
-					Authorization: `DeepL-Auth-Key ${process.env.DEEPL_KEY}`,
-					"Content-Type": "application/json",
+		const instance = axios.create({
+			headers: {
+				Authorization: `DeepL-Auth-Key ${process.env.DEEPL_KEY}`,
+				"Content-Type": "application/json",
+			},
+		});
 
-				}
-			}
-		)
-		
 		const apiKey = process.env.DEEPL_KEY;
 		if (!apiKey) {
 			throw new Error("Missing deepL API key");
@@ -36,9 +33,8 @@ export class TranslationPrototype {
 			"Content-Type": "application/json",
 		};
 
-		
-		const res = await instance.post(url, body)
+		const res = await instance.post(url, body);
 		console.log(res.data);
-        return res.data
+		return res.data;
 	}
 }

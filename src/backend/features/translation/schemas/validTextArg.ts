@@ -42,3 +42,4 @@ export const validTextArgSchema = z.object({
     text:validTextSchema.array(),
     target_lang: validLangSchema
 })
+
