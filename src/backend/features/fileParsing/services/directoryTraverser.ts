@@ -5,7 +5,6 @@ import { TraverserError } from "../errors/traverserError";
 import path from "path";
 
 export class DirectoryTraverser {
-	private _currentFolder: string = "";
 	private _directory: string = "";
 	constructor(directory: string) {
 		this.currentDirectory = directory;
@@ -16,17 +15,12 @@ export class DirectoryTraverser {
 	}
 
 	get currentFolder() {
-		return this._currentFolder;
-	}
-
-	set currentFolder(newFolder: string) {
-		this._currentFolder = newFolder;
+		return path.basename(this._directory);
 	}
 
 	set currentDirectory(newDirectory: string) {
 		validateDirectory(newDirectory);
 		this._directory = path.normalize(newDirectory);
-		this.currentFolder = path.basename(this._directory);
 	}
 
 	ascend() {
