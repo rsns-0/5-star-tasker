@@ -13,21 +13,19 @@ import { DirectoryTraverser } from "./directoryTraverser";
 export const getExportsFromFilesInFolder = <TExportModel = any>(
 	folderName: string,
 	{
-		fileFilter = (fullFilePath: string) => fullFilePath.endsWith(".ts") || fullFilePath.endsWith(".js"),
+		fileFilter = (fullFilePath: string): boolean =>
+			fullFilePath.endsWith(".ts") || fullFilePath.endsWith(".js"),
 		ascendToThisFolderBeforeStartingSearch = "src",
-		recursive = false
+		recursive = false,
 	} = {}
 ): Promise<TExportModel[]> => {
 	const traverser = new DirectoryTraverser(__dirname);
 	traverser.ascendTo(ascendToThisFolderBeforeStartingSearch);
 	traverser.descendTo(folderName);
-	let res:string[]
-	if(recursive){
-		res = traverser.recursiveFindFiles(fileFilter)
-	} else {
-		res = traverser.getFiles().filter(fileFilter);
-	}
-	
-	return Promise.all(res.map((file) => import(file)))
-};
 
+	const res = recursive
+		? traverser.recursiveFindFiles(fileFilter)
+		: traverser.getFiles().filter(fileFilter);
+
+	return Promise.all(res.map((file) => import(file)));
+};
