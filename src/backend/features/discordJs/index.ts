@@ -11,7 +11,7 @@ async function registerCommandsToClient(client: ReadyClient) {
 	for (const { data, execute } of res) {
 		client.commands.set(data.name, { data, execute });
 	}
-} 
+}
 
 async function registerEventsToClient(client: ReadyClient) {
 	const res = await getExportsFromFilesInFolder<EventExport>("events")
