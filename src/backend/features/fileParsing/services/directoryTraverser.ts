@@ -1,7 +1,7 @@
 import { existsSync, lstatSync, readdirSync } from "fs";
 
 import Denque from "denque";
-import { TraverserError } from "./errors/traverserError";
+import { TraverserError } from "../errors/traverserError";
 import path from "path";
 
 export class DirectoryTraverser {

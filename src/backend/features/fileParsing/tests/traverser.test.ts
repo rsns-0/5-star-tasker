@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { DirectoryTraverser } from "../directoryTraverser";
+import { DirectoryTraverser } from "../services/directoryTraverser";
 import { TraverserError } from "../errors/traverserError";
 import path from "path";
 
