@@ -1,4 +1,4 @@
-name: Generate and Deploy TypeDocs
+name: Deploy TypeDocs to GitHub Pages
 
 on:
   push:
