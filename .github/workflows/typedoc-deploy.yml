@@ -4,10 +4,15 @@ on:
   push:
     branches:
       - main
+      
 
 jobs:
+  
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions: 
+      contents: write
+      pages: write
 
     steps:
     - name: Checkout code
@@ -29,3 +34,5 @@ jobs:
       with:
         personal_token: ${{ secrets.PERSONAL_TOKEN }}
         publish_dir: ./docs
+        publish_branch: gh-pages
+        keep_files: true
