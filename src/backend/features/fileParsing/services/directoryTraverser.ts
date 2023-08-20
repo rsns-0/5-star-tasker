@@ -97,6 +97,19 @@ export class DirectoryTraverser {
 		throw new TraverserError(`Folder ${itemName} not found in current directory`);
 	}
 
+	/**Returns true if should return, false if should continue. */
+	private handleControlFlow(itemName: string, itemType: "file" | "folder") {
+		if (itemType === "file" && this.getFiles({ withFullPath: false }).includes(itemName)) {
+			this.currentDirectory = path.dirname(path.join(this.currentDirectory, itemName));
+			return true;
+		}
+		if (itemType === "folder" && this.getFolders().includes(itemName)) {
+			this.currentDirectory = path.join(this.currentDirectory, itemName);
+			return true;
+		}
+		return false;
+	}
+
 	/**
 	 *
 	 * Recursively finds files in the current directory and its subdirectories that match the specified file name or file filter.
@@ -177,18 +190,9 @@ export class DirectoryTraverser {
 		return res;
 	}
 
-	/**Returns true if should return, false if should continue. */
-	private handleControlFlow(itemName: string, itemType: "file" | "folder") {
-		if (itemType === "file" && this.getFiles({ withFullPath: false }).includes(itemName)) {
-			this.currentDirectory = path.dirname(path.join(this.currentDirectory, itemName));
-			return true;
-		}
-		if (itemType === "folder" && this.getFolders().includes(itemName)) {
-			this.currentDirectory = path.join(this.currentDirectory, itemName);
-			return true;
-		}
-		return false;
-	}
+	
+
+	
 }
 function validateDirectory(directory: string) {
 	if (!existsSync(directory) || !lstatSync(directory).isDirectory()) {
