@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { DirectoryTraverser } from "../services/directoryTraverser";
 import { TraverserError } from "../errors/traverserError";
+import { goToDescendentFolder } from "../services/fileParsingService";
 import path from "path";
 
 describe("DirectoryTraverser", () => {
@@ -84,4 +85,25 @@ describe("DirectoryTraverser", () => {
 			}).toThrowError(`Directory ${invalidDirectory} does not exist`);
 		});
 	});
+	describe("goToDescendentFolder", () => {
+		it("should return the path of the descendent folder", () => {
+		  const folderName = "testDir1";
+		  const startingDirectory = __dirname
+		  const expectedDirectory = path.join(startingDirectory, "testResources", folderName)
+		  const actualDirectory = goToDescendentFolder(folderName, startingDirectory);
+		  expect(actualDirectory).toBe(expectedDirectory);
+		});
+	
+		it("should throw an error if the specified folder is not found", () => {
+		  expect(() => goToDescendentFolder("nonexistentFoldeasd12312errr", __dirname)).toThrowError(
+			TraverserError
+		  );
+		});
+	
+		it("should throw an error if the starting directory does not exist", () => {
+		  expect(() => goToDescendentFolder("tests", "nonexistentDirectory")).toThrowError(
+			TraverserError
+		  );
+		});
+	  });
 });

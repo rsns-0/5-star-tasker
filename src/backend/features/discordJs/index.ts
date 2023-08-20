@@ -7,14 +7,14 @@ import dotenv from "dotenv";
 import { getExportsFromFilesInFolder } from "@/backend/features/fileParsing/services/fileParsingService";
 
 async function registerCommandsToClient(client: ReadyClient) {
-	const res = await getExportsFromFilesInFolder<CommandExport>("commands")
+	const res = await getExportsFromFilesInFolder<CommandExport>("commands",__dirname)
 	for (const { data, execute } of res) {
 		client.commands.set(data.name, { data, execute });
 	}
 }
 
 async function registerEventsToClient(client: ReadyClient) {
-	const res = await getExportsFromFilesInFolder<EventExport>("events")
+	const res = await getExportsFromFilesInFolder<EventExport>("events",__dirname)
 	for (const { name, once, execute } of res) {
 		const _name = name as string
 		if (once) {
