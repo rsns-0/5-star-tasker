@@ -9,7 +9,7 @@ import { DirectoryTraverser } from "./directoryTraverser";
  *    - fileFilter: A function that determines whether a file should be included in the search. Defaults to .ts and .js files.
  *    - recursive: A boolean indicating whether to search recursively through subfolders for file exports after reaching the target folder. Defaults to false.
  * @returns A promise that resolves to an array of exported models.
- * @template TExportModel - The type of the exported model.
+ * @template TExportModel - The interface representing the export object from a module.
  * @example
  * // Example File Structure:
  * // - src
