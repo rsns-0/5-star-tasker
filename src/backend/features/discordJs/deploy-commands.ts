@@ -15,7 +15,7 @@ if (!clientId || !guildId || !token) {
 }
 
 const registerCommandsToDiscord = async () => {
-	const commandArr = await getExportsFromFilesInFolder<CommandExport>("commands");
+	const commandArr = await getExportsFromFilesInFolder<CommandExport>("commands",__dirname);
 	const serializedCommands = commandArr.map((command) => command.data.toJSON());
 	const rest = new REST().setToken(token);
 	try {
