@@ -11,7 +11,7 @@
     "test:watch": "vitest",
     "test:watchui": "vitest --ui --api 9527",
     "test": "vitest run",
-    "doc": "typedoc --out typedocs src/**/*.ts",
+    "doc": "typedoc --out docs src/**/*.ts",
     "doc:open": "typedocs/index.html"
   },
   "dependencies": {
