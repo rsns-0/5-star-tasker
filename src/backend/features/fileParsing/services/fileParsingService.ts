@@ -1,4 +1,5 @@
 import { DirectoryTraverser } from "./directoryTraverser";
+import { TraverserError } from "../errors/traverserError";
 
 /**
  * Starts from the start position and performs bfs to find the first folder with the specified name. Afterwards, retrieves all exports from files within the folder.
@@ -96,6 +97,7 @@ export const goToAncestorFolder = (folderName:string, startingDirectory:string) 
 
 /**
  * Recursively descends and finds the first folder matching the name. (bfs impl)
+ * @throws {TraverserError} - If the folder is not found or if the starting directory does not exist.
  * @param folderName - The name of the descendent folder to navigate to.
  * @param startingDirectory - The directory to start the navigation from.
  * @returns The path of the current directory after navigation.
