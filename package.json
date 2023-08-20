@@ -10,7 +10,9 @@
     "pull": "./pull.sh",
     "test:watch": "vitest",
     "test:watchui": "vitest --ui --api 9527",
-    "test": "vitest run"
+    "test": "vitest run",
+    "doc": "typedoc --out typedocs src/**/*.ts && ./typedocs/index.html",
+    "doc:open": "typedocs/index.html"
   },
   "dependencies": {
     "axios": "^1.4.0",
@@ -37,6 +39,7 @@
     "ts-node": "^10.9.1",
     "ts-toolbelt": "^9.6.0",
     "tspath": "^2.6.8",
+    "typedoc": "^0.24.8",
     "typescript": "^5.1.6",
     "vitest": "^0.34.1"
   }
