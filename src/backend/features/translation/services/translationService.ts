@@ -13,8 +13,8 @@ export class TranslationService {
 	 * Throws Zod error if validation fails. Throws AxiosError if network fails. Throws ReferenceError in the rare event that the API key happens to be missing.
 	 * @returns
 	 */
-	public translateText({ text, targetLanguage }: ValidateTranslateTextArgs) {
-		return this.deepLService.validateThenTranslate({ text, targetLanguage });
+	public translateText(props: ValidateTranslateTextArgs) {
+		return this.deepLService.validateThenTranslate(props);
 	}
 
 	/**
@@ -24,7 +24,7 @@ export class TranslationService {
 	 * Throws AxiosError if network fails.
 	 * @returns
 	 */
-	public translateTextWithoutValidation({ text, targetLanguage }: TranslateTextArgs) {
-		return this.deepLService.sendTranslationDataToAPI({ text, targetLanguage });
+	public translateTextWithoutValidation(props: TranslateTextArgs) {
+		return this.deepLService.sendTranslationDataToAPI(props);
 	}
 }
