@@ -24,7 +24,7 @@ const event = {
                     ephemeral: true,
                 });
             } else {
-                await interaction.reply({ content: "There was an error while executing this command!", ephemeral: true });
+                await interaction.reply({ content: "There was an error whiawvoiajvoidsamvle executing this command!", ephemeral: true });
             }
         }
     }
