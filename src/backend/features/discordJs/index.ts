@@ -1,11 +1,10 @@
-import { Client, Events, GatewayIntentBits } from "discord.js";
 import { CommandExport, EventExport, } from "./types/types";
-
-import { Collection } from "discord.js";
 import ReadyClient from "./models/client";
 import dotenv from "dotenv";
 import { getExportsFromFilesInFolder } from "@/backend/features/fileParsing/services/fileParsingService";
 import { registerCommandsToDiscord } from "./deploy-commands";
+import client from "./models/clientCreation";
+
 
 async function registerCommandsToClient(client: ReadyClient) {
 	const res = await getExportsFromFilesInFolder<CommandExport>("commands",__dirname)
@@ -27,16 +26,13 @@ async function registerEventsToClient(client: ReadyClient) {
 	}
 }
 
-function main() {
+function main() { 
 	dotenv.config();
 	const token = process.env.DISCORD_TOKEN;
 
 	if (!token) {
 		throw new Error("Missing discord token");
 	}
-
-	const client = new Client({ intents: [GatewayIntentBits.Guilds] }) as ReadyClient;
-	client.commands = new Collection();
 
 	client.login(token);
 
