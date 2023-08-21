@@ -1,6 +1,9 @@
 import { DirectoryTraverser } from "./directoryTraverser";
 import { TraverserError } from "../errors/traverserError";
 
+const defaultFilter = (fullFilePath: string): boolean =>
+	fullFilePath.endsWith(".ts") || fullFilePath.endsWith(".js");
+
 /**
  * Starts from the start position and performs bfs to find the first folder with the specified name. Afterwards, retrieves all exports from files within the folder.
  * @throws {TraverserError} - If the folder is not found or if the starting directory does not exist.
@@ -45,8 +48,8 @@ import { TraverserError } from "../errors/traverserError";
  *                     - fileParsingService.ts
  *                     - directoryTraverser.ts
  *     - frontend
- * const errorDir = goToAncestorFolder("features", __dirname);
- * const exports = getExportsFromFilesInFolder("errors", errorDir); // done!
+ * const featureDir = goToAncestorFolder("features", __dirname);
+ * const exports = getExportsFromFilesInFolder("errors", featureDir); // done!
  * @example
  *  * Simple case
  *  - src
@@ -110,21 +113,13 @@ import { TraverserError } from "../errors/traverserError";
 	// pass this in as the argument for TExportModel
 
  */
-export const getExportsFromFilesInFolder = <TExportModel = any>(
+export const descendToFolderThenGetExportsFromFolder = <TExportModel = any>(
 	folderName: string,
 	startPosition: string,
-	{
-		fileFilter = (fullFilePath: string): boolean =>
-			fullFilePath.endsWith(".ts") || fullFilePath.endsWith(".js"),
-		recursive = false,
-	} = {}
+	{ fileFilter = defaultFilter, recursive = false } = {}
 ): Promise<TExportModel[]> => {
-	const traverser = new DirectoryTraverser(startPosition);
-	traverser.descendTo(folderName);
-	const res = recursive
-		? traverser.recursiveFindFiles(fileFilter)
-		: traverser.getFiles().filter(fileFilter);
-	return Promise.all(res.map((file) => import(file)));
+	const folderDir = goToDescendentFolder(folderName, startPosition);
+	return getExportsFromFolder(folderDir, { fileFilter, recursive });
 };
 
 /**
@@ -153,4 +148,23 @@ export const goToDescendentFolder = (folderName: string, startingDirectory: stri
 	const traverser = new DirectoryTraverser(startingDirectory);
 	traverser.descendTo(folderName);
 	return traverser.currentDirectory;
+};
+
+/**
+ * Retrieves the exports from all files in a given folder directory.
+ * @param folderPath - The folder path to begin the search in.
+ * @param options - Optional parameters for filtering and recursion.
+ * @param options.fileFilter - A function that filters which files to include.
+ * @param options.recursive - Whether to search for files recursively.
+ * @returns A promise that resolves to an array of exports from the found files.
+ */
+export const getExportsFromFolder = (
+	folderPath: string,
+	{ fileFilter = defaultFilter, recursive = false } = {}
+) => {
+	const traverser = new DirectoryTraverser(folderPath);
+	const res = recursive
+		? traverser.recursiveFindFiles(fileFilter)
+		: traverser.getFiles().filter(fileFilter);
+	return Promise.all(res.map((file) => import(file)));
 };

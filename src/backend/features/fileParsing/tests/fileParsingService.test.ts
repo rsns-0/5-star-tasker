@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
 import {
-	getExportsFromFilesInFolder,
+	descendToFolderThenGetExportsFromFolder,
 	goToAncestorFolder,
 } from "../services/fileParsingService";
+import { describe, expect, it } from "vitest";
 
 import { TraverserError } from "../errors/traverserError";
 import path from "path";
@@ -22,7 +22,7 @@ const startingPoint = goToAncestorFolder(featureFolderName, __dirname);
 
 describe("getExportsFromFilesInFolder", () => {
 	it("Given above folder structure should find at least one export", async () => {
-		const exports = await getExportsFromFilesInFolder(testFolder, startingPoint);
+		const exports = await descendToFolderThenGetExportsFromFolder(testFolder, startingPoint);
 		expect(Array.isArray(exports)).toBe(true);
 		expect(exports.length).not.toBe(0);
 		exports.forEach((exportObj) => {
@@ -31,7 +31,7 @@ describe("getExportsFromFilesInFolder", () => {
 	});
 
 	it("Given above folder structure should find at least 2 exports", async () => {
-		const exports = await getExportsFromFilesInFolder(testFolder, startingPoint, {
+		const exports = await descendToFolderThenGetExportsFromFolder(testFolder, startingPoint, {
 			fileFilter: (filePath) => filePath.endsWith(".ts"),
 		});
 		expect(Array.isArray(exports)).toBe(true);
@@ -39,7 +39,7 @@ describe("getExportsFromFilesInFolder", () => {
 	});
 
 	it("Given above folder structure should be able to find testfile2.ts with first depth search", async () => {
-		const exports = await getExportsFromFilesInFolder(testFolder, startingPoint, {
+		const exports = await descendToFolderThenGetExportsFromFolder(testFolder, startingPoint, {
 			fileFilter: (filePath) => filePath.endsWith("testfile2.ts"),
 		});
 		expect(Array.isArray(exports)).toBe(true);
@@ -47,13 +47,13 @@ describe("getExportsFromFilesInFolder", () => {
 	});
 
 	it("should throw an error if the specified folder is not found", () => {
-		expect(() => getExportsFromFilesInFolder("nonExistentFolder", startingPoint)).toThrow(
+		expect(() => descendToFolderThenGetExportsFromFolder("nonExistentFolder", startingPoint)).toThrow(
 			TraverserError
 		);
 	});
 
 	it("Given above folder structure, should be able to locate the contents of testfile3.ts with recursive search", async () => {
-		const exports = await getExportsFromFilesInFolder(testFolder, startingPoint, {
+		const exports = await descendToFolderThenGetExportsFromFolder(testFolder, startingPoint, {
 			recursive: true,
 		});
 		expect(Array.isArray(exports)).toBe(true);
@@ -63,7 +63,7 @@ describe("getExportsFromFilesInFolder", () => {
 	});
 
 	it("Given above folder structure should not be able to find the contents of testfile3.ts without recursion", async () => {
-		const exports = await getExportsFromFilesInFolder(testFolder, startingPoint);
+		const exports = await descendToFolderThenGetExportsFromFolder(testFolder, startingPoint);
 		expect(Array.isArray(exports)).toBe(true);
 		expect(exports.length).not.toBe(0);
 		const res = exports.filter((obj) => obj.testVar3 === "this is test file 3");
@@ -82,7 +82,7 @@ describe("goToAncestorFolder", () => {
 	});
 
 	it("should throw an error if the specified folder is not found", () => {
-		expect(() => getExportsFromFilesInFolder("nonexistentFolder238jf9283jwenf9wijwi10191238jdsf2nn3nhed88", __dirname)).toThrowError(
+		expect(() => descendToFolderThenGetExportsFromFolder("nonexistentFolder238jf9283jwenf9wijwi10191238jdsf2nn3nhed88", __dirname)).toThrowError(
 			TraverserError
 		);
 	});
