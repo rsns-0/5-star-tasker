@@ -5,12 +5,14 @@ import { Collection } from "discord.js";
 import ReadyClient from "./models/client";
 import dotenv from "dotenv";
 import { getExportsFromFilesInFolder } from "@/backend/features/fileParsing/services/fileParsingService";
+import { registerCommandsToDiscord } from "./deploy-commands";
 
 async function registerCommandsToClient(client: ReadyClient) {
 	const res = await getExportsFromFilesInFolder<CommandExport>("commands",__dirname)
 	for (const { data, execute } of res) {
 		client.commands.set(data.name, { data, execute });
 	}
+	registerCommandsToDiscord();
 }
 
 async function registerEventsToClient(client: ReadyClient) {
@@ -23,7 +25,6 @@ async function registerEventsToClient(client: ReadyClient) {
 			client.on(_name, execute);
 		}
 	}
-	
 }
 
 function main() {
@@ -38,11 +39,9 @@ function main() {
 	client.commands = new Collection();
 
 	client.login(token);
-	client.once(Events.ClientReady, c => {
-		console.log(`Ready! Logged in as ${c.user.tag}`);
-	});
 
 	registerCommandsToClient(client);
+	registerEventsToClient(client)
 }
 
 main();
