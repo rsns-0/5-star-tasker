@@ -1,8 +1,8 @@
 import { REST, Routes } from "discord.js";
 
 import { CommandExport } from "./types/types";
+import { descendToFolderThenGetExportsFromFolder } from "@/backend/features/fileParsing/services/fileParsingService";
 import dotenv from "dotenv";
-import { getExportsFromFilesInFolder } from "@/backend/features/fileParsing/services/fileParsingService";
 
 dotenv.config();
 
@@ -16,15 +16,20 @@ if (!clientId || !guildId || !token) {
 
 
 export const registerCommandsToDiscord = async () => {
-	const commandArr = await getExportsFromFilesInFolder<CommandExport>("commands",__dirname);
+	const commandArr = await descendToFolderThenGetExportsFromFolder<CommandExport>("commands",__dirname);
 	const serializedCommands = commandArr.map((command) => command.data.toJSON());
 	const rest = new REST().setToken(token);
 	try {
 		console.log(`Started refreshing ${serializedCommands.length} application (/) commands.`);
-		const data: any = await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
+		const data = await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
 			body: serializedCommands,
-		});
-		console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+		})
+		if(Array.isArray(data)){
+			console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+		} else {
+			console.warn("Sent response to discord server but it was not an array." + JSON.stringify(data))
+		}
+		
 	} catch (error) {
 		console.error(error);
 	}
