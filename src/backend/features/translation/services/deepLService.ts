@@ -21,11 +21,11 @@ export class DeepLService {
 
 	constructor(private logger: Logger = new Logger()) {}
 
-	public validateThenTranslate({ text, targetLanguage }: ValidateTranslateTextArgs) {
+	public validateThenTranslate({ text, targetLanguage, textValidationSchema }: ValidateTranslateTextArgs) {
 		if (!this.client.defaults.headers.Authorization) {
 			throw new ReferenceError("Missing deepL API key");
 		}
-		const cleanText = DeepLService.cleanText(text);
+		const cleanText = DeepLService.cleanText(text, textValidationSchema);
 		const cleanLanguage = validLangSchema.parse(targetLanguage);
 		return this.sendTranslationDataToAPI({
 			text: cleanText,
@@ -47,9 +47,9 @@ export class DeepLService {
 		}
 	}
 
-	private static cleanText(textStrOrTextArr: string | string[]) {
+	private static cleanText(textStrOrTextArr: string | string[], textValidationSchema = validTextSchema) {
 		const textArr = typeof textStrOrTextArr === "string" ? [textStrOrTextArr] : textStrOrTextArr;
-		return textArr.map((text) => validTextSchema.parse(text));
+		return textArr.map((text) => textValidationSchema.parse(text));
 	}
 
 	private static makeBody(text: string[], targetLanguage: string) {

@@ -16,7 +16,7 @@ async function registerCommandsToClient(client: ReadyClient) {
 }
 
 async function registerEventsToClient(client: ReadyClient) {
-	const res = await getExportsFromFilesInFolder("events",__dirname)
+	const res = await getExportsFromFilesInFolder<EventExport>("events",__dirname)
 	for (const { name, once, execute } of res) {
 		const _name = name as string
 		if (once) {
