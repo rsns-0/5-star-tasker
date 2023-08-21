@@ -113,7 +113,9 @@ const defaultFilter = (fullFilePath: string): boolean =>
 	// pass this in as the argument for TExportModel
 
  */
-export const descendToFolderThenGetExportsFromFolder = <TExportModel = any>(
+export const descendToFolderThenGetExportsFromFolder = <
+	TExportModel extends Record<any, any> = Record<any, any>,
+>(
 	folderName: string,
 	startPosition: string,
 	{ fileFilter = defaultFilter, recursive = false } = {}
@@ -158,10 +160,10 @@ export const goToDescendentFolder = (folderName: string, startingDirectory: stri
  * @param options.recursive - Whether to search for files recursively.
  * @returns A promise that resolves to an array of exports from the found files.
  */
-export const getExportsFromFolder = (
+export const getExportsFromFolder = <TExportModel extends Record<any, any> = Record<any, any>>(
 	folderPath: string,
 	{ fileFilter = defaultFilter, recursive = false } = {}
-) => {
+):Promise<TExportModel[]> => {
 	const traverser = new DirectoryTraverser(folderPath);
 	const res = recursive
 		? traverser.recursiveFindFiles(fileFilter)
