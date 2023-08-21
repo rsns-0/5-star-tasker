@@ -1,17 +1,8 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 
-// export const data = new SlashCommandBuilder()
-// 	.setName('ping')
-// 	.setDescription('Replies with Pong!')
-
-// export async function execute(interaction: CommandInteraction) {
-// 	await interaction.reply('Pong!');
-
-// }
-
 export const data = new SlashCommandBuilder()
-	.setName("embedcreator")
-	.setDescription("Creates embed from user input.")
+	.setName("embed")
+	.setDescription("Creates embed from user")
 	.addStringOption((option) =>
 		option
 			.setName("title")
@@ -39,6 +30,6 @@ export const execute = (interaction: ChatInputCommandInteraction) => {
 	}
 
 	interaction.reply({
-		content: JSON.stringify(fields),
+		content: `This is what you provided. For the title you entered ${fields.title}. For the description you entered ${fields.description}.`,
 	});
-}
+};

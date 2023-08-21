@@ -14,7 +14,8 @@ if (!clientId || !guildId || !token) {
 	throw new Error("Missing discord settings");
 }
 
-const registerCommandsToDiscord = async () => {
+
+export const registerCommandsToDiscord = async () => {
 	const commandArr = await getExportsFromFilesInFolder<CommandExport>("commands",__dirname);
 	const serializedCommands = commandArr.map((command) => command.data.toJSON());
 	const rest = new REST().setToken(token);
@@ -28,5 +29,3 @@ const registerCommandsToDiscord = async () => {
 		console.error(error);
 	}
 };
-
-registerCommandsToDiscord();

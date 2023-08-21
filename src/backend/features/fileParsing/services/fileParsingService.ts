@@ -106,5 +106,5 @@ export const goToDescendentFolder = (folderName:string, startingDirectory:string
 	const traverser = new DirectoryTraverser(startingDirectory);
 	traverser.descendTo(folderName);
 	return traverser.currentDirectory
-}
 
+}
