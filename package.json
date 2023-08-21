@@ -12,7 +12,7 @@
     "test:watchui": "vitest --ui --api 9527",
     "test": "vitest run",
 
-    "bot":"ts-node src/backend/features/discordJs/index.ts"
+    "bot":"ts-node src/backend/features/discordJs/index.ts",
 
     "doc": "typedoc --out typedocs src/**/*.ts && ./typedocs/index.html",
     "doc:open": "typedocs/index.html"
