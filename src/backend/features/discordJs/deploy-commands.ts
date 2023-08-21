@@ -21,10 +21,15 @@ export const registerCommandsToDiscord = async () => {
 	const rest = new REST().setToken(token);
 	try {
 		console.log(`Started refreshing ${serializedCommands.length} application (/) commands.`);
-		const data: any = await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
+		const data = await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
 			body: serializedCommands,
-		});
-		console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+		})
+		if(Array.isArray(data)){
+			console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+		} else {
+			console.warn("Sent response to discord server but it was not an array." + JSON.stringify(data))
+		}
+		
 	} catch (error) {
 		console.error(error);
 	}
