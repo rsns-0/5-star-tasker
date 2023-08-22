@@ -1,14 +1,13 @@
 import { Client, Events, GatewayIntentBits } from "discord.js";
-import { CommandExport, EventExport, } from "./types/types";
+import { getCommandExports, getEventExports } from "./services/exportService";
 
 import { Collection } from "discord.js";
 import ReadyClient from "./models/client";
-import { descendToFolderThenGetExportsFromFolder } from "@/backend/features/fileParsing/services/fileParsingService";
 import dotenv from "dotenv";
 import { registerCommandsToDiscord } from "./deploy-commands";
 
 export async function registerCommandsToClient(client: ReadyClient) {
-	const res = await descendToFolderThenGetExportsFromFolder<CommandExport>("commands",__dirname)
+	const res = await getCommandExports();
 	for (const { data, execute } of res) {
 		client.commands.set(data.name, { data, execute });
 	}
@@ -16,9 +15,10 @@ export async function registerCommandsToClient(client: ReadyClient) {
 }
 
 export async function registerEventsToClient(client: ReadyClient) {
-	const res = await descendToFolderThenGetExportsFromFolder<EventExport>("events",__dirname)
+	const res = await getEventExports();
+
 	for (const { name, once, execute } of res) {
-		const _name = name as string
+		const _name = name as string;
 		if (once) {
 			client.once(_name, execute);
 		} else {
@@ -41,7 +41,7 @@ function main() {
 	client.login(token);
 
 	registerCommandsToClient(client);
-	registerEventsToClient(client)
+	registerEventsToClient(client);
 }
 
 main();
