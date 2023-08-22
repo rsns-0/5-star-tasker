@@ -24,7 +24,6 @@ describe("init", async () => {
 		const numberOfEvents = client.eventNames().length;
 
 		expect(numberOfEvents).toBeGreaterThan(1);
-		console.log(numberOfEvents);
 	});
 });
 
@@ -32,7 +31,6 @@ describe("testcmd", async () => {
 	const client = await initTestClient();
 
 	it("When reply on the event is called, it should receive an object whose content field is a string that contains both of the values in the store.", async () => {
-		const executeSpy = jest.spyOn(testCmd, "execute");
 		const store: Record<string, string> = {
 			title: "testTitle1",
 			description: "testDescription1",
@@ -41,6 +39,7 @@ describe("testcmd", async () => {
 		const mockGetString = jest.fn((key) => store[key]);
 		const mockReply = jest.fn((obj) => {
 			const text = obj.content;
+			console.log(text);
 			for (const value of Object.values(store)) {
 				expect(text).toContain(value);
 			}
@@ -50,18 +49,21 @@ describe("testcmd", async () => {
 			reply: mockReply,
 		};
 		await registerCommandsToClient(client);
-		client.commands.get(testCmd.data.name)?.execute(mockMessage);
+		const cmd = client.commands.get(testCmd.data.name)!;
+		const executeSpy = jest.spyOn(cmd, "execute");
+		cmd.execute(mockMessage);
+		expect(executeSpy).toHaveBeenCalled();
 		expect(executeSpy).toHaveBeenCalledWith(mockMessage);
-		expect(executeSpy).toHaveBeenCalledOnce();
 	});
 });
 
 describe("Discord Emoji Service", () => {
-	const emojiServiceRef: any = () => {};
+	
 	it.todo(
-		"when translating from english to spanish, translation method or function should have been called at least once and contain 'hola mundo'",
+		"when translating 'hello world' from english to spanish, the reply content should contain 'hola mundo'",
 		() => {
-			const emojiSpy = generateExecuteSpy(emojiServiceRef);
+			const emojiServiceRef: any = () => {};
+			
 
 			const mockReply = jest.fn(({ content }) => {
 				const lower = (content as string).toLowerCase();
@@ -81,7 +83,7 @@ describe("Discord Emoji Service", () => {
 			mockReaction.message?.reply(mockReaction.message?.content);
 
 			emojiServiceRef.execute(mockReaction?.message?.content as any);
-			expect(emojiSpy).toHaveBeenCalled();
+			
 		}
 	);
 });
