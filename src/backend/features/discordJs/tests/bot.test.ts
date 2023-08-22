@@ -77,7 +77,8 @@ describe("Discord Emoji Service", () => {
 					content: "hello world",
 				},
 			};
-			mockReaction.message?.reply ? 3 : "missing reply";
+			//@ts-ignore
+			mockReaction.message?.reply(mockReaction.message?.content)
 
 			emojiServiceRef.execute(mockReaction?.message?.content as any);
 			expect(emojiSpy).toHaveBeenCalled();
