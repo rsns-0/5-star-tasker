@@ -1,21 +1,21 @@
 import { CommandExport, EventExport, } from "./types/types";
 import ReadyClient from "./models/client";
+import { descendToFolderThenGetExportsFromFolder } from "@/backend/features/fileParsing/services/fileParsingService";
 import dotenv from "dotenv";
-import { getExportsFromFilesInFolder } from "@/backend/features/fileParsing/services/fileParsingService";
 import { registerCommandsToDiscord } from "./deploy-commands";
 import client from "./models/clientCreation";
 
 
-async function registerCommandsToClient(client: ReadyClient) {
-	const res = await getExportsFromFilesInFolder<CommandExport>("commands",__dirname)
+export async function registerCommandsToClient(client: ReadyClient) {
+	const res = await descendToFolderThenGetExportsFromFolder<CommandExport>("commands",__dirname)
 	for (const { data, execute } of res) {
 		client.commands.set(data.name, { data, execute });
 	}
 	registerCommandsToDiscord();
 }
 
-async function registerEventsToClient(client: ReadyClient) {
-	const res = await getExportsFromFilesInFolder<EventExport>("events",__dirname)
+export async function registerEventsToClient(client: ReadyClient) {
+	const res = await descendToFolderThenGetExportsFromFolder<EventExport>("events",__dirname)
 	for (const { name, once, execute } of res) {
 		const _name = name as string
 		if (once) {

@@ -4,6 +4,11 @@ import Denque from "denque";
 import { TraverserError } from "../errors/traverserError";
 import path from "path";
 
+/**
+ * A utility class for traversing directories and finding files.
+ * Currently used for internal implementation of FileParsingService interface.
+ * Not intended for external use, needs better behavior for managing control flow when unexpected events occur.
+ */
 export class DirectoryTraverser {
 	private _directory: string = "";
 	constructor(directory: string) {
@@ -49,7 +54,7 @@ export class DirectoryTraverser {
 
 	/**
 	 * Starting from the end, finds and ascends to the first folder with the specified name.
-	 * 
+	 *
 	 */
 	ascendTo(folderName: string) {
 		const parts = this.currentDirectory.split(path.sep);
@@ -113,7 +118,7 @@ export class DirectoryTraverser {
 	/**
 	 *
 	 * Recursively finds files in the current directory and its subdirectories that match the specified file name or file filter.
-	 * @param fileNameOrFileFilter The name of the file to search for, or a function that takes a full file path and returns a boolean indicating whether the file should be included in the results.
+	 * @param fileNameOrFileFilter The name of the file to search for, or a function that takes a full file path and returns a boolean indicating whether the file should be included in the results. If a string is provided, create a filter for matching the string exactly.
 	 * @returns An array of file paths that match the specified file name or file filter.
 	 * @example
 	 * // Using DirectoryTraverser to find specific files recursively.
@@ -189,13 +194,11 @@ export class DirectoryTraverser {
 		}
 		return res;
 	}
-
-	
-
-	
 }
 function validateDirectory(directory: string) {
 	if (!existsSync(directory) || !lstatSync(directory).isDirectory()) {
-		throw new TraverserError(`Directory ${directory} does not exist or is not a valid directory`);
+		throw new TraverserError(
+			`Directory ${directory} does not exist or is not a valid directory`
+		);
 	}
 }
