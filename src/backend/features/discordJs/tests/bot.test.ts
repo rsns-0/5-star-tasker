@@ -50,7 +50,7 @@ describe("testcmd", async () => {
 			reply: mockReply,
 		};
 		await registerCommandsToClient(client);
-		client.commands.get("embed")?.execute(mockMessage);
+		client.commands.get(testCmd.data.name)?.execute(mockMessage);
 		expect(executeSpy).toHaveBeenCalledWith(mockMessage);
 		expect(executeSpy).toHaveBeenCalledOnce();
 	});
@@ -78,7 +78,7 @@ describe("Discord Emoji Service", () => {
 				},
 			};
 			//@ts-ignore
-			mockReaction.message?.reply(mockReaction.message?.content)
+			mockReaction.message?.reply(mockReaction.message?.content);
 
 			emojiServiceRef.execute(mockReaction?.message?.content as any);
 			expect(emojiSpy).toHaveBeenCalled();
