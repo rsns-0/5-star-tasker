@@ -7,7 +7,7 @@ import { descendToFolderThenGetExportsFromFolder } from "@/backend/features/file
 import dotenv from "dotenv";
 import { registerCommandsToDiscord } from "./deploy-commands";
 
-async function registerCommandsToClient(client: ReadyClient) {
+export async function registerCommandsToClient(client: ReadyClient) {
 	const res = await descendToFolderThenGetExportsFromFolder<CommandExport>("commands",__dirname)
 	for (const { data, execute } of res) {
 		client.commands.set(data.name, { data, execute });
@@ -15,7 +15,7 @@ async function registerCommandsToClient(client: ReadyClient) {
 	registerCommandsToDiscord();
 }
 
-async function registerEventsToClient(client: ReadyClient) {
+export async function registerEventsToClient(client: ReadyClient) {
 	const res = await descendToFolderThenGetExportsFromFolder<EventExport>("events",__dirname)
 	for (const { name, once, execute } of res) {
 		const _name = name as string
