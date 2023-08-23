@@ -6,12 +6,24 @@ export class TranslationService {
 	constructor(private deepLService: DeepLService = new DeepLService()) {}
 
 	/**
-	 * Validates text length <= 500, whether language is available, then calls API to translate.
+	 * @description Sends text to DeepL API for translation after validating text against schema.
+	 * 
+	 * @param {ValidateTranslateTextArgs} props
+	 * @param {string | string[]} props.text - Text to be translated
+	 * @param {string} props.targetLanguage - Language to translate to
+	 * @param {ZodString} props.textValidationSchema - Optional schema to validate text against
+	 * 
 	 *
 	 * @throws {ZodError, AxiosError, ReferenceError}
-	 *
 	 * Throws Zod error if validation fails. Throws AxiosError if network fails. Throws ReferenceError in the rare event that the API key happens to be missing.
-	 * @returns
+	 * @returns {Promise<TranslationData[]>} - Array of TranslationData objects
+	 * @example
+	 * const translationService = new TranslationService();
+	 * const translationData = await translationService.translateText({
+	 * 	text: "Hello world",
+	 * 	targetLanguage: "DE",
+	 * 	textValidationSchema: z.string().min(1).max(5000),
+	 * });
 	 */
 	public translateText(props: ValidateTranslateTextArgs) {
 		return this.deepLService.validateThenTranslate(props);
