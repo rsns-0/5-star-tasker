@@ -1,5 +1,6 @@
 import { DirectoryTraverser } from "./directoryTraverser";
 import { TraverserError } from "../errors/traverserError";
+import { glob } from "glob";
 
 const defaultFilter = (fullFilePath: string): boolean =>
 	fullFilePath.endsWith(".ts") || fullFilePath.endsWith(".js");
@@ -170,3 +171,6 @@ export const getExportsFromFolder = <TExportModel extends Record<any, any> = Rec
 		: traverser.getFiles().filter(fileFilter);
 	return Promise.all(res.map((file) => import(file)));
 };
+
+
+

@@ -2,6 +2,7 @@ import {describe, expect, it} from "vitest"
 
 import { TranslationService } from "../services/translationService";
 import dotenv from "dotenv"
+import { z } from "zod";
 
 dotenv.config() 
 
@@ -34,11 +35,23 @@ describe("translateText", () => {
         }).toThrow()
     })
 
-    it("should throw on text > 500 chars", () => {
+    it("should throw on text > 500 chars by default.", () => {
         expect(() => {
             return service.translateText({
                 text: "a".repeat(501),
                 targetLanguage: "ES"
+            })
+        }).toThrow()
+        
+    })
+
+    it("should throw on text > 250 characters with new schema passed in.", () => {
+        
+        expect(() => {
+            return service.translateText({
+                text: "a".repeat(251),
+                targetLanguage: "ES",
+                textValidationSchema: z.string().min(1).max(250)
             })
         }).toThrow()
         

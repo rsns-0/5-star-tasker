@@ -11,19 +11,20 @@
     "test:watch": "vitest",
     "test:watchui": "vitest --ui --api 9527",
     "test": "vitest run",
-
     "doc": "typedoc",
     "doc:open": "docs/index.html",
-
-
-    "bot":"ts-node src/backend/features/discordJs/index.ts"
+    "bot": "ts-node src/backend/features/discordJs/index.ts",
+    "dbpull": "prisma db pull && prisma generate"
   },
   "dependencies": {
+    "@prisma/client": "^5.2.0",
     "axios": "^1.4.0",
     "denque": "^2.1.0",
     "discord.js": "^14.12.1",
     "dotenv": "^16.3.1",
+    "glob": "^10.3.3",
     "next": "13.4.13",
+    "prisma": "^5.2.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "zod": "^3.22.1"
