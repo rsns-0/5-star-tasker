@@ -21,7 +21,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">TranslationService</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/rsns-0/5-star-tasker/blob/b77767c/src/backend/features/translation/services/translationService.ts#L5">src/backend/features/translation/services/translationService.ts:5</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/rsns-0/5-star-tasker/blob/bb52631/src/backend/features/translation/services/translationService.ts#L5">src/backend/features/translation/services/translationService.ts:5</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -54,14 +54,14 @@
 <h5><span class="tsd-kind-parameter">deepLService</span>: <a href="translation_services_deepLService.DeepLService.html" class="tsd-signature-type tsd-kind-class">DeepLService</a><span class="tsd-signature-symbol"> = ...</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="translation_services_translationService.TranslationService.html" class="tsd-signature-type tsd-kind-class">TranslationService</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/rsns-0/5-star-tasker/blob/b77767c/src/backend/features/translation/services/translationService.ts#L6">src/backend/features/translation/services/translationService.ts:6</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/rsns-0/5-star-tasker/blob/bb52631/src/backend/features/translation/services/translationService.ts#L6">src/backend/features/translation/services/translationService.ts:6</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="deepLService" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>deepLService</span><a href="#deepLService" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">deepLService</span><span class="tsd-signature-symbol">:</span> <a href="translation_services_deepLService.DeepLService.html" class="tsd-signature-type tsd-kind-class">DeepLService</a><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/rsns-0/5-star-tasker/blob/b77767c/src/backend/features/translation/services/translationService.ts#L6">src/backend/features/translation/services/translationService.ts:6</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/rsns-0/5-star-tasker/blob/bb52631/src/backend/features/translation/services/translationService.ts#L6">src/backend/features/translation/services/translationService.ts:6</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member"><a id="translateText" class="tsd-anchor"></a>
@@ -69,19 +69,26 @@
 <ul class="tsd-signatures">
 <li class="tsd-signature tsd-anchor-link" id="translateText.translateText-1"><span class="tsd-kind-call-signature">translate<wbr/>Text</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">props</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="translation_models_translationData.TranslationData.html" class="tsd-signature-type tsd-kind-class">TranslationData</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#translateText.translateText-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Validates text length &lt;= 500, whether language is available, then calls API to translate.</p>
-</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">props</span>: <span class="tsd-signature-type ">MergeDeepObject</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/translation_types_types.TranslateTextArgs.html" class="tsd-signature-type tsd-kind-type-alias">TranslateTextArgs</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type ">ValidateTranslateTextArgsBase</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type ">BuiltIn</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="translation_models_translationData.TranslationData.html" class="tsd-signature-type tsd-kind-class">TranslationData</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4>
+<h5><span class="tsd-kind-parameter">props</span>: <span class="tsd-signature-type ">MergeDeepObject</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/translation_types_types.TranslateTextArgs.html" class="tsd-signature-type tsd-kind-type-alias">TranslateTextArgs</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type ">ValidateTranslateTextArgsBase</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type ">BuiltIn</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">&gt;</span></h5>
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="translation_models_translationData.TranslationData.html" class="tsd-signature-type tsd-kind-class">TranslationData</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><ul>
+<li>Array of TranslationData objects</li>
+</ul>
+
 <div class="tsd-comment tsd-typography">
+<h4>Description</h4><p>Sends text to DeepL API for translation after validating text against schema.</p>
+
 <h4>Throws</h4><p>Throws Zod error if validation fails. Throws AxiosError if network fails. Throws ReferenceError in the rare event that the API key happens to be missing.</p>
+
+<h4>Example</h4><pre><code class="language-ts"><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">translationService</span><span class="hl-1"> = </span><span class="hl-4">new</span><span class="hl-1"> </span><span class="hl-6">TranslationService</span><span class="hl-1">();</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">translationData</span><span class="hl-1"> = </span><span class="hl-0">await</span><span class="hl-1"> </span><span class="hl-2">translationService</span><span class="hl-1">.</span><span class="hl-6">translateText</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-2">text:</span><span class="hl-1"> </span><span class="hl-3">&quot;Hello world&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-2">targetLanguage:</span><span class="hl-1"> </span><span class="hl-3">&quot;DE&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-2">textValidationSchema:</span><span class="hl-1"> </span><span class="hl-2">z</span><span class="hl-1">.</span><span class="hl-6">string</span><span class="hl-1">().</span><span class="hl-6">min</span><span class="hl-1">(</span><span class="hl-7">1</span><span class="hl-1">).</span><span class="hl-6">max</span><span class="hl-1">(</span><span class="hl-7">5000</span><span class="hl-1">),</span><br/><span class="hl-1">});</span>
+</code><button>Copy</button></pre>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/rsns-0/5-star-tasker/blob/b77767c/src/backend/features/translation/services/translationService.ts#L16">src/backend/features/translation/services/translationService.ts:16</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/rsns-0/5-star-tasker/blob/bb52631/src/backend/features/translation/services/translationService.ts#L28">src/backend/features/translation/services/translationService.ts:28</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="translateTextWithoutValidation" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>translate<wbr/>Text<wbr/>Without<wbr/>Validation</span><a href="#translateTextWithoutValidation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -99,7 +106,7 @@
 <h4>Throws</h4><p>Throws AxiosError if network fails.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/rsns-0/5-star-tasker/blob/b77767c/src/backend/features/translation/services/translationService.ts#L27">src/backend/features/translation/services/translationService.ts:27</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/rsns-0/5-star-tasker/blob/bb52631/src/backend/features/translation/services/translationService.ts#L39">src/backend/features/translation/services/translationService.ts:39</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -128,6 +135,7 @@
 <ul class="tsd-small-nested-navigation">
 <li><a href="../modules/discordJs_models_client.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>discord<wbr/>Js/models/client</span></a></li>
 <li><a href="../modules/discordJs_models_user.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>discord<wbr/>Js/models/user</span></a></li>
+<li><a href="../modules/discordJs_services_exportService.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>discord<wbr/>Js/services/export<wbr/>Service</span></a></li>
 <li><a href="../modules/discordJs_types_handler.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>discord<wbr/>Js/types/handler</span></a></li>
 <li><a href="../modules/discordJs_types_types.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>discord<wbr/>Js/types/types</span></a></li>
 <li><a href="../modules/fileParsing_services_directoryTraverser.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>file<wbr/>Parsing/services/directory<wbr/>Traverser</span></a></li>
