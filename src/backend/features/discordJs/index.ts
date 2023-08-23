@@ -1,7 +1,4 @@
-import { Client, Events, GatewayIntentBits } from "discord.js";
 import { getCommandExports, getEventExports } from "./services/exportService";
-
-import { Collection } from "discord.js";
 import ReadyClient from "./models/client";
 import client from "./models/clientCreation";
 import dotenv from "dotenv";
