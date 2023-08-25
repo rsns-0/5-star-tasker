@@ -14,8 +14,8 @@ export class LanguageRepository {
 		return LanguageRepository.instance;
 	}
 
-	public languageIsAvailableForTranslation(language: string) {
-		return isKeyOf(language, languageMap);
+	public languageIsAvailableForTranslation(languageAbbreviation: string) {
+		return isKeyOf(languageAbbreviation, languageMap);
 	}
 
 	public getLanguageIfAvailableForTranslation(emoji: string) {
