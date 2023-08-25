@@ -7,7 +7,7 @@ export type HandleAcceptableErrorsOptions<TError extends readonly Error[] = read
 
 export const handleAcceptableErrors = <TError extends readonly Error[] = readonly Error[]>(
 	unknownError: unknown,
-	options: HandleAcceptableErrorsOptions<TError>
+	options: HandleAcceptableErrorsOptions<TError> = {}
 ): TupleToUnion<TError> | never => {
 	const acceptableErrorTypes = options.acceptableErrorTypes ?? ([new Error()] as any as TError);
 	const { filter = () => true } = options;

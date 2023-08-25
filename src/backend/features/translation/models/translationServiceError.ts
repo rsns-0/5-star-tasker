@@ -12,7 +12,10 @@ export class TranslationServiceErrorFactory {
 		if (error instanceof AxiosError) {
 			return new TranslationNetworkError(error);
 		}
-		return new TranslationServiceError(error as Error);
+		if (error instanceof Error) {
+            return new TranslationServiceError(error);
+        }
+        throw error
 	}
 }
 
