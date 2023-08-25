@@ -44,17 +44,18 @@ export async function registerEventsToClient(client: ReadyClient) {
 }
 
 export const registerCommandsToDiscord = async (
-	clientId: string,
-	guildId: string,
-	token: string
-) => {
-	if (!clientId || !guildId || !token) {
-		throw new Error("Missing discord settings");
+	{
+		clientId,
+		guildId,
+		token,
+	} : {
+		clientId: string;
+		guildId: string;
+		token: string;
 	}
-	const commandArr = await descendToFolderThenGetExportsFromFolder<CommandExport>(
-		"commands",
-		__dirname
-	);
+) => {
+	
+	const commandArr = await getCommandExports()
 	const serializedCommands = commandArr.map((command) => command.data.toJSON());
 	const rest = new REST().setToken(token);
 	try {
