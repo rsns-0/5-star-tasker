@@ -1,12 +1,14 @@
-import axios, { AxiosInstance } from "axios";
-import { validLangSchema, validTextSchema } from "../schemas/validTextArg";
+import axios, { AxiosError, AxiosInstance } from "axios";
+import { defaultValidTextSchema, validLangSchema } from "../schemas/validTextArg";
 
 import { DeepLDataCollection } from "../types/types";
+import { EnvVarError } from "@/utils/errors/EnvVarError";
 import { Logger } from "@/backend/logger/logger";
 import { TranslateTextArgs } from "../types/types";
 import { TranslationData } from "../models/translationData";
 import { ValidateTranslateTextArgs } from "../types/types";
 import { deepLResponseSchema } from "../schemas/deepL";
+import { z } from "zod";
 
 export class DeepLService {
 	private apiEndpoint = "https://api-free.deepl.com/v2/translate";
@@ -21,35 +23,62 @@ export class DeepLService {
 
 	constructor(private logger: Logger = new Logger()) {}
 
-	public validateThenTranslate({ text, targetLanguage, textValidationSchema }: ValidateTranslateTextArgs) {
+	public async validateThenTranslate({
+		text,
+		targetLanguage,
+		textValidationSchema,
+	}: ValidateTranslateTextArgs) {
 		if (!this.client.defaults.headers.Authorization) {
-			throw new ReferenceError("Missing deepL API key");
+			throw new EnvVarError("DeepL API key not found.");
 		}
-		const cleanText = DeepLService.cleanText(text, textValidationSchema);
-		const cleanLanguage = validLangSchema.parse(targetLanguage);
-		return this.sendTranslationDataToAPI({
-			text: cleanText,
-			targetLanguage: cleanLanguage,
+		const maybeText = DeepLService.cleanText(text, textValidationSchema);
+		const maybeTargetLanguage = validLangSchema.safeParse(targetLanguage);
+		if (!maybeText.success) {
+			return maybeText.error;
+		}
+		if (!maybeTargetLanguage.success) {
+			return maybeTargetLanguage.error;
+		}
+
+		const res = await this.sendTranslationDataToAPI({
+			text: maybeText.data,
+			targetLanguage: maybeTargetLanguage.data,
 		});
+		return res;
 	}
 
 	public async sendTranslationDataToAPI({ text, targetLanguage }: TranslateTextArgs) {
 		const body = DeepLService.makeBody(text, targetLanguage);
+		let data: DeepLDataCollection;
 		try {
-			const { data } = await this.client.post<DeepLDataCollection>(this.apiEndpoint, body);
-
-			return deepLResponseSchema
-				.parse(data)
-				.translations.map((translationData) => new TranslationData(translationData, targetLanguage));
+			const { data: res } = await this.client.post<DeepLDataCollection>(
+				this.apiEndpoint,
+				body
+			);
+			data = res;
 		} catch (e) {
-			this.logger.logError(e);
+			if (e instanceof AxiosError) {
+				return e;
+			}
 			throw e;
 		}
+		const res = deepLResponseSchema.safeParse(data);
+		if (!res.success) {
+			return res.error;
+		}
+		return res.data.translations.map(
+			(translationData) => new TranslationData(translationData, targetLanguage)
+		);
 	}
 
-	private static cleanText(textStrOrTextArr: string | string[], textValidationSchema = validTextSchema) {
-		const textArr = typeof textStrOrTextArr === "string" ? [textStrOrTextArr] : textStrOrTextArr;
-		return textArr.map((text) => textValidationSchema.parse(text));
+	private static cleanText(
+		textStrOrTextArr: string | string[],
+		textValidationSchema = defaultValidTextSchema
+	) {
+		const textArr =
+			typeof textStrOrTextArr === "string" ? [textStrOrTextArr] : textStrOrTextArr;
+
+		return z.array(textValidationSchema).safeParse(textArr);
 	}
 
 	private static makeBody(text: string[], targetLanguage: string) {

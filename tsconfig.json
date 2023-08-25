@@ -4,7 +4,8 @@
     // same as the --compilerOptions flag and the TS_NODE_COMPILER_OPTIONS environment variable
     "require": ["tsconfig-paths/register"],
     "compilerOptions": {
-      "module": "NodeNext"
+      "module": "NodeNext",
+      "esModuleInterop": true,
     }
 },
   "compilerOptions": {
@@ -35,6 +36,6 @@
     "emitDecoratorMetadata": true,
     "noErrorTruncation": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules",".next"]
 }
