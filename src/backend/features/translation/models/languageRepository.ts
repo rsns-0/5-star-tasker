@@ -1,3 +1,5 @@
+import { isKeyOf } from "@/utils/iskeyOf";
+
 export class LanguageRepository {
 	private readonly emojiMap = emojiMap
 	private readonly languageMap = languageMap;
@@ -237,6 +239,3 @@ const languageMap = {
 	ZH: "Chinese",
 } as const
 
-function isKeyOf<T extends Object>(key: string | number | symbol, obj: T): key is keyof T {
-	return key in obj;
-}
