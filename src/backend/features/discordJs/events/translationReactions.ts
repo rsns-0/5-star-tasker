@@ -1,4 +1,4 @@
-import { Events, MessageReaction, User } from "discord.js";
+import { Events, MessageReaction, User, userMention } from "discord.js";
 
 import { LanguageRepository } from "../../translation/models/languageRepository";
 import { Logger } from "@/backend/logger/logger";
@@ -18,6 +18,7 @@ const DEFAULT_ACCENT_COLOR = 0x0099ff;
  */
 const execute = async (reaction: MessageReaction, user: User) => {
 	const { channel } = await reaction.message.fetch();
+	
 
 	const textToTranslate = reaction.message.content;
 	const emojiReactionID = reaction.emoji.name;
@@ -42,7 +43,7 @@ const execute = async (reaction: MessageReaction, user: User) => {
 	if (result instanceof TranslationServiceError) {
 		const { message } = result.autoResolve();
 		await channel.send({
-			content: `<@${user.id}>\n${message}`,
+			content: `${userMention(user.id)}\n${message}`,
 		});
 		return;
 	}
@@ -50,10 +51,10 @@ const execute = async (reaction: MessageReaction, user: User) => {
 	const { sourceLanguage, text } = result[0];
 	const color = reaction.client.user.accentColor || DEFAULT_ACCENT_COLOR;
 	const embed = createTranslationEmbed(text, sourceLanguage, targetLanguage, color);
-
+	
 	try {
 		await channel.send({
-			content: `<@${user.id}>`,
+			content: userMention(user.id),
 			embeds: [embed],
 			allowedMentions: { parse: ["users"] },
 		});
