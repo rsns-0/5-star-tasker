@@ -1,30 +1,42 @@
 import { TranslateTextArgs, ValidateTranslateTextArgs } from "../types/types";
 
 import { DeepLService } from "./deepLService";
+import { Logger } from "@/backend/logger/logger";
+import { TranslationServiceErrorFactory } from "../models/translationServiceError";
 
 export class TranslationService {
-	constructor(private deepLService: DeepLService = new DeepLService()) {}
+	
+	constructor(private deepLService = new DeepLService(), private logger = new Logger()) {}
 
 	/**
-	 * Validates text length <= 500, whether language is available, then calls API to translate.
-	 *
-	 * @throws {ZodError, AxiosError, ReferenceError}
-	 *
-	 * Throws Zod error if validation fails. Throws AxiosError if network fails. Throws ReferenceError in the rare event that the API key happens to be missing.
-	 * @returns
+	 * Validates the input text and language code, then translates the text using the DeepL API.
+	 * @param props - The arguments for validating and translating the text.
+	 * @returns A Promise that resolves to the translated text.
 	 */
-	public translateText(props: ValidateTranslateTextArgs) {
-		return this.deepLService.validateThenTranslate(props);
+	public async translateTextWithValidation(props: ValidateTranslateTextArgs){
+		const res = await this.deepLService.validateThenTranslate(props)
+		if(res instanceof Error){
+			this.logger.logError(res)
+			return TranslationServiceErrorFactory.fromError(res)
+		}
+		return res
 	}
 
+
 	/**
-	 * Sends text directly to API without validation for translation.
-	 *
-	 * @throws {AxiosError}
-	 * Throws AxiosError if network fails.
-	 * @returns
+	 * Translates the given text using the DeepL API.
+	 * @param props - The arguments for the translation request.
+	 * @returns A Promise that resolves to the translated text.
 	 */
-	public translateTextWithoutValidation(props: TranslateTextArgs) {
-		return this.deepLService.sendTranslationDataToAPI(props);
+	public async translateText(props: TranslateTextArgs) {
+		const res = await this.deepLService.sendTranslationDataToAPI(props);
+		
+		if(res instanceof Error){
+			this.logger.logError(res)
+			return TranslationServiceErrorFactory.fromError(res)
+		}
+		return res;
+
 	}
 }
+

@@ -1,3 +1,4 @@
+import { ZodError, z } from "zod";
 import {describe, expect, it} from "vitest"
 
 import { TranslationService } from "../services/translationService";
@@ -14,33 +15,42 @@ describe("translateText", () => {
         // test may be flaky given that deepL is an AI service, check returned text if it fails
         const expected = { detectedSourceLanguage: 'EN', text: 'hola mundo' }
         
-        const res = await service.translateText({
+        const res = await service.translateTextWithValidation({
             text: ["hello world"],
             targetLanguage: "ES"
         })
-        
-        const {detectedSourceLanguage, text} = res[0]
+        if(res instanceof Error){
+            throw res
+        }
+        const {sourceLanguage: detectedSourceLanguage, text} = res[0]
         expect(detectedSourceLanguage).toBe(expected.detectedSourceLanguage)
         expect(text).toBe(expected.text)
         
     })
 
-    it("should throw on unaccepted languages", async () => {
-        expect(() => {
-            return service.translateText({
-                text: ["hello world"],
-                targetLanguage: "XX"
-            })
-        }).toThrow()
+    it("should return error on unaccepted languages", async () => {
+        const res = await service.translateTextWithValidation({
+            text: ["hello world"],
+            targetLanguage: "XX"
+        })
+        expect(res instanceof Error).toBe(true)
     })
 
-    it("should throw on text > 500 chars", () => {
-        expect(() => {
-            return service.translateText({
-                text: "a".repeat(501),
-                targetLanguage: "ES"
-            })
-        }).toThrow()
+    it("should return error when char length >500 by default", async() => {
+        const res = await service.translateTextWithValidation({
+            text: "a".repeat(501),
+            targetLanguage: "ES"
+        })
+        expect(res instanceof Error).toBe(true)
+    })
+
+    it("should return error on text > 250 characters with new schema passed in.", async () => {
         
+        const res = await service.translateTextWithValidation({
+            text: "a".repeat(251),
+            targetLanguage: "ES",
+            textValidationSchema: z.string().min(1).max(250)
+        })
+        expect(res instanceof Error).toBe(true)
     })
 })
