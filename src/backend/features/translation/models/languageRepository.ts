@@ -18,14 +18,35 @@ export class LanguageRepository {
 		return isKeyOf(languageAbbreviation, languageMap);
 	}
 
-	public getLanguageIfAvailableForTranslation(emoji: string) {
-		return isKeyOf(emoji, emojiMap) ? this.emojiMap[emoji] : null
+	/**
+	 * 
+	 * @param input - The input can be an emoji, language abbreviation, or full language name.
+	 * @returns The abbreviation for the language if it is available for translation, otherwise null.
+	 */
+	public getLanguageIfAvailableForTranslation(input: string) {
+		if (isKeyOf (input, emojiMap)){
+			const langAbbreviation = this.emojiMap[input]
+			if(isKeyOf(langAbbreviation, languageMap)){
+				return langAbbreviation
+			}
+		}
+		if(isKeyOf(input,languageMap)){
+			return input
+		}
+		if (Object.values(languageMap).includes(input as any)){
+			const langAbbreviation = Object.keys(languageMap).find(key => languageMap[key as keyof typeof languageMap] === input)
+			return langAbbreviation || null
+		}
+		
+		return null
 	}
 
     public getFullLanguageName(abbreviation:string){
         return isKeyOf(abbreviation, languageMap) ? this.languageMap[abbreviation] : null
     }
 }
+
+
 
 const emojiMap = {
 	"🇨🇱": "ES",
