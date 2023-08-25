@@ -1,7 +1,4 @@
-import {
-	Events,
-	MessageReaction,
-} from "discord.js";
+import { Events, MessageReaction, User } from "discord.js";
 
 import { LanguageRepository } from "../../translation/models/languageRepository";
 import { Logger } from "@/backend/logger/logger";
@@ -14,17 +11,16 @@ const translation = new TranslationService();
 const logger = new Logger();
 const DEFAULT_ACCENT_COLOR = 0x0099ff;
 
-
 /**
- * 
+ *
  * This event handler translates a target message when a user reacts to it with an emoji and replies to the reacter with the translation.
- * 
+ *
  */
-const execute = async (reaction: MessageReaction) => {
-	const { channel } = reaction.message;
+const execute = async (reaction: MessageReaction, user: User) => {
+	const { channel } = await reaction.message.fetch();
 
-	const textToTranslate = reaction.message.content;
-	const emojiReactionID = reaction.emoji.name;
+	const textToTranslate = await reaction.message.content;
+	const emojiReactionID = await reaction.emoji.name;
 
 	if (textToTranslate === null) {
 		throw new Error("Unexpected null value in text to translate.");
@@ -32,7 +28,7 @@ const execute = async (reaction: MessageReaction) => {
 	if (emojiReactionID === null) {
 		throw new Error("Unexpected null value in emoji reaction ID.");
 	}
-	
+
 	const targetLanguage =
 		LanguageRepository.getInstance().getLanguageIfAvailableForTranslation(emojiReactionID);
 	if (!targetLanguage) {
@@ -45,7 +41,9 @@ const execute = async (reaction: MessageReaction) => {
 	});
 	if (result instanceof TranslationServiceError) {
 		const { message } = result.autoResolve();
-		await channel.send(message)
+		await channel.send({
+			content: `<@${user.id}>\n${message}`,
+		});
 		return;
 	}
 
@@ -54,7 +52,11 @@ const execute = async (reaction: MessageReaction) => {
 	const embed = createTranslationEmbed(text, sourceLanguage, targetLanguage, color);
 
 	try {
-		await reaction.message.reply({ embeds: [embed] })
+		await channel.send({
+			content: `<@${user.id}>`,
+			embeds: [embed],
+			allowedMentions: { parse: ["users"] },
+		});
 	} catch (e) {
 		logger.logError(e);
 		await channel.send("An unknown server error occurred. Please try again later.");
