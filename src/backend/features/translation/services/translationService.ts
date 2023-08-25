@@ -16,6 +16,7 @@ export class TranslationService {
 	public async translateTextWithValidation(props: ValidateTranslateTextArgs){
 		const res = await this.deepLService.validateThenTranslate(props)
 		if(res instanceof Error){
+			this.logger.logError(res)
 			return TranslationServiceErrorFactory.fromError(res)
 		}
 		return res
@@ -29,7 +30,9 @@ export class TranslationService {
 	 */
 	public async translateText(props: TranslateTextArgs) {
 		const res = await this.deepLService.sendTranslationDataToAPI(props);
+		
 		if(res instanceof Error){
+			this.logger.logError(res)
 			return TranslationServiceErrorFactory.fromError(res)
 		}
 		return res;

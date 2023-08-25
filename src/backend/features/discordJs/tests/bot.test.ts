@@ -1,12 +1,13 @@
 import * as testCmd from "../commands/testcmd";
 
 import { describe, expect, it, vi as jest } from "vitest";
-import { registerCommandsToClient, registerEventsToClient } from "..";
 
 import { MessageReaction } from "discord.js";
 import { O } from "ts-toolbelt";
 import { generateExecuteSpy } from "./testUtils/generateExecuteSpy";
 import { initTestClient } from "./initScripts/initTestClient";
+import { registerCommandsToClient } from "../init/initClient";
+import { registerEventsToClient } from "../init/initClient";
 
 describe("init", async () => {
 	const client = await initTestClient();

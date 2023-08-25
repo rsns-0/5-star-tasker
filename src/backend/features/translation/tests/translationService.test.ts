@@ -22,7 +22,7 @@ describe("translateText", () => {
         if(res instanceof Error){
             throw res
         }
-        const {detectedSourceLanguage, text} = res[0]
+        const {sourceLanguage: detectedSourceLanguage, text} = res[0]
         expect(detectedSourceLanguage).toBe(expected.detectedSourceLanguage)
         expect(text).toBe(expected.text)
         

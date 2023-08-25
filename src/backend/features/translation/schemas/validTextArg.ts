@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-export const defaultValidTextSchema = z.string().trim().min(1).max(500)
+export const defaultValidTextSchema = z.string().trim().min(1,{
+  message: "Text cannot be empty."
+}).max(500,"Text cannot be more than 500 characters.")
+
 
 export const deepLLanguages = [
   'BG',
