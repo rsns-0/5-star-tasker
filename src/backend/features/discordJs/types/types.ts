@@ -1,5 +1,6 @@
-import { Awaitable, ClientEvents, CommandInteraction, Events, SlashCommandBuilder } from "discord.js";
-import { ClientHandler, InteractionHandler } from './handler';
+import { Awaitable, ClientEvents, Events, SlashCommandBuilder } from "discord.js";
+
+import { InteractionHandler } from './handler';
 
 export type CommandExport = {
 	data: SlashCommandBuilder;
