@@ -6,8 +6,10 @@ import { EnvVarError } from "@/utils/errors/EnvVarError";
 import { Logger } from "@/backend/logger/logger";
 import { TranslateTextArgs } from "../types/types";
 import { TranslationData } from "../models/translationData";
+import { UnexpectedAPISchemaError } from "@/utils/errors/UnexpectedAPISchemaError";
 import { ValidateTranslateTextArgs } from "../types/types";
 import { deepLResponseSchema } from "../schemas/deepL";
+import { fromZodError } from "zod-validation-error";
 import { z } from "zod";
 
 export class DeepLService {
@@ -64,7 +66,7 @@ export class DeepLService {
 		}
 		const res = deepLResponseSchema.safeParse(data);
 		if (!res.success) {
-			return res.error;
+			throw new UnexpectedAPISchemaError(fromZodError(res.error).message);
 		}
 		return res.data.translations.map(
 			(translationData) => new TranslationData(translationData, targetLanguage)

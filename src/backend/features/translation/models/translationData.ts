@@ -12,7 +12,7 @@ export class TranslationData {
 		return this.data.text;
 	}
 
-	public get detectedSourceLanguage() {
+	public get sourceLanguage() {
 		return this.data.detected_source_language;
 	}
 

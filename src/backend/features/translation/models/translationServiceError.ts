@@ -18,7 +18,7 @@ export class TranslationServiceErrorFactory{
     }
 }
 
-class TranslationServiceError<TError extends Error=Error> extends Error {
+export class TranslationServiceError<TError extends Error=Error> extends Error {
     protected e: TError
 
     constructor(error:TError){
@@ -35,6 +35,33 @@ class TranslationServiceError<TError extends Error=Error> extends Error {
     isValidationError(): this is TranslationValidationError {
         return this.e instanceof ZodError
     }
+
+	autoResolve(){
+		if(this.isNetworkError()){
+			if(this.statusCode === undefined){
+				return{
+					status: 500,
+					message: "Unknown error at DeepL API interface"
+				}
+			}
+			return {
+				status: parseInt(this.statusCode),
+				message: this.message
+			}
+		}
+		if(this.isValidationError()){
+			return {
+				status: 400,
+				message: this.friendlyErrorMessage.message
+			}
+		}
+		this.message = `Could not auto resolve error. Original error message: ${this.message}`
+		throw this
+		// return {
+		// 	status: 500,
+		// 	message: "Unknown server error."
+		// }
+	}
 }
 
 export class TranslationNetworkError extends TranslationServiceError<AxiosError> {
@@ -55,3 +82,4 @@ export class TranslationValidationError extends TranslationServiceError<ZodError
     }
     
 }
+
