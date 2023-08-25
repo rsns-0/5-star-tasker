@@ -19,8 +19,8 @@ const DEFAULT_ACCENT_COLOR = 0x0099ff;
 const execute = async (reaction: MessageReaction, user: User) => {
 	const { channel } = await reaction.message.fetch();
 
-	const textToTranslate = await reaction.message.content;
-	const emojiReactionID = await reaction.emoji.name;
+	const textToTranslate = reaction.message.content;
+	const emojiReactionID = reaction.emoji.name;
 
 	if (textToTranslate === null) {
 		throw new Error("Unexpected null value in text to translate.");
