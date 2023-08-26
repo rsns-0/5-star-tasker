@@ -20,30 +20,19 @@ model channels {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model countries {
-  id         BigInt      @id @default(autoincrement())
-  name       String?
-  iso2       String
-  iso3       String?
-  local_name String?
-  continent  continents?
-}
-
-model discord_message {
-  id           BigInt       @id @default(autoincrement())
-  created_at   DateTime     @default(now()) @db.Timestamptz(6)
-  content      String       @default("")
-  channel_id   BigInt
-  server_id    BigInt
-  author_id    BigInt
-  discord_user discord_user @relation(fields: [author_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id         BigInt     @id(map: "countries_pkey1") @default(autoincrement())
+  created_at DateTime   @default(now()) @db.Timestamptz(6)
+  name       String     @unique
+  flag_emoji String?    @unique
+  language   BigInt?
+  languages  languages? @relation(fields: [language], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model discord_user {
-  id              BigInt            @id @default(autoincrement())
-  created_at      DateTime          @default(now()) @db.Timestamptz(6)
-  username        String?
-  discord_id      String?           @unique
-  discord_message discord_message[]
+  id         BigInt      @id @default(autoincrement())
+  created_at DateTime    @default(now()) @db.Timestamptz(6)
+  username   String?     @default("")
+  reminders  reminders[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -96,6 +85,44 @@ model users {
   channels   channels[]
   messages   messages[]
   user_roles user_roles[]
+}
+
+model languages {
+  id           BigInt      @id @default(autoincrement())
+  created_at   DateTime    @default(now()) @db.Timestamptz(6)
+  name         String      @unique
+  abbreviation String      @unique
+  countries    countries[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model test_countries {
+  id         BigInt      @id(map: "countries_pkey") @default(autoincrement())
+  name       String?
+  iso2       String
+  iso3       String?
+  local_name String?
+  continent  continents?
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model discord_channels {
+  id         BigInt      @id @unique
+  name       String?     @default("")
+  created_at DateTime    @default(now()) @db.Timestamptz(6)
+  reminders  reminders[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model reminders {
+  id               BigInt            @id @default(autoincrement())
+  created_at       DateTime          @default(now()) @db.Timestamptz(6)
+  user_id          BigInt?
+  channel_id       BigInt?
+  time             DateTime          @db.Timestamptz(6)
+  reminder         String
+  discord_channels discord_channels? @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  discord_user     discord_user?     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 enum app_permission {
