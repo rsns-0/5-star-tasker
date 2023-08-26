@@ -22,3 +22,6 @@ class ReminderRepository{
     }
     
 }
+
+const reminderRepository = new ReminderRepository()
+export default reminderRepository
