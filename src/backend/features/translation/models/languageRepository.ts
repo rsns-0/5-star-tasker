@@ -1,5 +1,4 @@
 import { TransactionException } from "@/utils/errors/transactionException";
-import { ValueOf } from "@/utils/types";
 import prisma from "@/backend/db/prismaInstance";
 import { z } from "zod";
 
@@ -20,6 +19,15 @@ class LanguageRepository {
 
 export type LanguageAbbreviationStrategy<T, R> = (this: any, input: T) => R;
 
+const querySchema = z
+		.object({ abbreviation: z.string() })
+		.array()
+		.transform((val) => {
+			if (val.length === 0) {
+				return null;
+			}
+			return val[0].abbreviation;
+		});
 
 class LanguageAbbreviationStrategies {
 	async byEmoji(input: string) {
@@ -27,9 +35,14 @@ class LanguageAbbreviationStrategies {
 			where: {
 				countries: {
 					some: {
-						flag_emoji: input,
+						flag_emoji: {
+							mode: "insensitive",
+							equals: input
+						},
+						
 					},
 				},
+				
 			},
 			select: {
 				abbreviation: true,
@@ -42,7 +55,7 @@ class LanguageAbbreviationStrategies {
 	async byAbbreviation(input: string) {
 		const res = await prisma.languages.findUnique({
 			where: {
-				abbreviation: input,
+				abbreviation: input.toUpperCase(),
 			},
 			select: {
 				abbreviation: true,
@@ -52,15 +65,19 @@ class LanguageAbbreviationStrategies {
 	}
 
 	async byName(input: string) {
-		const res = await prisma.languages.findUnique({
+		const res = await prisma.languages.findMany({
 			where: {
-				name: input,
+				name: {
+					mode: "insensitive",
+					equals: input,
+				},
 			},
 			select: {
 				abbreviation: true,
 			},
+			take: 1,
 		});
-		return res?.abbreviation ?? null;
+		return res.length ? res[0].abbreviation : null;
 	}
 
 	async byCountryName(input: string) {
@@ -70,12 +87,14 @@ class LanguageAbbreviationStrategies {
 					some: {
 						name: {
 							equals: input,
+							mode: "insensitive",
 						},
 					},
 				},
 			},
 			select: {
 				abbreviation: true,
+				
 			},
 			take: 1,
 		});
@@ -84,19 +103,11 @@ class LanguageAbbreviationStrategies {
 		
 	}
 
-	private querySchema = z
-		.object({ abbreviation: z.string() })
-		.array()
-		.transform((val) => {
-			if (val.length === 0) {
-				return null;
-			}
-			return val[0].abbreviation;
-		});
+	
 
-	async byCountryName2(input: string) {
-		const res = await prisma.$queryRaw`SELECT * FROM get_language_by_country_name(${input})`;
-		return this.querySchema.parse(res);
+	async byCountryNameOptimized(input: string) {
+		const res = await prisma.$queryRaw`SELECT abbreviation FROM get_language_abbreviation_by_country_name(${input})`;
+		return querySchema.parse(res);
 	}
 }
 const languageAbbreviationStrategiesInstance = new LanguageAbbreviationStrategies();
