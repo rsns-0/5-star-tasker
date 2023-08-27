@@ -1,0 +1,3 @@
+
+
+export const TRANSLATION_MAX_USER_INPUT_CHARS = 2000

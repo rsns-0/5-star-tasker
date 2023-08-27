@@ -3,7 +3,6 @@ import { defaultValidTextSchema, validLangSchema } from "../schemas/validTextArg
 
 import { DeepLDataCollection } from "../types/types";
 import { EnvVarError } from "@/utils/errors/EnvVarError";
-import { Logger } from "@/backend/logger/logger";
 import { TranslateTextArgs } from "../types/types";
 import { TranslationData } from "../models/translationData";
 import { UnexpectedAPISchemaError } from "@/utils/errors/UnexpectedAPISchemaError";
@@ -23,8 +22,6 @@ export class DeepLService {
 	};
 	private client: AxiosInstance = axios.create(this.axiosConfig);
 
-	constructor(private logger: Logger = new Logger()) {}
-
 	public async validateThenTranslate({
 		text,
 		targetLanguage,
@@ -41,7 +38,6 @@ export class DeepLService {
 		if (!maybeTargetLanguage.success) {
 			return maybeTargetLanguage.error;
 		}
-
 		const res = await this.sendTranslationDataToAPI({
 			text: maybeText.data,
 			targetLanguage: maybeTargetLanguage.data,
