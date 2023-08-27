@@ -1,6 +1,7 @@
 import { ZodError, z } from "zod";
 import {describe, expect, it} from "vitest"
 
+import { TRANSLATION_MAX_USER_INPUT_CHARS } from "../configs/languageConfig";
 import { TranslationService } from "../services/translationService";
 import dotenv from "dotenv"
 
@@ -15,7 +16,7 @@ describe("translateText", () => {
         // test may be flaky given that deepL is an AI service, check returned text if it fails
         const expected = { detectedSourceLanguage: 'EN', text: 'hola mundo' }
         
-        const res = await service.translateTextWithValidation({
+        const res = await service.translateText({
             text: ["hello world"],
             targetLanguage: "ES"
         })
@@ -29,16 +30,16 @@ describe("translateText", () => {
     })
 
     it("should return error on unaccepted languages", async () => {
-        const res = await service.translateTextWithValidation({
+        const res = await service.translateText({
             text: ["hello world"],
             targetLanguage: "XX"
         })
         expect(res instanceof Error).toBe(true)
     })
 
-    it("should return error when char length >500 by default", async() => {
-        const res = await service.translateTextWithValidation({
-            text: "a".repeat(501),
+    it(`should return error when char length >${TRANSLATION_MAX_USER_INPUT_CHARS} by default`, async() => {
+        const res = await service.translateText({
+            text: "a".repeat(TRANSLATION_MAX_USER_INPUT_CHARS + 1),
             targetLanguage: "ES"
         })
         expect(res instanceof Error).toBe(true)
@@ -46,7 +47,7 @@ describe("translateText", () => {
 
     it("should return error on text > 250 characters with new schema passed in.", async () => {
         
-        const res = await service.translateTextWithValidation({
+        const res = await service.translateText({
             text: "a".repeat(251),
             targetLanguage: "ES",
             textValidationSchema: z.string().min(1).max(250)
