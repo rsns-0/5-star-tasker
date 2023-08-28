@@ -1,5 +1,6 @@
+import { LanguageAbbreviationStrategy } from "../types/types";
+import { Prisma } from "@prisma/client";
 import { TransactionException } from "@/utils/errors/transactionException";
-import { ValueOf } from "@/utils/types";
 import prisma from "@/backend/db/prismaInstance";
 import { z } from "zod";
 
@@ -18,85 +19,87 @@ class LanguageRepository {
 	}
 }
 
-export type LanguageAbbreviationStrategy<T, R> = (this: any, input: T) => R;
-
+const querySchema = z
+	.object({ abbreviation: z.string() })
+	.array()
+	.transform((val) => {
+		if (val.length === 0) {
+			return null;
+		}
+		return val[0].abbreviation;
+	});
 
 class LanguageAbbreviationStrategies {
 	async byEmoji(input: string) {
-		const res = await prisma.languages.findMany({
+		const res = await prisma.languages.findFirst({
+			select: {
+				abbreviation: true,
+			},
 			where: {
 				countries: {
 					some: {
-						flag_emoji: input,
-					},
-				},
-			},
-			select: {
-				abbreviation: true,
-			},
-			take: 1,
-		});
-		return res.length ? res[0].abbreviation : null;
-	}
-
-	async byAbbreviation(input: string) {
-		const res = await prisma.languages.findUnique({
-			where: {
-				abbreviation: input,
-			},
-			select: {
-				abbreviation: true,
-			},
-		});
-		return res?.abbreviation ?? null;
-	}
-
-	async byName(input: string) {
-		const res = await prisma.languages.findUnique({
-			where: {
-				name: input,
-			},
-			select: {
-				abbreviation: true,
-			},
-		});
-		return res?.abbreviation ?? null;
-	}
-
-	async byCountryName(input: string) {
-		const res = await prisma.languages.findMany({
-			where: {
-				countries: {
-					some: {
-						name: {
+						flag_emoji: {
+							mode: "insensitive",
 							equals: input,
 						},
 					},
 				},
 			},
+		});
+		return res?.abbreviation;
+	}
+
+	async byAbbreviation(input: string) {
+		const res = await prisma.languages.findFirst({
 			select: {
 				abbreviation: true,
 			},
-			take: 1,
+			where: {
+				abbreviation: input.toUpperCase(),
+			},
 		});
-		
-		return res.length ? res[0].abbreviation : new TransactionException("No country found." as const)
-		
+		return res?.abbreviation;
 	}
 
-	private querySchema = z
-		.object({ abbreviation: z.string() })
-		.array()
-		.transform((val) => {
-			if (val.length === 0) {
-				return null;
-			}
-			return val[0].abbreviation;
+	async byName(input: string) {
+		const res = await prisma.languages.findFirst({
+			select: {
+				abbreviation: true,
+			},
+			where: {
+				name: {
+					mode: "insensitive",
+					equals: input,
+				},
+			},
+		});
+		return res?.abbreviation;
+	}
+
+	async byCountryName(input: string) {
+		const res = await prisma.languages.findFirst({
+			select: {
+				abbreviation: true,
+			},
+			where: {
+				countries: {
+					some: {
+						name: {
+							equals: input,
+							mode: "insensitive",
+						},
+					},
+				},
+			},
 		});
 
-	async byCountryName2(input: string) {
-		const res = await prisma.$queryRaw`SELECT * FROM get_language_by_country_name(${input})`;
-		return this.querySchema.parse(res);
+		return res?.abbreviation;
+	}
+
+	async byCountryNameOptimized(input: string) {
+		const res =
+			await prisma.$queryRaw`SELECT abbreviation FROM get_language_abbreviation_by_country_name(${input})`;
+		return querySchema.parse(res);
 	}
 }
 const languageAbbreviationStrategiesInstance = new LanguageAbbreviationStrategies();
