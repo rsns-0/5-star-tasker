@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
+import utils from "./extensions/utills";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient().$extends(utils);
 
-export default prisma
+export default prisma;
