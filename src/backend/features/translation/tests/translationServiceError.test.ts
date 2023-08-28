@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 
 import { AxiosError } from "axios";
 import { TranslationServiceErrorFactory } from "../models/translationServiceError";
-import { ValidationError } from "zod-validation-error";
 
 describe("TranslationServiceError", () => {
 	const axiosStatusCode = "418";
