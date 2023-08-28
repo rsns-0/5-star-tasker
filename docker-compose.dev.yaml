@@ -7,8 +7,8 @@ services:
       target: runner
     volumes:
       - .:/app
-    command: yarn next start
+    command: yarn next dev
     ports:
       - "3000:3000"
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
