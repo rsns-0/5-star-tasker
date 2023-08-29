@@ -49,7 +49,7 @@ jobs:
         
 
       - name: Run Docker Compose tests
-        run: docker-compose exec web yarn test
+        run: docker-compose exec -T web yarn test
 
       - name: Stop Docker Compose
         run: docker-compose down
