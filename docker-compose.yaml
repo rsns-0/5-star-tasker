@@ -5,10 +5,24 @@ services:
     build:
       context: ./
       target: runner
-    volumes:
-      - .:/app
+    # volumes:
+    #   - .:/app
     command: yarn next start
     ports:
       - "3000:3000"
     environment:
       NODE_ENV: production
+      DEEPL_KEY: "${DEEPL_KEY}"
+      DISCORD_TOKEN: "${DISCORD_TOKEN}"
+      DISCORD_SECRET: "${DISCORD_SECRET}"
+      DISCORD_DEV_SERVER_ID: "${DISCORD_DEV_SERVER_ID}"
+      DISCORD_CLIENT_ID: "${DISCORD_CLIENT_ID}"
+      DISCORD_PUBLIC_KEY: "${DISCORD_PUBLIC_KEY}"
+      SUPABASE_TOKEN: "${SUPABASE_TOKEN}"
+      SUPABASE_ANON_KEY: "${SUPABASE_ANON_KEY}"
+      SUPABASE_SERVICE_ROLE: "${SUPABASE_SERVICE_ROLE}"
+      SUPABASE_JWT_SECRET: "${SUPABASE_JWT_SECRET}"
+      SUPABASE_PASSWORD: "${SUPABASE_PASSWORD}"
+      SUPABASE_POSTGRES_URL: "${SUPABASE_POSTGRES_URL}"
+      DATABASE_URL: "${DATABASE_URL}"
+      TEST_VAR: "${TEST_VAR}"
