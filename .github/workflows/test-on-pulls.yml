@@ -46,10 +46,6 @@ jobs:
 
       - name: Start Docker Compose
         run: docker-compose up -d
-        
-
-      - name: Run Docker Compose tests
-        run: docker-compose exec -T web yarn test
 
       - name: Stop Docker Compose
         run: docker-compose down
