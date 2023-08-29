@@ -5,9 +5,11 @@ services:
     build:
       context: ./
       target: runner
-    volumes:
-      - .:/app
+    # volumes:
+    #   - .:/app
     command: yarn next start
+    env_file:
+      - .env
     ports:
       - "3000:3000"
     environment:
