@@ -7,7 +7,7 @@ dayjs.extend(utcPlugin);
 dayjs.extend(timezonePlugin);
 
 function timeStringToDayjsObj(userInput: string, timezone: string): Dayjs {
-    const timeParsed: Dayjs = dayjs(userInput, timezone);
+    const timeParsed: Dayjs = dayjs(userInput).tz(timezone);
 
     if (!timeParsed.isValid()) {
         const matches = userStringToTimeData(userInput);

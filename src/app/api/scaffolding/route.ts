@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest):Promise<NextResponse> {
-    return NextResponse.json({message: "Endpoint hit."})
+    return NextResponse.json({message: "Endpoint hit.",TEST_VAR:process.env.TEST_VAR || "is undefined"})
 
   }
   
