@@ -1,9 +1,9 @@
-import { Collection, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from "discord.js";
+import { Collection, ComponentEmojiResolvable, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from "discord.js";
 
 type MenuItemData = {
 	label: string;
 	description: string;
-	emoji: string;
+	emoji: ComponentEmojiResolvable
 	value: string;
 };
 
