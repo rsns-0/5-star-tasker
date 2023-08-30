@@ -7,7 +7,7 @@ export class CooldownService {
 	private commandCooldownRepository: CommandCooldownRepository = new CommandCooldownRepository();
 	private cooldownEventRepository: CooldownEventRepository = new CooldownEventRepository();
 	private logger = logger;
-	constructor() {}
+	
 
 	public registerCommandCooldown(commandName: string, cooldown: number) {
 		this.commandCooldownRepository.registerCooldown(commandName, cooldown);
@@ -19,7 +19,7 @@ export class CooldownService {
 	 * @param commandName
 	 * @returns
 	 */
-	public handleCooldownEvent(userId: string, commandName: string) {
+	public checkUserOnCooldownForCommand(userId: string, commandName: string) {
 		const cooldownEvent = this.cooldownEventRepository.getCooldownEvent(userId, commandName);
 		const commandCooldown = this.commandCooldownRepository.getCooldown(commandName);
 		assertExists(
