@@ -1,5 +1,5 @@
-import { CommandCooldownRepository } from "./commandCooldownRepository";
-import { CooldownEventRepository } from "./cooldownEventRepository";
+import { CommandCooldownRepository } from "../models/cooldowns/commandCooldownRepository";
+import { CooldownEventRepository } from "../models/cooldowns/cooldownEventRepository";
 import { assertExists } from "@/utils/assertExists";
 import { logger } from "@/backend/logger/logger";
 
