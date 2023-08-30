@@ -1,10 +1,10 @@
 import { Events, MessageReaction, User, userMention } from "discord.js";
 
-import { LanguageRepository } from "../../translation/models/languageRepository";
 import { Logger } from "@/backend/logger/logger";
 import { TranslationService } from "../../translation/services/translationService";
 import { TranslationServiceError } from "../../translation/models/translationServiceError";
 import { createTranslationEmbed } from "../utils/createTranslationEmbed";
+import { languageRepository } from "../../translation/models/languageRepository";
 
 const name = Events.MessageReactionAdd;
 const translation = new TranslationService();
@@ -31,12 +31,12 @@ const execute = async (reaction: MessageReaction, user: User) => {
 	}
 
 	const targetLanguage =
-		LanguageRepository.getInstance().getLanguageIfAvailableForTranslation(emojiReactionID);
+		await languageRepository.getLanguageAbbreviation(emojiReactionID,languageRepository.languageAbbreviationStrategies.byEmoji);
 	if (!targetLanguage) {
 		return; // no throwing since user can react with any emoji
 	}
 
-	const result = await translation.translateTextWithValidation({
+	const result = await translation.translateText({
 		text: textToTranslate,
 		targetLanguage,
 	});

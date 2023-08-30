@@ -1,8 +1,7 @@
-import { TranslateTextArgs, ValidateTranslateTextArgs } from "../types/types";
-
 import { DeepLService } from "./deepLService";
 import { Logger } from "@/backend/logger/logger";
 import { TranslationServiceErrorFactory } from "../models/translationServiceError";
+import { ValidateTranslateTextArgs } from "../types/types";
 
 export class TranslationService {
 	
@@ -13,7 +12,7 @@ export class TranslationService {
 	 * @param props - The arguments for validating and translating the text.
 	 * @returns A Promise that resolves to the translated text.
 	 */
-	public async translateTextWithValidation(props: ValidateTranslateTextArgs){
+	public async translateText(props: ValidateTranslateTextArgs){
 		const res = await this.deepLService.validateThenTranslate(props)
 		if(res instanceof Error){
 			this.logger.logError(res)
@@ -22,21 +21,5 @@ export class TranslationService {
 		return res
 	}
 
-
-	/**
-	 * Translates the given text using the DeepL API.
-	 * @param props - The arguments for the translation request.
-	 * @returns A Promise that resolves to the translated text.
-	 */
-	public async translateText(props: TranslateTextArgs) {
-		const res = await this.deepLService.sendTranslationDataToAPI(props);
-		
-		if(res instanceof Error){
-			this.logger.logError(res)
-			return TranslationServiceErrorFactory.fromError(res)
-		}
-		return res;
-
-	}
 }
 

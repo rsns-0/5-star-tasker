@@ -27,3 +27,5 @@ export type ValidateTranslateTextArgs = O.Merge<
 export type DeepLDataCollection = z.infer<typeof deepLResponseSchema>;
 export type DeepLData = z.infer<typeof deepLDataSchema>;
 export type AvailableLanguages = z.infer<typeof validLangSchema>;
+
+export type LanguageAbbreviationStrategy<T, R> = (this: any, input: T) => R;
