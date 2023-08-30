@@ -1,9 +1,17 @@
-import { Collection, ComponentEmojiResolvable, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from "discord.js";
+import {
+	APISelectMenuOption,
+	Collection,
+	ComponentEmojiResolvable,
+	StringSelectMenuBuilder,
+	StringSelectMenuOptionBuilder,
+} from "discord.js";
+
+import prisma from "@/backend/db/prismaInstance";
 
 type MenuItemData = {
 	label: string;
 	description: string;
-	emoji: ComponentEmojiResolvable
+	emoji: ComponentEmojiResolvable;
 	value: string;
 };
 
@@ -35,12 +43,10 @@ export class DateMenuInputCollection extends Collection<string, DateMenuInput> {
 		return items;
 	}
 
-    toArray(){
-        return Array.from(this.values())
-    }
+	toArray() {
+		return Array.from(this.values());
+	}
 }
-
-
 
 export const timezonePositiveOptions = new DateMenuInputCollection([
 	{
