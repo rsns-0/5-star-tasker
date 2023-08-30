@@ -1,11 +1,13 @@
 import {
 	ActionRowBuilder,
 	ChatInputCommandInteraction,
+	DiscordAPIError,
 	SlashCommandBuilder,
 	StringSelectMenuBuilder,
 } from "discord.js";
 import { timezonesNegatives, timezonesPositives } from "../models/selectBoxForTimezones";
 
+import { Logger } from "@/backend/logger/logger";
 import timeStringToDayjsObj from "../services/stringToDayjsObj";
 
 export const data = new SlashCommandBuilder()
@@ -81,10 +83,15 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 				});
 			}
 		} catch (e) {
-			await interaction.editReply({
-				content: "You had 1 minute to select your timezone, please try again later",
-				components: [],
-			});
+			if (e instanceof DiscordAPIError) {
+				await interaction.editReply({
+					content: "You had 1 minute to select your timezone, please try again later",
+					components: [],
+				});
+			} else {
+                new Logger().logError(e)
+				throw e;
+			}
 		}
 	}
 };
