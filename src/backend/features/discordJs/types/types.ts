@@ -5,6 +5,7 @@ import { InteractionHandler } from './handler';
 export type CommandExport = {
 	data: SlashCommandBuilder;
 	execute: InteractionHandler;
+	cooldown?: number
 }
 
 export type EventExport = {
