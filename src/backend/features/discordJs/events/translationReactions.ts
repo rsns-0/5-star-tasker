@@ -1,14 +1,14 @@
 import { Events, MessageReaction, User, userMention } from "discord.js";
 
-import { Logger } from "@/backend/logger/logger";
 import { TranslationService } from "../../translation/services/translationService";
 import { TranslationServiceError } from "../../translation/models/translationServiceError";
 import { createTranslationEmbed } from "../utils/createTranslationEmbed";
 import { languageRepository } from "../../translation/models/languageRepository";
+import { logger } from "@/backend/logger/logger";
 
 const name = Events.MessageReactionAdd;
 const translation = new TranslationService();
-const logger = new Logger();
+
 const DEFAULT_ACCENT_COLOR = 0x0099ff;
 
 /**
@@ -59,7 +59,7 @@ const execute = async (reaction: MessageReaction, user: User) => {
 			allowedMentions: { parse: ["users"] },
 		});
 	} catch (e) {
-		logger.logError(e);
+		logger.error(e);
 		await channel.send("An unknown server error occurred. Please try again later.");
 	}
 };

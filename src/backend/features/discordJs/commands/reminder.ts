@@ -7,7 +7,7 @@ import {
 } from "discord.js";
 import { timezonesNegatives, timezonesPositives } from "../models/selectBoxForTimezones";
 
-import { Logger } from "@/backend/logger/logger";
+import { logger } from "@/backend/logger/logger";
 import timeStringToDayjsObj from "../services/stringToDayjsObj";
 
 export const data = new SlashCommandBuilder()
@@ -27,7 +27,7 @@ export const data = new SlashCommandBuilder()
 				.setDescription("What do you want to be pinged for? (200 chars limit)")
 				.setRequired(false)
 				.setMaxLength(200) // can be reduced or increased
-	);
+	)
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
 	const timeString = interaction.options.getString("time")!;
@@ -89,7 +89,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 					components: [],
 				});
 			} else {
-                new Logger().logError(e)
+                logger.error(e)
 				throw e;
 			}
 		}
