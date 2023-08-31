@@ -6,7 +6,7 @@ import { _CooldownEventRepository } from "../models/cooldownEventRepository";
 import { hoursToMilliseconds } from "date-fns";
 
 describe("kitchen sink test", () => {
-	it("see comments in test", () => {
+	it("see comments in test",async  () => {
 		const commandName = "testcmd1";
 		const userId = "testuser1";
 		const cooldown = hoursToMilliseconds(1);
@@ -15,82 +15,79 @@ describe("kitchen sink test", () => {
 		cooldownService.registerCommandCooldown(commandName, cooldown);
 
 		// on the first call, the returned result should be a result not on cooldown.
-		const cooldownResult = cooldownService.processUserCooldown(userId, commandName);
+		const cooldownResult = await cooldownService.processUserCooldown(userId, commandName);
 		expect(cooldownResult.isOnCooldown).toBe(false);
 
-		const res = cooldownService.getUsersOnCooldownForCommand(commandName);
+		const res = await cooldownService.getUsersOnCooldownForCommand(commandName);
 		expect(res.size).toBe(1);
 
 		// on the second call, the returned result should be a result on cooldown
-		const cooldownResult2 = cooldownService.processUserCooldown(userId, commandName);
+		const cooldownResult2 = await cooldownService.processUserCooldown(userId, commandName);
 		expect(cooldownResult2.isOnCooldown).toBe(true);
 
 		// advance the timer by 15 minutes
 		jest.advanceTimersByTime(15 * 60 * 1000);
 
 		// on the third call, the returned result should be a result on cooldown
-		const cooldownResult3 = cooldownService.processUserCooldown(userId, commandName);
+		const cooldownResult3 = await  cooldownService.processUserCooldown(userId, commandName);
 		expect(cooldownResult3.isOnCooldown).toBe(true);
 
 		// advance the timer by 50 minutes
 		jest.advanceTimersByTime(50 * 60 * 1000);
 
 		// on the fourth call, the returned result should be a result not on cooldown
-		const cooldownResult4 = cooldownService.processUserCooldown(userId, commandName);
+		const cooldownResult4 =await  cooldownService.processUserCooldown(userId, commandName);
 		expect(cooldownResult4.isOnCooldown).toBe(false);
 	});
 });
 
 describe("CooldownService", () => {
 	let cooldownService: CooldownService;
-	let commandCooldownRepository: _CommandCooldownRepository;
+	
 	
 	let commandName: string;
 	let cooldown: number;
 
 	beforeEach(() => {
 		cooldownService = new CooldownService();
-		commandCooldownRepository = cooldownService._commandCooldownRepository;
-		
 		commandName = "testCommand";
 		cooldown = 5000;
-
 		cooldownService.registerCommandCooldown(commandName, cooldown);
 	});
 
 	describe("registerCommandCooldown", () => {
-		it("should register the cooldown for a command", () => {
-			expect(commandCooldownRepository.getCooldown(commandName)).toBeDefined();
+		it("should register the cooldown for a command",async () => {
+			expect(await cooldownService.getCommandCooldown(commandName)).toBeDefined();
 		});
 	});
 
 	describe("processUserCooldown", () => {
-		it("should return CooldownResult.asExpired() if the user is not on cooldown", () => {
+		it("should return CooldownResult.asExpired() if the user is not on cooldown", async () => {
 			const userId = "testUser";
-			const result = cooldownService.processUserCooldown(userId, commandName);
+			const result =await  cooldownService.processUserCooldown(userId, commandName);
 
 			expect(result.isOnCooldown).toBe(false);
 		});
 
-		it("should return the remaining cooldown time in seconds if the user is on cooldown", () => {
+		it("should return the remaining cooldown time in seconds if the user is on cooldown", async () => {
 			const userId = "testUser";
 
 			jest.useFakeTimers();
 
-			const result = cooldownService.processUserCooldown(userId, commandName);
+			const result = await cooldownService.processUserCooldown(userId, commandName);
 			jest.advanceTimersByTime(1000);
-			const result2 = cooldownService.processUserCooldown(userId, commandName);
+			const result2 =await  cooldownService.processUserCooldown(userId, commandName);
 
 			expect(result2.isOnCooldown).toBe(true);
 		});
 	});
 
 	describe("getUsersOnCooldownForCommand", () => {
-		it("should return the cooldown events for a command", () => {
+		it("should return the cooldown events for a command", async () => {
 			const userId = "testUser";
 
-			const result = cooldownService.processUserCooldown(userId, commandName);
-			const usersOnCooldown = cooldownService.getUsersOnCooldownForCommand(commandName);
+			const result =await  cooldownService.processUserCooldown(userId, commandName);
+			const usersOnCooldown = await cooldownService.getUsersOnCooldownForCommand(commandName);
 
 			expect(usersOnCooldown.size).toBe(1);
 		});
@@ -98,7 +95,7 @@ describe("CooldownService", () => {
 });
 
 describe("Cooldown service internal cooldown event repository", () => {
-	it("Cleanup should remove all expired entries on an interval.", () => {
+	it("Cleanup should remove all expired entries on an interval.", async () => {
 		jest.useFakeTimers();
 		const cmdCooldownRepository = new _CommandCooldownRepository();
 		const cooldownEventRepository = new _CooldownEventRepository(hoursToMilliseconds(1));
@@ -112,7 +109,7 @@ describe("Cooldown service internal cooldown event repository", () => {
 		service.registerCommandCooldown(commandName, cooldown);
 		service.processUserCooldown(userId, commandName);
 
-		const result = service.processUserCooldown(userId, commandName);
+		const result = await service.processUserCooldown(userId, commandName);
 		expect(result.isOnCooldown).toBe(true);
 
 		const res = _cooldownEventRepository.getCooldownEvent(userId, commandName);

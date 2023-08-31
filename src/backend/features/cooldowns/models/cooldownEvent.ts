@@ -27,7 +27,7 @@ export class CooldownEvent {
 	 */
 	public timeRemaining() {
 		const timeRemaining = this.expireTime - Date.now();
-		return timeRemaining < 0 ? 0 : timeRemaining / 1000;
+		return timeRemaining < 0 ? 0 : timeRemaining;
 	}
 }
 

@@ -1,4 +1,5 @@
 import { Collection } from "discord.js";
+import { logger } from "@/backend/logger/logger";
 
 /**
  * ! Not ready to be used as a public class yet. Used internally for CooldownService.
@@ -40,12 +41,15 @@ export class _CommandCooldownRepository {
 	 * @param commandName - The name of the command to register.
 	 * @param cooldown - The cooldown time for the command in milliseconds.
 	 */
-	public registerCooldown(commandName: string, cooldown: number) {
-		if (cooldown) {
+	public registerCooldown(commandName: string, cooldown?: number) {
+		if (cooldown !== undefined) {
 			this.setCooldown(commandName, cooldown);
+			logger.info(`Registered cooldown for command ${commandName} with cooldown ${cooldown}`);
 			return;
 		}
+		
 		this.applyDefaultCooldown(commandName);
+		logger.info(`Registered cooldown for command ${commandName} with default cooldown ${this._defaultCooldown}`)
 	}
 
 	/**
@@ -63,7 +67,7 @@ export class _CommandCooldownRepository {
 	 *
 	 * @param commandName - The name of the command.
 	 */
-	private applyDefaultCooldown(commandName: string) {
+	public applyDefaultCooldown(commandName: string) {
 		this.setCooldown(commandName, this._defaultCooldown);
 	}
 

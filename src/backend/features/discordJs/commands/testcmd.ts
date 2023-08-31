@@ -1,7 +1,11 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 
+import { cooldownServiceInstanceForDiscordJs } from "../../cooldowns/services/cooldownService";
+
+const name = "embed"
+
 export const data = new SlashCommandBuilder()
-	.setName("embed")
+	.setName(name)
 	.setDescription("Creates embed from user")
 	.addStringOption((option) =>
 		option
@@ -18,8 +22,15 @@ export const data = new SlashCommandBuilder()
 			.setRequired(false)
 			.setMaxLength(2000)
 	);
-
-export const execute = (interaction: ChatInputCommandInteraction) => {
+export const cooldown = 10000
+export const execute = async (interaction: ChatInputCommandInteraction) => {
+	
+	const result = await cooldownServiceInstanceForDiscordJs.processUserCooldown(interaction.user.id, name)
+	if(result.isOnCooldown){
+		interaction.reply(`You are on cooldown for ${result.timeRemaining} ${result.unit}.`)
+		return
+	}
+	
 	const fields: Record<string, string> = {
 		title: "",
 		description: "",
