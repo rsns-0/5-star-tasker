@@ -10,6 +10,6 @@ export function logTime(time:DateArgs){
 export function createLogTimeMessage(time:DateArgs){
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
     const res = formatInTimeZone(time, timezone, "yyyy-MM-dd hh:mm:ss a")
-    const msg = `${res} (Estimated timezone: ${timezone})`
+    const msg = `${res} (Estimated server timezone: ${timezone})`
     return msg
 }
