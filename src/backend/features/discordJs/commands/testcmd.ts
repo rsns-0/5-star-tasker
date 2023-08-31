@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 
-import { cooldownServiceInstanceForDiscordJs } from "../../cooldowns/services/cooldownService";
+import { cooldownServiceInstanceForDiscordJs } from "../services/cooldownServiceInstance";
 
 const name = "embed"
 
@@ -27,7 +27,9 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 	
 	const result = await cooldownServiceInstanceForDiscordJs.processUserCooldown(interaction.user.id, name)
 	if(result.isOnCooldown){
-		interaction.reply(`You are on cooldown for ${result.timeRemaining} ${result.unit}.`)
+		interaction.reply({
+			content: `You are on cooldown for ${result.timeRemaining} ${result.unit}.`
+		})
 		return
 	}
 	

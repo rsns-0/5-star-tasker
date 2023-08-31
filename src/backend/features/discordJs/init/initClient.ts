@@ -3,7 +3,7 @@ import { REST, Routes } from "discord.js";
 import { getCommandExports, getEventExports } from "../services/exportService";
 
 import ReadyClient from "../models/client";
-import { cooldownServiceInstanceForDiscordJs } from "../../cooldowns/services/cooldownService";
+import { cooldownServiceInstanceForDiscordJs } from "../services/cooldownServiceInstance";
 
 export const partiallyInitializeClient = () => {
 	const intents = new IntentsBitField();

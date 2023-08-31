@@ -98,8 +98,10 @@ describe("Cooldown service internal cooldown event repository", () => {
 	it("Cleanup should remove all expired entries on an interval.", async () => {
 		jest.useFakeTimers();
 		const cmdCooldownRepository = new _CommandCooldownRepository();
-		const cooldownEventRepository = new _CooldownEventRepository(hoursToMilliseconds(1));
+		const cooldownEventRepository = new _CooldownEventRepository()
+		
 		const service = new CooldownService(cmdCooldownRepository, cooldownEventRepository);
+		service.startCleanupInterval(hoursToMilliseconds(1))
 		const { _cooldownEventRepository } = service;
 
 		const userId = "testUser";

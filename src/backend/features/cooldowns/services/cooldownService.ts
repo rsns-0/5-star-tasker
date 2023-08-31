@@ -3,12 +3,70 @@ import { _CommandCooldownRepository } from "../models/commandCooldownRepository"
 import { _CooldownEventRepository } from "../models/cooldownEventRepository";
 import { assertExists } from "@/utils/assertExists";
 import { createLogTimeMessage } from "@/utils/logTime";
+import { hoursToMilliseconds } from "date-fns";
 import { logger } from "@/backend/logger/logger";
 
 /**
  * CooldownService is a class that manages command cooldowns.
  *
  * It provides methods to register and process user command cooldowns, and to get users currently on cooldown for a specific command.
+ * 
+ * @example
+ * 
+ * 
+ * Export a variable named cooldown with the cooldown in milliseconds to use it.
+ *
+const exampleCmdFile = () => {
+	
+	const name = "testcmd123"; // move name into a separate variable to reuse in the execute function and in setName
+	const data = new SlashCommandBuilder() // export
+		.setName(name)
+		.setDescription("Creates embed from user")
+		.addStringOption((option) =>
+			option
+				.setName("title")
+				.setDescription("Set the title for the embed.")
+				.setRequired(true)
+				.setMinLength(1)
+				.setMaxLength(256)
+		)
+		.addStringOption((option) =>
+			option
+				.setName("description")
+				.setDescription("Set the description for the embed.")
+				.setRequired(false)
+				.setMaxLength(2000)
+		);
+	const cooldown = 10000; // export
+	// export execute too
+	const execute = async (interaction: ChatInputCommandInteraction) => {
+		// pass in user's id and the command name to the cooldown service
+		const result = await cooldownServiceInstanceForDiscordJs.processUserCooldown(
+			interaction.user.id,
+			name
+		);
+		if (result.isOnCooldown) {
+			interaction.reply({
+				content: `COOLDOWN ${result.timeRemaining.toString()} ${result.unit}.`
+			}
+			return result // normally you don't return this
+		}
+		// with generic types this allows powerful enough type checking to determine that the timeRemaining is exactly 0
+		const { timeRemaining } = result;
+
+		const resultOfSomeReallyExpensiveOperationYouWantCooldownsOn = (() => {
+			// for example multiple api calls or large dataset processing
+			return true;
+		})();
+
+		interaction.reply({
+			content: `This is the result: ${resultOfSomeReallyExpensiveOperationYouWantCooldownsOn}. The time remaining was ${timeRemaining}`,
+		});
+		return result // normally you don't return this
+		
+	};
+	return {execute, data, cooldown, } // this is normally an export
+}
  */
 export class CooldownService {
 	private logger = logger;
@@ -16,11 +74,11 @@ export class CooldownService {
 	_cooldownEventRepository: _CooldownEventRepository;
 
 	/**
-     * Constructor for CooldownService.
-     *
-     * @param commandCooldownRepository - An instance of _CommandCooldownRepository (defaults to a new instance).
-     * @param cooldownEventRepository - An instance of _CooldownEventRepository (defaults to a new instance).
-     */
+	 * Constructor for CooldownService.
+	 *
+	 * @param commandCooldownRepository - An instance of _CommandCooldownRepository (defaults to a new instance).
+	 * @param cooldownEventRepository - An instance of _CooldownEventRepository (defaults to a new instance).
+	 */
 	constructor(
 		commandCooldownRepository = new _CommandCooldownRepository(),
 		cooldownEventRepository = new _CooldownEventRepository()
@@ -34,29 +92,28 @@ export class CooldownService {
 	 * @param commandName - The name of the command.
 	 * @returns The cooldown time for the command in milliseconds.
 	 */
-	public async getCommandCooldown(commandName:string){
+	public async getCommandCooldown(commandName: string) {
 		const commandCooldown = this._commandCooldownRepository.getCooldown(commandName);
-		return commandCooldown
+		return commandCooldown;
 	}
 
 	/**
-     * Registers a command with a specified cooldown time.
-     *
-     * @param commandName - The name of the command to register.
-     * @param cooldown - The cooldown time for the command in milliseconds.
-     */
+	 * Registers a command with a specified cooldown time.
+	 *
+	 * @param commandName - The name of the command to register.
+	 * @param cooldown - The cooldown time for the command in milliseconds.
+	 */
 	public async registerCommandCooldown(commandName: string, cooldown?: number) {
-		
 		this._commandCooldownRepository.registerCooldown(commandName, cooldown);
 	}
 
 	/**
-     * Processes a user's cooldown for a given command. If the user is not on cooldown, a new cooldown event is registered for them.
-     *
-     * @param userId - The ID of the user.
-     * @param commandName - The name of the command.
-     * @returns A CooldownResult representing the user's cooldown state.
-     */
+	 * Processes a user's cooldown for a given command. If the user is not on cooldown, a new cooldown event is registered for them.
+	 *
+	 * @param userId - The ID of the user.
+	 * @param commandName - The name of the command.
+	 * @returns A CooldownResult representing the user's cooldown state.
+	 */
 	public async processUserCooldown(userId: string, commandName: string) {
 		const cooldownEvent = this._cooldownEventRepository.getCooldownEvent(userId, commandName);
 		const commandCooldown = this._commandCooldownRepository.getCooldown(commandName);
@@ -64,45 +121,68 @@ export class CooldownService {
 			commandCooldown,
 			`Assertion error: No cooldown found for command ${commandName}`
 		);
-		
+
 		if (!cooldownEvent || cooldownEvent.isExpired()) {
 			this.logger.info(
 				`Cooldown not found or has expired for user ${userId} for command ${commandName}`
 			);
-			
+
 			this.registerCooldownEvent(userId, commandName, commandCooldown);
 			return CooldownResult.asExpired();
 		}
 
-		const r = cooldownEvent.timeRemaining()
+		const r = cooldownEvent.timeRemaining();
 		this.logger.info(`Cooldown for user ${userId} for command ${commandName} is still active`);
-		return CooldownResult.milliecondsToSeconds(cooldownEvent.timeRemaining());
+		return CooldownResult.millisecondsToSeconds(cooldownEvent.timeRemaining());
 	}
 
 	/**
-     * Gets all users currently on cooldown for a specific command.
-     *
-     * @param commandName - The name of the command.
-     * @returns An array of cooldown events for the specified command.
-     */
+	 * Gets all users currently on cooldown for a specific command.
+	 *
+	 * @param commandName - The name of the command.
+	 * @returns An array of cooldown events for the specified command.
+	 */
 	public async getUsersOnCooldownForCommand(commandName: string) {
 		const cooldownEvents =
 			this._cooldownEventRepository.getCooldownEventsForCommand(commandName);
 		return cooldownEvents;
 	}
 
+
 	/**
-     * Registers a cooldown event for a user.
-     *
-     * @param userId - The ID of the user.
-     * @param commandName - The name of the command.
-     * @param commandCooldown - The cooldown time for the command in milliseconds.
-     */
+	 * Sets and starts the cleanup interval for cooldown events. If one is already running, it is stopped and a new one is started.
+	 * @param interval The interval in milliseconds.
+	 */
+	public startCleanupInterval(interval:number){
+		this._cooldownEventRepository.setCleanupInterval(interval)
+	}
+
+	
+	/**
+	 * Stops the cleanup interval for cooldown events.
+	 */
+	public stopCleanupInterval(){
+		this._cooldownEventRepository.stopCleanupInterval()
+	}
+
+	/**
+	 * Registers a cooldown event for a user.
+	 *
+	 * @param userId - The ID of the user.
+	 * @param commandName - The name of the command.
+	 * @param commandCooldown - The cooldown time for the command in milliseconds.
+	 */
 	private registerCooldownEvent(userId: string, commandName: string, commandCooldown: number) {
+		if(commandCooldown <0){
+			throw new Error(`Assertion error: commandCooldown must be greater than 0. Got ${commandCooldown}`)
+		}
+		
 		const expireTime = Date.now() + commandCooldown;
 		this._cooldownEventRepository.setCooldown(userId, commandName, expireTime);
-		const msg = createLogTimeMessage(expireTime)
-		this.logger.info(`Registered cooldown event for command ${commandName} for user ${userId} which is set to expire at ${msg}`);
+		const msg = createLogTimeMessage(expireTime);
+		this.logger.info(
+			`Registered cooldown event for command ${commandName} for user ${userId} which is set to expire at ${msg}`
+		);
 	}
 }
 
@@ -111,7 +191,11 @@ export class CooldownService {
  *
  * It provides static methods to create instances representing different states and units of time.
  */
-export class CooldownResult<TUnit extends "milliseconds" | "seconds", TOnCooldown extends boolean, TNumber extends number |Decimal> {
+export class CooldownResult<
+	TUnit extends "milliseconds" | "seconds",
+	TOnCooldown extends boolean,
+	TNumber extends number | Decimal,
+> {
 	/**
 	 * Creates an instance of CooldownResult in milliseconds.
 	 *
@@ -127,9 +211,12 @@ export class CooldownResult<TUnit extends "milliseconds" | "seconds", TOnCooldow
 	 * @param milliseconds - The time remaining on the cooldown in milliseconds.
 	 * @returns An instance of CooldownResult with the provided time converted to seconds and unit set to "seconds".
 	 */
-	public static milliecondsToSeconds(milliseconds: number) {
-		
-		return new CooldownResult(true, new Decimal(milliseconds / 1000).toDecimalPlaces(3), "seconds");
+	public static millisecondsToSeconds(milliseconds: number) {
+		return new CooldownResult(
+			true,
+			new Decimal(milliseconds / 1000).toDecimalPlaces(3),
+			"seconds"
+		);
 	}
 	/**
 	 * Creates an instance of CooldownResult representing an expired cooldown.
@@ -153,4 +240,3 @@ export class CooldownResult<TUnit extends "milliseconds" | "seconds", TOnCooldow
 	) {}
 }
 
-export const cooldownServiceInstanceForDiscordJs = new CooldownService();

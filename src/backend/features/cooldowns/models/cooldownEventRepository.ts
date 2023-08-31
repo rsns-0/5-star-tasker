@@ -18,20 +18,20 @@ export class _CooldownEventRepository {
 	/**
 	 * @property intervalRef - Reference to the interval used for cleaning up expired cooldowns.
 	 */
-	private intervalRef: NodeJS.Timeout;
+	private intervalRef?: NodeJS.Timeout;
 
 	/**
 	 * Creates an instance of CooldownEventRepository.
 	 *
-	 * @param cleanupInterval - The time interval (in milliseconds) at which expired cooldowns are cleaned up. Default is 10 minutes.
+	 * 
 	 * @param logger - Logger used for logging information about the cleanup process. Default is _logger.
 	 */
 	constructor(
-		private cleanupInterval = 10 * 10 * 1000,
+		
 		private logger = _logger
 	) {
-		const intervalRef = this.startCleanupInterval(this.cleanupInterval);
-		this.intervalRef = intervalRef;
+		
+		
 	}
 
 	/**
@@ -73,12 +73,29 @@ export class _CooldownEventRepository {
 	 * @param interval - The time interval (in milliseconds) at which expired cooldowns are cleaned up.
 	 * @returns The reference to the interval.
 	 */
-	private startCleanupInterval(interval: number) {
-		const intervalRef = setInterval(() => this.cleanupExpiredCooldowns(), this.cleanupInterval);
+	public setCleanupInterval(interval: number) {
+		if(this.intervalRef){
+			this.logger.info(`There is an existing interval with id ${this.intervalRef}. Clearing it before adding new cleanup interval.`)
+			clearInterval(this.intervalRef);
+		}
+		const intervalRef = setInterval(() => this.cleanupExpiredCooldowns(), interval);
 		this.logger.info(
 			`Started cooldown cleanup interval with id ${intervalRef} and interval ${interval}`
 		);
+		this.intervalRef = intervalRef
 		return intervalRef;
+	}
+
+	/**
+	 * Stops the cleanup interval if it is running.
+	 */
+	public stopCleanupInterval(){
+		if(this.intervalRef){
+			this.logger.info(`Stopping cleanup interval with id ${this.intervalRef}`)
+			clearInterval(this.intervalRef);
+			return
+		}
+		this.logger.info(`No cleanup interval to stop.`)
 	}
 
 	/**
