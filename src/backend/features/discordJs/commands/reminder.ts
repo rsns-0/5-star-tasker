@@ -6,22 +6,22 @@ import {
     StringSelectMenuBuilder,
 } from "discord.js";
 import {
-    timezonesNegatives,
-    timezonesPositives,
-} from "../models/selectBoxForTimezones";
-
-import { logger } from "@/backend/logger/logger";
-import prisma from "@/backend/db/prismaInstance";
-import { firstRegistration } from "@/backend/functionForFirstRegistration";
-import {
     reminderExplanationEmbed,
     reminderFinishedEmbed,
     reminderSelectTimezoneEmbed,
     reminderSomethingWrongEmbed,
     reminderTimezoneRegisteredEmbed,
 } from "../utils/createReminderExplanationEmbed";
-import { timeStringToDayjsObj } from "../services/stringToDayjsObj";
+import {
+    timezonesNegatives,
+    timezonesPositives,
+} from "../models/selectBoxForTimezones";
+
 import { connect } from "http2";
+import { firstRegistration } from "../utils/firstRegistration";
+import { logger } from "@/backend/logger/logger";
+import prisma from "@/backend/db/prismaInstance";
+import { timeStringToDayjsObj } from "../services/stringToDayjsObj";
 
 export const data = new SlashCommandBuilder()
     .setName("reminder")
