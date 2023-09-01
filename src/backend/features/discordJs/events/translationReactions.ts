@@ -24,12 +24,12 @@ const execute = async (reaction: MessageReaction, user: User) => {
 	const textToTranslate = reaction.message.content;
 	const emojiReactionID = reaction.emoji.name;
 
-	if (textToTranslate === null) {
-		throw new Error("Unexpected null value in text to translate.");
-	}
-	if (emojiReactionID === null) {
-		throw new Error("Unexpected null value in emoji reaction ID.");
-	}
+    if (textToTranslate === null) {
+        throw new Error("Unexpected null value in text to translate.");
+    }
+    if (emojiReactionID === null) {
+        throw new Error("Unexpected null value in emoji reaction ID.");
+    }
 
 	const targetLanguage = await languageRepository.getLanguageAbbreviation(
 		emojiReactionID,
@@ -39,17 +39,17 @@ const execute = async (reaction: MessageReaction, user: User) => {
 		return; // no throwing since user can react with any emoji
 	}
 
-	const result = await translation.translateText({
-		text: textToTranslate,
-		targetLanguage,
-	});
-	if (result instanceof TranslationServiceError) {
-		const { message } = result.autoResolve();
-		await channel.send({
-			content: `${userMention(user.id)}\n${message}`,
-		});
-		return;
-	}
+    const result = await translation.translateText({
+        text: textToTranslate,
+        targetLanguage,
+    });
+    if (result instanceof TranslationServiceError) {
+        const { message } = result.autoResolve();
+        await channel.send({
+            content: `${userMention(user.id)}\n${message}`,
+        });
+        return;
+    }
 
 	const { sourceLanguage, text } = result[0];
 	const color = reaction.client.user.accentColor || DEFAULT_ACCENT_COLOR;

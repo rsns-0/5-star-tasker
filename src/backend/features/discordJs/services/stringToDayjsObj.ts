@@ -6,7 +6,10 @@ import utcPlugin from "dayjs/plugin/utc";
 dayjs.extend(utcPlugin);
 dayjs.extend(timezonePlugin);
 
-function timeStringToDayjsObj(userInput: string, timezone: string): Dayjs {
+export const timeStringToDayjsObj = (
+    userInput: string,
+    timezone: string
+): Dayjs => {
     const timeParsed: Dayjs = dayjs(userInput).tz(timezone);
 
     if (!timeParsed.isValid()) {
@@ -15,7 +18,7 @@ function timeStringToDayjsObj(userInput: string, timezone: string): Dayjs {
     } else {
         return timeParsed;
     }
-}
+};
 
 // to do: check result and stop in middle
 const userStringToTimeData = (userInput: string): RegExpMatchArray[] => {
@@ -49,5 +52,3 @@ const constructDateFromTimeData = (matches: RegExpMatchArray[]): Dayjs => {
     });
     return dayjsObj;
 };
-
-export default timeStringToDayjsObj;

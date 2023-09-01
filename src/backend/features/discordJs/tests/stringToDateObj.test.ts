@@ -5,43 +5,43 @@ import {
 	timezonePositiveOptions,
 } from "../models/selectBoxForTimezones";
 
-import timeStringToDateObj from "../services/stringToDayjsObj";
+import { timeStringToDayjsObj } from "../services/stringToDayjsObj";
 
-describe("Possible inputs for timeStringToDateObj", () => {
+describe("Possible inputs for timeStringToDayjsObj", () => {
     it("Should return a valid dayjs object", () => {
         const timeString = "0";
         const timezone = "America/New_York";
-        const dateObject = timeStringToDateObj(timeString, timezone);
+        const dateObject = timeStringToDayjsObj(timeString, timezone);
         expect(dateObject.isValid()).toBe(true);
     });
     it("Should work with strings out of order, returning a valid Data type", () => {
         const timeString = "30m 2h 3y 1d 2mm";
         const timezone = "America/New_York";
-        const dateObject = timeStringToDateObj(timeString, timezone);
+        const dateObject = timeStringToDayjsObj(timeString, timezone);
         expect(dateObject.isValid()).toBe(true);
     });
     it("Should handle a time string with no components, returning a valid Data type", () => {
         const timeString = "";
         const timezone = "America/New_York";
-        const dateObject = timeStringToDateObj(timeString, timezone);
+        const dateObject = timeStringToDayjsObj(timeString, timezone);
         expect(dateObject.isValid()).toBe(true);
     });
     it("Should handle a time string with duplicate components, returning a valid Data type", () => {
         const timeString = "2d 2d 3h 3h 1y 1y";
         const timezone = "America/New_York";
-        const dateObject = timeStringToDateObj(timeString, timezone);
+        const dateObject = timeStringToDayjsObj(timeString, timezone);
         expect(dateObject.isValid()).toBe(true);
     });
     it("Should handle a time string with decimal values, returning a valid Data type", () => {
         const timeString = "1.5y 0.5h";
         const timezone = "America/New_York";
-        const dateObject = timeStringToDateObj(timeString, timezone);
+        const dateObject = timeStringToDayjsObj(timeString, timezone);
         expect(dateObject.isValid()).toBe(true);
     });
     it("Should handle a time string without spaces, returning a valid Data type", () => {
         const timeString = "30m1y2h";
         const timezone = "America/New_York";
-        const dateObject = timeStringToDateObj(timeString, timezone);
+        const dateObject = timeStringToDayjsObj(timeString, timezone);
         expect(dateObject.isValid()).toBe(true);
     });
 });
