@@ -1,3 +1,18 @@
 {
-  "extends": "next/core-web-vitals"
+  "extends": ["next/core-web-vitals","next","prettier"],
+  "plugins": [
+    "sort-class-members"
+  ],
+  "rules": {
+    "sort-class-members/sort-class-members": [1, {
+      "order": [
+        "[static-properties]",
+        "[static-methods]",
+        "[properties]",
+        "[conventional-private-properties]",
+        "[methods]",
+        "[conventional-private-methods]"
+      ]
+    }]
+  }
 }

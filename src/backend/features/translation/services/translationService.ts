@@ -1,11 +1,11 @@
 import { DeepLService } from "./deepLService";
-import { Logger } from "@/backend/logger/logger";
 import { TranslationServiceErrorFactory } from "../models/translationServiceError";
 import { ValidateTranslateTextArgs } from "../types/types";
+import { logger as _logger } from "@/backend/logger/logger";
 
 export class TranslationService {
 	
-	constructor(private deepLService = new DeepLService(), private logger = new Logger()) {}
+	constructor(private deepLService = new DeepLService(), private logger = _logger) {}
 
 	/**
 	 * Validates the input text and language code, then translates the text using the DeepL API.
@@ -15,7 +15,7 @@ export class TranslationService {
 	public async translateText(props: ValidateTranslateTextArgs){
 		const res = await this.deepLService.validateThenTranslate(props)
 		if(res instanceof Error){
-			this.logger.logError(res)
+			this.logger.error(res)
 			return TranslationServiceErrorFactory.fromError(res)
 		}
 		return res

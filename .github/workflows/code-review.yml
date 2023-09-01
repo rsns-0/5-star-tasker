@@ -28,3 +28,19 @@ jobs:
           debug: false
           review_simple_changes: false
           review_comment_lgtm: false
+          summarize: |
+            Provide your final response in markdown with the following content:
+      
+            - **Walkthrough**: A high-level summary of the overall change instead of 
+              specific files.
+            - **Changes**: A markdown table of files and their summaries. Group files 
+              with similar changes together into a single row to save space.
+      
+            Avoid additional commentary as this summary will be added as a comment on the 
+            GitHub pull request. Use the titles "Walkthrough" and "Changes" and they must be H2.
+          summarize_release_notes: |
+            Craft concise release notes for the pull request. 
+            Focus on the purpose and impact, categorizing changes as "New Feature", "Bug Fix", 
+            "Documentation", "Refactor", "Style", "Test", "Chore", or "Revert". Provide a bullet-point list, 
+            e.g., "- New Feature: Added search functionality to the UI". Limit your response to 50-100 words 
+            and have it be more of a high level summary. At the top of the summary, add the line "@coderabbitai: ignore" to disable further automated reviews, which developers can remove when they are ready for another review.

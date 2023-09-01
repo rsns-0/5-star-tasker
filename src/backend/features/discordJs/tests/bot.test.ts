@@ -4,7 +4,6 @@ import { describe, expect, it, vi as jest } from "vitest";
 
 import { MessageReaction } from "discord.js";
 import { O } from "ts-toolbelt";
-import { generateExecuteSpy } from "./testUtils/generateExecuteSpy";
 import { initTestClient } from "./initScripts/initTestClient";
 import { registerCommandsToClient } from "../init/initClient";
 import { registerEventsToClient } from "../init/initClient";
@@ -46,9 +45,49 @@ describe("testcmd", async () => {
 			}
 		});
 		const mockMessage: any = {
+			user: {
+				id: "testid1",
+			},
 			options: { getString: mockGetString },
 			reply: mockReply,
 		};
+		mockReply.mockImplementationOnce(() => {
+			console.log("Replaced impl once.")
+		})
+		
+		await registerCommandsToClient(client);
+		const cmd = client.commands.get(testCmd.data.name)!;
+		const executeSpy = jest.spyOn(cmd, "execute");
+		cmd.execute(mockMessage);
+		expect(executeSpy).toHaveBeenCalled();
+		expect(executeSpy).toHaveBeenCalledWith(mockMessage);
+	});
+
+	it("When reply on the event is called, it should receive an object whose content field is a string that contains both of the values in the store.", async () => {
+		const store: Record<string, string> = {
+			title: "testTitle1",
+			description: "testDescription1",
+		};
+
+		const mockGetString = jest.fn((key) => store[key]);
+		const mockReply = jest.fn((obj) => {
+			const text = obj.content;
+			console.log(text);
+			for (const value of Object.values(store)) {
+				expect(text).toContain(value);
+			}
+		});
+		const mockMessage: any = {
+			user: {
+				id: "testid1",
+			},
+			options: { getString: mockGetString },
+			reply: mockReply,
+		};
+		mockReply.mockImplementationOnce(() => {
+			console.log("Replaced impl once.")
+		})
+		
 		await registerCommandsToClient(client);
 		const cmd = client.commands.get(testCmd.data.name)!;
 		const executeSpy = jest.spyOn(cmd, "execute");

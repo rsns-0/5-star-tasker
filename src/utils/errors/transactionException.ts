@@ -1,4 +1,4 @@
-export class TransactionException<TData> extends Error {
+export class TransactionException<const TData> extends Error {
 	constructor(public data: TData, error?:Error) {
 		if(error) {
 			super(error.message,{cause:error})
