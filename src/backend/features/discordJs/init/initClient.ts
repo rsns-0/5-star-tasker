@@ -2,9 +2,8 @@ import { IntentsBitField, Partials } from "discord.js";
 import { REST, Routes } from "discord.js";
 import { getCommandExports, getEventExports } from "../services/exportService";
 
-import { CommandExport } from "../types/types";
 import ReadyClient from "../models/client";
-import { descendToFolderThenGetExportsFromFolder } from "../../fileParsing/services/fileParsingService";
+import { cooldownServiceInstanceForDiscordJs } from "../services/cooldownServiceInstance";
 
 export const partiallyInitializeClient = () => {
 	const intents = new IntentsBitField();
@@ -24,8 +23,10 @@ export const partiallyInitializeClient = () => {
 	return client;
 };
 export async function registerCommandsToClient(client: ReadyClient) {
+	
 	const res = await getCommandExports();
-	for (const { data, execute } of res) {
+	for (const { data, execute, cooldown } of res) {
+		cooldownServiceInstanceForDiscordJs.registerCommandCooldown(data.name, cooldown)
 		client.commands.set(data.name, { data, execute });
 	}
 }
