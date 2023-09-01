@@ -30,6 +30,7 @@ function main() {
 			guildId,
 			token,
 		});
+		
 	} catch (e) {
 		logger.error(`Something went wrong with the discord bot server: ${e}`);
 		throw e;

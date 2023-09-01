@@ -24,6 +24,16 @@ export type EventExport = {
 	execute: (...args: ClientEvents[]) => Awaitable<void>
 }
 
+export type EventHandlerExport = {
+	name: string
+	execute: (...args: ClientEvents[]) => Awaitable<void>
+	cooldown?:number
+}
+
+export type EventHandlersData = {
+	[folderName: string]: EventHandlerExport[]
+}
+
 
 
 export type FolderOptions = "events" | "commands";
