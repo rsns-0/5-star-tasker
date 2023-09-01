@@ -192,9 +192,9 @@ export class CooldownService {
  * It provides static methods to create instances representing different states and units of time.
  */
 export class CooldownResult<
-	TUnit extends "milliseconds" | "seconds",
-	TOnCooldown extends boolean,
-	TNumber extends number | Decimal,
+	const TUnit extends "milliseconds" | "seconds",
+	const TOnCooldown extends boolean,
+	const TNumber extends number | Decimal,
 > {
 	/**
 	 * Creates an instance of CooldownResult in milliseconds.
