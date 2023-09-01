@@ -12,7 +12,7 @@ import {
 
 import { logger } from "@/backend/logger/logger";
 import prisma from "@/backend/db/prismaInstance";
-import { firstRegistration } from "@/backend/functionForFirstRegistration";
+
 import {
     reminderExplanationEmbed,
     reminderFinishedEmbed,
@@ -21,6 +21,7 @@ import {
     reminderTimezoneRegisteredEmbed,
 } from "../utils/createReminderExplanationEmbed";
 import { timeStringToDayjsObj } from "../services/stringToDayjsObj";
+import { firstRegistration } from "../utils/firstRegistration";
 
 export const data = new SlashCommandBuilder()
     .setName("reminder")
@@ -155,7 +156,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
             }
         }
         if (interaction.options.getSubcommand() === "edit") {
-            return; // getUserReminders()
+            return; // getUserReminders
         }
     } catch (e) {
         if (e instanceof DiscordAPIError) {
