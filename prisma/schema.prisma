@@ -20,19 +20,21 @@ model channels {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model countries {
-  id         BigInt     @id(map: "countries_pkey1") @default(autoincrement())
-  created_at DateTime   @default(now()) @db.Timestamptz(6)
-  name       String     @unique
-  flag_emoji String?    @unique
-  language   BigInt?
-  languages  languages? @relation(fields: [language], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id          BigInt     @id(map: "countries_pkey1") @default(autoincrement())
+  created_at  DateTime   @default(now()) @db.Timestamptz(6)
+  name        String     @unique @db.Citext
+  flag_emoji  String?    @unique @db.Citext
+  language_id BigInt?
+  languages   languages? @relation(fields: [language_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model discord_user {
-  id         BigInt      @id @default(autoincrement())
-  created_at DateTime    @default(now()) @db.Timestamptz(6)
-  username   String?     @default("")
-  reminders  reminders[]
+  id          BigInt      @id @unique
+  created_at  DateTime    @default(now()) @db.Timestamptz(6)
+  username    String?     @default("")
+  timezone_id BigInt?
+  timezones   timezones?  @relation(fields: [timezone_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reminders   reminders[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -90,8 +92,8 @@ model users {
 model languages {
   id           BigInt      @id @default(autoincrement())
   created_at   DateTime    @default(now()) @db.Timestamptz(6)
-  name         String      @unique
-  abbreviation String      @unique
+  name         String      @unique @db.Citext
+  abbreviation String      @unique @db.Citext
   countries    countries[]
 }
 
@@ -119,10 +121,20 @@ model reminders {
   created_at       DateTime          @default(now()) @db.Timestamptz(6)
   user_id          BigInt?
   channel_id       BigInt?
-  time             DateTime          @db.Timestamptz(6)
   reminder         String
+  time             Decimal           @db.Decimal
   discord_channels discord_channels? @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   discord_user     discord_user?     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model timezones {
+  id           BigInt         @id @unique @default(autoincrement())
+  created_at   DateTime       @default(now()) @db.Timestamptz(6)
+  label        String
+  description  String
+  emoji        String
+  value        String
+  discord_user discord_user[]
 }
 
 enum app_permission {

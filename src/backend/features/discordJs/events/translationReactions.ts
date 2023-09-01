@@ -9,7 +9,7 @@ import { logger } from "@/backend/logger/logger";
 const name = Events.MessageReactionAdd;
 const translation = new TranslationService();
 
-const DEFAULT_ACCENT_COLOR = 0x0099ff;
+export const DEFAULT_ACCENT_COLOR = 0x0099ff;
 
 /**
  *
@@ -17,51 +17,59 @@ const DEFAULT_ACCENT_COLOR = 0x0099ff;
  *
  */
 const execute = async (reaction: MessageReaction, user: User) => {
-	const { channel } = await reaction.message.fetch();
-	
+    const { channel } = await reaction.message.fetch();
 
-	const textToTranslate = reaction.message.content;
-	const emojiReactionID = reaction.emoji.name;
+    const textToTranslate = reaction.message.content;
+    const emojiReactionID = reaction.emoji.name;
 
-	if (textToTranslate === null) {
-		throw new Error("Unexpected null value in text to translate.");
-	}
-	if (emojiReactionID === null) {
-		throw new Error("Unexpected null value in emoji reaction ID.");
-	}
+    if (textToTranslate === null) {
+        throw new Error("Unexpected null value in text to translate.");
+    }
+    if (emojiReactionID === null) {
+        throw new Error("Unexpected null value in emoji reaction ID.");
+    }
 
-	const targetLanguage =
-		await languageRepository.getLanguageAbbreviation(emojiReactionID,languageRepository.languageAbbreviationStrategies.byEmoji);
-	if (!targetLanguage) {
-		return; // no throwing since user can react with any emoji
-	}
+    const targetLanguage = await languageRepository.getLanguageAbbreviation(
+        emojiReactionID,
+        languageRepository.languageAbbreviationStrategies.byEmoji
+    );
+    if (!targetLanguage) {
+        return; // no throwing since user can react with any emoji
+    }
 
-	const result = await translation.translateText({
-		text: textToTranslate,
-		targetLanguage,
-	});
-	if (result instanceof TranslationServiceError) {
-		const { message } = result.autoResolve();
-		await channel.send({
-			content: `${userMention(user.id)}\n${message}`,
-		});
-		return;
-	}
+    const result = await translation.translateText({
+        text: textToTranslate,
+        targetLanguage,
+    });
+    if (result instanceof TranslationServiceError) {
+        const { message } = result.autoResolve();
+        await channel.send({
+            content: `${userMention(user.id)}\n${message}`,
+        });
+        return;
+    }
 
-	const { sourceLanguage, text } = result[0];
-	const color = reaction.client.user.accentColor || DEFAULT_ACCENT_COLOR;
-	const embed = createTranslationEmbed(text, sourceLanguage, targetLanguage, color);
-	
-	try {
-		await channel.send({
-			content: userMention(user.id),
-			embeds: [embed],
-			allowedMentions: { parse: ["users"] },
-		});
-	} catch (e) {
-		logger.error(e);
-		await channel.send("An unknown server error occurred. Please try again later.");
-	}
+    const { sourceLanguage, text } = result[0];
+    const color = reaction.client.user.accentColor || DEFAULT_ACCENT_COLOR;
+    const embed = createTranslationEmbed(
+        text,
+        sourceLanguage,
+        targetLanguage,
+        color
+    );
+
+    try {
+        await channel.send({
+            content: userMention(user.id),
+            embeds: [embed],
+            allowedMentions: { parse: ["users"] },
+        });
+    } catch (e) {
+        logger.error(e);
+        await channel.send(
+            "An unknown server error occurred. Please try again later."
+        );
+    }
 };
 
 export { name, execute };
