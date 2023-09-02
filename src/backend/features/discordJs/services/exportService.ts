@@ -1,6 +1,7 @@
-import { CommandExport, EventExport, EventHandlersData } from '../types/types';
+import { CommandExport, EventExport } from '../types/types';
 
-import { glob } from "glob";
+import {glob} from "fast-glob"
+import { logger } from '@/backend/logger/logger';
 
 export const getExports = (filePaths: string[]) => {
 	return Promise.all(
@@ -16,28 +17,30 @@ export const getExports = (filePaths: string[]) => {
 };
 
 export const getCommandExports = (): Promise<CommandExport[]> => {
+	logger.info("Getting command exports")
 	return glob(`src/**/discordJs/**/commands/**/*.{ts,js}`).then((filePaths) =>
 		getExports(filePaths)
-	); // recursive
+	); 
 };
 
 export const getEventExports = (): Promise<EventExport[]> => {
+	logger.info("Getting event exports")
 	return glob(`src/**/discordJs/**/events/**/*.{ts,js}`).then((filePaths) =>
 		getExports(filePaths)
-	); // recursive
+	); 
 };
 
-export const getEventHandlerExports = async (): Promise<EventHandlersData> => {
-	const eventMappings:EventHandlersData = {}
-	const folders = await glob(`src/**/discordJs/**/eventHandlers/*/`)
-	for (const folder of folders){
-		const globPattern = `${folder}/*.{ts,js}`
-		const filePaths = await glob(globPattern,{windowsPathsNoEscape:true})
-		const folderName = folder.split("/").slice(-2)[0]
+// export const getEventHandlerExports = async (): Promise<EventHandlersData> => {
+// 	const eventMappings:EventHandlersData = {}
+// 	const folders = await glob(`src/**/discordJs/**/eventHandlers/*/`)
+// 	for (const folder of folders){
+// 		const globPattern = `${folder}/*.{ts,js}`
+// 		const filePaths = await glob(globPattern)
+// 		const folderName = folder.split("/").slice(-2)[0]
 		
-		eventMappings[folderName] = await getExports(filePaths)
+// 		eventMappings[folderName] = await getExports(filePaths)
 		
-	}
-	return eventMappings	
-}
+// 	}
+// 	return eventMappings	
+// }
 

@@ -2,7 +2,6 @@ import * as testCmd from "../commands/testcmd";
 
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { afterEach, beforeEach } from "node:test";
-import { beforeAll, describe, expect, it, vi as jest } from "vitest";
 import {
 	partiallyInitializeClient,
 	registerCommandsToClient,
@@ -13,7 +12,14 @@ import ReadyClient from "../models/client";
 import { assertExists } from "@/utils/assertExists";
 import { cooldownServiceInstanceForDiscordJs } from "../services/cooldownServiceInstance";
 
-describe("Integration with cooldown service", async () => {
+;
+
+
+
+
+
+
+describe("Integration with cooldown service", () => {
 	let client:ReadyClient
 
 	beforeAll(async () => {

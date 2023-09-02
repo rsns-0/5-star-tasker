@@ -1,6 +1,4 @@
 import { DirectoryTraverser } from "./directoryTraverser";
-import { TraverserError } from "../errors/traverserError";
-import { glob } from "glob";
 
 const defaultFilter = (fullFilePath: string): boolean =>
 	fullFilePath.endsWith(".ts") || fullFilePath.endsWith(".js");

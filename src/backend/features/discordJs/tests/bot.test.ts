@@ -1,15 +1,16 @@
 import * as testCmd from "../commands/testcmd";
 
-import { describe, expect, it, vi as jest } from "vitest";
-
-import { MessageReaction } from "discord.js";
-import { O } from "ts-toolbelt";
+import ReadyClient from "../models/client";
 import { initTestClient } from "./initScripts/initTestClient";
 import { registerCommandsToClient } from "../init/initClient";
 import { registerEventsToClient } from "../init/initClient";
 
-describe("init", async () => {
-	const client = await initTestClient();
+describe("init", () => {
+	let client: ReadyClient;
+
+	beforeEach(async () => {
+		client = await initTestClient();
+	});
 
 	it("registerCommandsToClient should register at least one command", async () => {
 		await registerCommandsToClient(client);
@@ -27,8 +28,12 @@ describe("init", async () => {
 	});
 });
 
-describe("testcmd", async () => {
-	const client = await initTestClient();
+describe("testcmd", () => {
+	let client: ReadyClient;
+
+	beforeEach( () => {
+		client = initTestClient();
+	});
 
 	it("When reply on the event is called, it should receive an object whose content field is a string that contains both of the values in the store.", async () => {
 		const store: Record<string, string> = {
@@ -52,9 +57,9 @@ describe("testcmd", async () => {
 			reply: mockReply,
 		};
 		mockReply.mockImplementationOnce(() => {
-			console.log("Replaced impl once.")
-		})
-		
+			console.log("Replaced impl once.");
+		});
+
 		await registerCommandsToClient(client);
 		const cmd = client.commands.get(testCmd.data.name)!;
 		const executeSpy = jest.spyOn(cmd, "execute");
@@ -85,9 +90,9 @@ describe("testcmd", async () => {
 			reply: mockReply,
 		};
 		mockReply.mockImplementationOnce(() => {
-			console.log("Replaced impl once.")
-		})
-		
+			console.log("Replaced impl once.");
+		});
+
 		await registerCommandsToClient(client);
 		const cmd = client.commands.get(testCmd.data.name)!;
 		const executeSpy = jest.spyOn(cmd, "execute");
@@ -95,35 +100,4 @@ describe("testcmd", async () => {
 		expect(executeSpy).toHaveBeenCalled();
 		expect(executeSpy).toHaveBeenCalledWith(mockMessage);
 	});
-});
-
-describe("Discord Emoji Service", () => {
-	
-	it.todo(
-		"when translating 'hello world' from english to spanish, the reply content should contain 'hola mundo'",
-		() => {
-			const emojiServiceRef: any = () => {};
-			
-
-			const mockReply = jest.fn(({ content }) => {
-				const lower = (content as string).toLowerCase();
-				expect(lower).toContain("hola mundo");
-			});
-
-			const mockReaction: O.Partial<MessageReaction, "deep"> = {
-				emoji: {
-					id: "testid1",
-				},
-				message: {
-					reply: mockReply,
-					content: "hello world",
-				},
-			};
-			//@ts-ignore
-			mockReaction.message?.reply(mockReaction.message?.content);
-
-			emojiServiceRef.execute(mockReaction?.message?.content as any);
-			
-		}
-	);
 });

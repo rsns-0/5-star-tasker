@@ -1,7 +1,10 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { describe, expect, it, vi as jest } from "vitest";
 
 import { cooldownServiceInstanceForDiscordJs } from "../services/cooldownServiceInstance";
+
+;
+
+
 
 /**
  *
