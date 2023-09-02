@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+;
 
 import { TranslationPrototype } from '../prototype/translationPrototype';
 import dotenv from "dotenv"
