@@ -1,9 +1,4 @@
-import {
-	ActionRowBuilder,
-	ChatInputCommandInteraction,
-	PermissionFlagsBits,
-	StringSelectMenuBuilder
-} from 'discord.js';
+import { ActionRowBuilder, ChatInputCommandInteraction, PermissionFlagsBits, StringSelectMenuBuilder } from 'discord.js';
 import { ApplyOptions, RequiresClientPermissions } from '@sapphire/decorators';
 import {
 	reminderExplanationEmbed,
@@ -17,7 +12,7 @@ import { Subcommand } from '@sapphire/plugin-subcommands';
 import { firstRegistration } from '../../features/reminders/commandComponents/firstRegistration';
 import prisma from '../../db/prismaInstance';
 import { timeStringToDayjsObj } from '../../features/reminders/services/stringToDayjsObj';
-
+//? apparently sapphire has built in error handling?
 @ApplyOptions<Subcommand.Options>({
 	name: 'reminder',
 	description: 'Manage reminders. Use help for more information.',
@@ -37,8 +32,15 @@ import { timeStringToDayjsObj } from '../../features/reminders/services/stringTo
 		}
 	]
 })
-//? apparently sapphire has built in error handling?
 export class UserCommand extends Subcommand {
+	public override registerApplicationCommands(registry: Subcommand.Registry) {
+		// Register slash command
+		registry.registerChatInputCommand({
+			name: this.name,
+			description: this.description
+		});
+	}
+
 	@RequiresClientPermissions([PermissionFlagsBits.EmbedLinks])
 	public help(interaction: ChatInputCommandInteraction) {
 		interaction.reply({
@@ -91,6 +93,9 @@ export class UserCommand extends Subcommand {
 						value: confirmation.values[0]
 					}
 				});
+				if (!tzinfo) {
+					throw new Error('Assertion error: Timezone not found. Check to make sure the form field options align with the database data.');
+				}
 				await prisma.discord_user.update({
 					where: {
 						id: parseInt(interaction.user.id)
@@ -99,7 +104,6 @@ export class UserCommand extends Subcommand {
 						timezone_id: tzinfo?.id
 					}
 				});
-
 				await interaction.followUp({
 					// Matuz TODO: Make another command and call that command here, so no repetitive use of things (soon)
 					// edit: reading on the next day, I'm now confused, I'll do it later
@@ -134,6 +138,6 @@ export class UserCommand extends Subcommand {
 	public async edit(interaction: ChatInputCommandInteraction) {
 		//TODO: getUserReminders
 		interaction;
-		throw new Error('Method not implemented.');
+		throw new Error('Assertion error: Method not implemented.');
 	}
 }

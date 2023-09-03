@@ -119,11 +119,12 @@ export class CooldownService {
 	 */
 	public async processUserCooldown(userId: string, commandName: string) {
 		const cooldownEvent = this._cooldownEventRepository.getCooldownEvent(userId, commandName);
-		const commandCooldown = this._commandCooldownRepository.getCooldown(commandName);
-		assertExists(
-			commandCooldown,
-			`Assertion error: No cooldown found for command ${commandName}`
-		);
+		let commandCooldown = this._commandCooldownRepository.getCooldown(commandName);
+		if (!commandCooldown) {
+			this.registerCommandCooldown(commandName)
+			commandCooldown = this._commandCooldownRepository.getCooldown(commandName);
+		}
+		assertExists(commandCooldown, `Assertion error: Command cooldown must exist. Got ${commandCooldown}`)
 
 		if (!cooldownEvent || cooldownEvent.isExpired()) {
 			this.logger.debug(

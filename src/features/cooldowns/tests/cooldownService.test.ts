@@ -1,5 +1,3 @@
-;
-
 import { CooldownService } from "../services/cooldownService";
 import { _CommandCooldownRepository } from "../models/commandCooldownRepository";
 import { _CooldownEventRepository } from "../models/cooldownEventRepository";
@@ -10,7 +8,7 @@ describe("kitchen sink test", () => {
 		const commandName = "testcmd1";
 		const userId = "testuser1";
 		const cooldown = hoursToMilliseconds(1);
-		jest.useFakeTimers();
+		vi.useFakeTimers();
 		const cooldownService = new CooldownService();
 		cooldownService.registerCommandCooldown(commandName, cooldown);
 
@@ -26,14 +24,14 @@ describe("kitchen sink test", () => {
 		expect(cooldownResult2.isOnCooldown).toBe(true);
 
 		// advance the timer by 15 minutes
-		jest.advanceTimersByTime(15 * 60 * 1000);
+		vi.advanceTimersByTime(15 * 60 * 1000);
 
 		// on the third call, the returned result should be a result on cooldown
 		const cooldownResult3 = await  cooldownService.processUserCooldown(userId, commandName);
 		expect(cooldownResult3.isOnCooldown).toBe(true);
 
 		// advance the timer by 50 minutes
-		jest.advanceTimersByTime(50 * 60 * 1000);
+		vi.advanceTimersByTime(50 * 60 * 1000);
 
 		// on the fourth call, the returned result should be a result not on cooldown
 		const cooldownResult4 =await  cooldownService.processUserCooldown(userId, commandName);
@@ -72,10 +70,10 @@ describe("CooldownService", () => {
 		it("should return the remaining cooldown time in seconds if the user is on cooldown", async () => {
 			const userId = "testUser";
 
-			jest.useFakeTimers();
+			vi.useFakeTimers();
 
 			await cooldownService.processUserCooldown(userId, commandName);
-			jest.advanceTimersByTime(1000);
+			vi.advanceTimersByTime(1000);
 			const result2 =await  cooldownService.processUserCooldown(userId, commandName);
 
 			expect(result2.isOnCooldown).toBe(true);

@@ -1,6 +1,23 @@
 import './lib/setup';
-import { LogLevel, SapphireClient } from '@sapphire/framework';
+
 import { GatewayIntentBits, Partials } from 'discord.js';
+import { LanguageRepository, TranslationService, languageRepository } from './features/translation';
+import { LogLevel, SapphireClient } from '@sapphire/framework';
+
+import { CooldownService } from './features/cooldowns';
+import { container } from '@sapphire/pieces';
+
+declare module '@sapphire/pieces' {
+	export interface Container {
+		translationService: TranslationService;
+		cooldownService: CooldownService;
+		languageRepository: LanguageRepository
+	}
+}
+
+container.translationService = new TranslationService();
+container.cooldownService = new CooldownService();
+container.languageRepository = languageRepository
 
 const client = new SapphireClient({
 	defaultPrefix: '!',
@@ -23,7 +40,7 @@ const client = new SapphireClient({
 		GatewayIntentBits.MessageContent
 	],
 	partials: [Partials.Channel],
-	loadMessageCommandListeners: true
+	loadMessageCommandListeners: true,
 });
 
 const main = async () => {

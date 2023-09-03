@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { Dayjs } from "dayjs";
 import { EmbedBuilder } from "discord.js";
 
@@ -51,7 +52,7 @@ export const reminderSelectTimezoneEmbed = (): EmbedBuilder => {
 };
 
 export const reminderTimezoneRegisteredEmbed = (
-    tzinfo: any,
+    tzinfo: Prisma.timezonesGetPayload<true>,
     timeString: string
 ): EmbedBuilder => {
     const embed = new EmbedBuilder()

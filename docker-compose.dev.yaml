@@ -7,7 +7,7 @@ services:
       target: runner
     volumes:
       - .:/app
-    command: yarn next dev
+    command: yarn dev
     ports:
       - "3000:3000"
     environment:

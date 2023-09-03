@@ -3,7 +3,7 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 
 COPY package.json yarn.lock ./
-RUN  yarn
+RUN  yarn install
 
 FROM node:20-alpine AS builder
 WORKDIR /app
@@ -12,7 +12,7 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN yarn next build
+RUN yarn build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
@@ -22,8 +22,8 @@ ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
-
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+# RUN yarn install
+COPY --from=builder --chown=nextjs:nodejs /app/.dist ./.dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 

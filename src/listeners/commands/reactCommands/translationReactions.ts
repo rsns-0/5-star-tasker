@@ -1,19 +1,20 @@
 import { type MessageReaction, type User, userMention } from 'discord.js';
 
 import { logger } from '../../../logger/logger';
-import { Events, Listener, container } from '@sapphire/framework';
+import { Events, Listener } from '@sapphire/framework';
 
 import { ApplyOptions } from '@sapphire/decorators';
 import { languageRepository } from '../../../features/translation/models/languageRepository';
 import { TranslationServiceError } from '../../../features/translation/models/translationServiceError';
 import { createTranslationEmbed } from '../../../features/translation/commandComponents/createTranslationEmbed';
+import { cooldownServiceInstanceForDiscordJs } from '../../../utils/cooldownServiceInstance';
 
 const name = 'reactTranslation';
-container.cooldownService.registerCommandCooldown(name, 5000);
+cooldownServiceInstanceForDiscordJs.registerCommandCooldown(name, 5000)
 const DEFAULT_ACCENT_COLOR = 0x0099ff;
 
-@ApplyOptions<Listener.Options>({ event: Events.MessageReactionAdd, name })
-export class UserEvent extends Listener {
+@ApplyOptions<Listener.Options>({ event: Events.MessageReactionAdd})
+export class UserEvent extends Listener<typeof Events.MessageReactionAdd> {
 	
 	public override async run(reaction: MessageReaction, user: User) {
 		
