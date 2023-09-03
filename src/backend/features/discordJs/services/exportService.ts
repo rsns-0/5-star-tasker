@@ -29,18 +29,3 @@ export const getEventExports = (): Promise<EventExport[]> => {
 		getExports(filePaths)
 	); 
 };
-
-// export const getEventHandlerExports = async (): Promise<EventHandlersData> => {
-// 	const eventMappings:EventHandlersData = {}
-// 	const folders = await glob(`src/**/discordJs/**/eventHandlers/*/`)
-// 	for (const folder of folders){
-// 		const globPattern = `${folder}/*.{ts,js}`
-// 		const filePaths = await glob(globPattern)
-// 		const folderName = folder.split("/").slice(-2)[0]
-		
-// 		eventMappings[folderName] = await getExports(filePaths)
-		
-// 	}
-// 	return eventMappings	
-// }
-
