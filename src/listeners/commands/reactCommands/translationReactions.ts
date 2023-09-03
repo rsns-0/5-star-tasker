@@ -1,40 +1,46 @@
 import { type MessageReaction, type User, userMention } from 'discord.js';
-import { languageRepository } from '../../../domain/translation/models/languageRepository';
-import { TranslationServiceError } from '../../../domain/translation/models/translationServiceError';
+
 import { logger } from '../../../logger/logger';
+import { Events, Listener, container } from '@sapphire/framework';
 
-import { Events, Listener } from '@sapphire/framework';
-
-import { createTranslationEmbed } from '../../../utils/createTranslationEmbed';
 import { ApplyOptions } from '@sapphire/decorators';
+import { languageRepository } from '../../../features/translation/models/languageRepository';
+import { TranslationServiceError } from '../../../features/translation/models/translationServiceError';
+import { createTranslationEmbed } from '../../../features/translation/commandComponents/createTranslationEmbed';
 
-@ApplyOptions<Listener.Options>({ event: Events.MessageReactionAdd })
+const name = 'reactTranslation';
+container.cooldownService.registerCommandCooldown(name, 5000);
+const DEFAULT_ACCENT_COLOR = 0x0099ff;
+
+@ApplyOptions<Listener.Options>({ event: Events.MessageReactionAdd, name })
 export class UserEvent extends Listener {
+	
 	public override async run(reaction: MessageReaction, user: User) {
-		const translation = this.container.translationService;
+		
+		const { translationService: translation, cooldownService } = this.container;
 
 		const { channel } = await reaction.message.fetch();
 
-		const textToTranslate = reaction.message.content;
-		const emojiReactionID = reaction.emoji.name;
+		const content = reaction.message.content;
+		const emojiName = reaction.emoji.name;
 
-		if (textToTranslate === null) {
+		if (content === null) {
 			throw new Error('Unexpected null value in text to translate.');
 		}
-		if (emojiReactionID === null) {
+		if (emojiName === null) {
 			throw new Error('Unexpected null value in emoji reaction ID.');
 		}
 
-		const targetLanguage = await languageRepository.getLanguageAbbreviation(
-			emojiReactionID,
-			languageRepository.languageAbbreviationStrategies.byEmoji
-		);
+		const targetLanguage = await languageRepository.getLanguageAbbreviation(emojiName, "byEmoji");
 		if (!targetLanguage) {
 			return; // no throwing since user can react with any emoji
 		}
-
+		const res = await cooldownService.processUserCooldown(user.id, name);
+		if (res.isOnCooldown) {
+			return;
+		}
 		const result = await translation.translateText({
-			text: textToTranslate,
+			text: content,
 			targetLanguage
 		});
 		if (result instanceof TranslationServiceError) {
@@ -59,9 +65,5 @@ export class UserEvent extends Listener {
 			logger.error(e);
 			await channel.send('An unknown server error occurred. Please try again later.');
 		}
-
-		// return message.channel.send(prefix ? `My prefix in this guild is: \`${prefix}\`` : 'Cannot find any Prefix for Message Commands.');
 	}
 }
-const DEFAULT_ACCENT_COLOR = 0x0099ff;
-//TODO: refactor event listener to be controller for functions that handle MessageReaction events.

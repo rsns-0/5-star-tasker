@@ -173,6 +173,8 @@ export class CooldownService {
 			`Registered cooldown event for command ${commandName} for user ${userId} which is set to expire at ${msg}`
 		);
 	}
+
+	
 }
 
 /**

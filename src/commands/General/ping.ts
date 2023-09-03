@@ -9,6 +9,7 @@ import { ApplicationCommandType, type Message } from 'discord.js';
 	cooldownDelay: 10000,
 	
 })
+
 export class UserCommand extends Command {
 	// Register slash and context menu command
 	public override registerApplicationCommands(registry: Command.Registry) {

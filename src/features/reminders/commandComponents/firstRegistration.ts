@@ -1,5 +1,5 @@
 import { User } from "discord.js";
-import prisma from "../db/prismaInstance";
+import prisma from "../../../db/prismaInstance";
 
 // IDK where to put this, we might call it not only with the bot but whenever a user make login in the site as well, idk
 
