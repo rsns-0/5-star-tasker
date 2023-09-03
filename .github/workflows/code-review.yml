@@ -1,0 +1,47 @@
+name: Code Review
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+  pull_request_review_comment:
+    types: [created]
+
+concurrency:
+  group:
+    ${{ github.repository }}-${{ github.event.number || github.head_ref ||
+    github.sha }}-${{ github.workflow }}-${{ github.event_name ==
+    'pull_request_review_comment' && 'pr_comment' || 'pr' }}
+  cancel-in-progress: ${{ github.event_name != 'pull_request_review_comment' }}
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: coderabbitai/ai-pr-reviewer@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        with:
+          debug: false
+          review_simple_changes: false
+          openai_heavy_model: gpt-3.5-turbo
+          review_comment_lgtm: false
+          summarize: |
+            Provide your final response in markdown with the following content:
+      
+            - **Walkthrough**: A high-level summary of the overall change instead of 
+              specific files.
+            - **Changes**: A markdown table of files and their summaries. Group files 
+              with similar changes together into a single row to save space.
+      
+            Avoid additional commentary as this summary will be added as a comment on the 
+            GitHub pull request. Use the titles "Walkthrough" and "Changes" and they must be H2.
+          summarize_release_notes: |
+            Craft concise release notes for the pull request. 
+            Focus on the purpose and impact, categorizing changes as "New Feature", "Bug Fix", 
+            "Documentation", "Refactor", "Style", "Test", "Chore", or "Revert". Provide a bullet-point list, 
+            e.g., "- New Feature: Added search functionality to the UI". Limit your response to 50-100 words 
+            and have it be more of a high level summary. At the top of the summary, add the line: @coderabbitai: ignore

@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model channels {
+  id          BigInt     @id @default(autoincrement())
+  inserted_at DateTime   @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  slug        String     @unique
+  created_by  String     @db.Uuid
+  users       users      @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  messages    messages[]
+}
+
+model countries {
+  id          BigInt     @id(map: "countries_pkey1") @default(autoincrement())
+  created_at  DateTime   @default(now()) @db.Timestamptz(6)
+  name        String     @unique @db.Citext
+  flag_emoji  String?    @unique @db.Citext
+  language_id BigInt?
+  languages   languages? @relation(fields: [language_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model discord_channels {
+  id         BigInt      @id @unique
+  name       String?     @default("")
+  created_at DateTime    @default(now()) @db.Timestamptz(6)
+  reminders  reminders[]
+}
+
+model discord_user {
+  id          BigInt      @id @unique
+  created_at  DateTime    @default(now()) @db.Timestamptz(6)
+  username    String?     @default("")
+  timezone_id BigInt?
+  timezones   timezones?  @relation(fields: [timezone_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reminders   reminders[]
+}
+
+model languages {
+  id           BigInt      @id @default(autoincrement())
+  created_at   DateTime    @default(now()) @db.Timestamptz(6)
+  name         String      @unique @db.Citext
+  abbreviation String      @unique @db.Citext
+  countries    countries[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model messages {
+  id          BigInt   @id @default(autoincrement())
+  inserted_at DateTime @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  message     String?
+  user_id     String   @db.Uuid
+  channel_id  BigInt
+  channels    channels @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users       users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model reminders {
+  id               BigInt            @id @default(autoincrement())
+  created_at       DateTime          @default(now()) @db.Timestamptz(6)
+  user_id          BigInt?
+  channel_id       BigInt?
+  reminder         String
+  time             Decimal           @db.Decimal
+  discord_channels discord_channels? @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  discord_user     discord_user?     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model role_permissions {
+  id         BigInt         @id @default(autoincrement())
+  role       app_role
+  permission app_permission
+
+  @@unique([role, permission])
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model test_countries {
+  id         BigInt      @id(map: "countries_pkey") @default(autoincrement())
+  name       String?
+  iso2       String
+  iso3       String?
+  local_name String?
+  continent  continents?
+}
+
+model test_table {
+  id         BigInt   @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  name       String?  @default("") @db.VarChar
+  value      BigInt?  @default(0)
+  text       String?  @default("")
+}
+
+model timezones {
+  id           BigInt         @id @unique @default(autoincrement())
+  created_at   DateTime       @default(now()) @db.Timestamptz(6)
+  label        String
+  description  String
+  emoji        String
+  value        String
+  discord_user discord_user[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model user_roles {
+  id      BigInt   @id @default(autoincrement())
+  user_id String   @db.Uuid
+  role    app_role
+  users   users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, role])
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model users {
+  id         String       @id @db.Uuid
+  username   String?
+  status     user_status? @default(OFFLINE)
+  channels   channels[]
+  messages   messages[]
+  user_roles user_roles[]
+}
+
+enum app_permission {
+  channels_delete @map("channels.delete")
+  messages_delete @map("messages.delete")
+}
+
+enum app_role {
+  admin
+  moderator
+}
+
+enum continents {
+  Africa
+  Antarctica
+  Asia
+  Europe
+  Oceania
+  North_America @map("North America")
+  South_America @map("South America")
+}
+
+enum user_status {
+  ONLINE
+  OFFLINE
+}
