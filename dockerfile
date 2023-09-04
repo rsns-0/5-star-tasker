@@ -32,7 +32,7 @@ RUN yarn install
 
 # Generate Prisma Client
 COPY --link prisma .
-RUN yarn prisma generate
+RUN yarn pgenerate
 
 # Copy application code
 COPY --link . .
