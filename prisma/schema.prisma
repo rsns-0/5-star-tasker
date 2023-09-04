@@ -136,6 +136,15 @@ model users {
   user_roles user_roles[]
 }
 
+model logs {
+  id         BigInt   @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  level      Int?     @default(6) @db.SmallInt
+  tags       String[]
+  message    String?  @default("")
+  json       Json?    @db.Json
+}
+
 enum app_permission {
   channels_delete @map("channels.delete")
   messages_delete @map("messages.delete")
