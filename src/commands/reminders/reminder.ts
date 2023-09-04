@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ChatInputCommandInteraction, PermissionFlagsBits, StringSelectMenuBuilder } from 'discord.js';
+import { ActionRowBuilder, ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder, StringSelectMenuBuilder } from 'discord.js';
 import { ApplyOptions, RequiresClientPermissions } from '@sapphire/decorators';
 import {
 	reminderExplanationEmbed,
@@ -12,6 +12,29 @@ import { Subcommand } from '@sapphire/plugin-subcommands';
 import { firstRegistration } from '../../features/reminders/commandComponents/firstRegistration';
 import prisma from '../../db/prismaInstance';
 import { timeStringToDayjsObj } from '../../features/reminders/services/stringToDayjsObj';
+
+
+const reminderData = new SlashCommandBuilder()
+.setName('reminder')
+.setDescription('Create a reminder')
+.addSubcommand((subcommand) => subcommand.setName('edit').setDescription('Edit your reminders'))
+.addSubcommand((subcommand) =>
+	subcommand
+		.setName('set')
+		.setDescription('Info about a user')
+		.addStringOption((option) =>
+			option
+				.setName('time')
+				.setDescription('set the time for the reminder, more info in /reminder help')
+				.setRequired(true)
+				.setMaxLength(25)
+		)
+		.addStringOption((option) =>
+			option.setName('message').setDescription('What do you want to be pinged for? (200 chars limit)').setRequired(false)
+		)
+)
+.addSubcommand((subcommand) => subcommand.setName('help').setDescription('Explanation of how to use /reminder'));
+
 //? apparently sapphire has built in error handling?
 @ApplyOptions<Subcommand.Options>({
 	name: 'reminder',
@@ -21,6 +44,8 @@ import { timeStringToDayjsObj } from '../../features/reminders/services/stringTo
 		{
 			name: 'help',
 			chatInputRun: 'help'
+			
+
 		},
 		{
 			name: 'set',
@@ -33,12 +58,11 @@ import { timeStringToDayjsObj } from '../../features/reminders/services/stringTo
 	]
 })
 export class UserCommand extends Subcommand {
+	
 	public override registerApplicationCommands(registry: Subcommand.Registry) {
 		// Register slash command
-		registry.registerChatInputCommand({
-			name: this.name,
-			description: this.description
-		});
+
+		registry.registerChatInputCommand(reminderData);
 	}
 
 	@RequiresClientPermissions([PermissionFlagsBits.EmbedLinks])
