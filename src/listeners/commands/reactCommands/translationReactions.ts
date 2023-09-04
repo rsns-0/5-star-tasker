@@ -10,14 +10,12 @@ import { createTranslationEmbed } from '../../../features/translation/commandCom
 import { cooldownServiceInstanceForDiscordJs } from '../../../utils/cooldownServiceInstance';
 
 const name = 'reactTranslation';
-cooldownServiceInstanceForDiscordJs.registerCommandCooldown(name, 5000)
+cooldownServiceInstanceForDiscordJs.registerCommandCooldown(name, 5000);
 const DEFAULT_ACCENT_COLOR = 0x0099ff;
 
-@ApplyOptions<Listener.Options>({ event: Events.MessageReactionAdd})
+@ApplyOptions<Listener.Options>({ event: Events.MessageReactionAdd })
 export class UserEvent extends Listener<typeof Events.MessageReactionAdd> {
-	
 	public override async run(reaction: MessageReaction, user: User) {
-		
 		const { translationService: translation, cooldownService } = this.container;
 
 		const { channel } = await reaction.message.fetch();
@@ -32,7 +30,7 @@ export class UserEvent extends Listener<typeof Events.MessageReactionAdd> {
 			throw new Error('Unexpected null value in emoji reaction ID.');
 		}
 
-		const targetLanguage = await languageRepository.getLanguageAbbreviation(emojiName, "byEmoji");
+		const targetLanguage = await languageRepository.getLanguageAbbreviation(emojiName, 'byEmoji');
 		if (!targetLanguage) {
 			return; // no throwing since user can react with any emoji
 		}

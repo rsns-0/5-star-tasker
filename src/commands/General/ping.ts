@@ -6,10 +6,8 @@ import { ApplicationCommandType, type Message } from 'discord.js';
 @ApplyOptions<Command.Options>({
 	description: 'ping pong',
 	cooldownLimit: 3,
-	cooldownDelay: 10000,
-	
+	cooldownDelay: 10000
 })
-
 export class UserCommand extends Command {
 	// Register slash and context menu command
 	public override registerApplicationCommands(registry: Command.Registry) {

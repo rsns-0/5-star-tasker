@@ -1,5 +1,5 @@
-import { Collection } from "discord.js";
-import { logger } from "../../../logger/logger";
+import { Collection } from 'discord.js';
+import { logger } from '../../../logger/logger';
 
 /**
  * ! Not ready to be used as a public class yet. Used internally for CooldownService.
@@ -47,9 +47,9 @@ export class _CommandCooldownRepository {
 			logger.debug(`Registered cooldown for command ${commandName} with cooldown ${cooldown}`);
 			return;
 		}
-		
+
 		this.applyDefaultCooldown(commandName);
-		logger.debug(`Registered cooldown for command ${commandName} with default cooldown ${this._defaultCooldown}`)
+		logger.debug(`Registered cooldown for command ${commandName} with default cooldown ${this._defaultCooldown}`);
 	}
 
 	/**
