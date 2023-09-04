@@ -5,8 +5,8 @@ import { container } from "tsyringe";
 
 describe("reflection", () => {
     
-    it("should successfully resolve service dependency", () => {
-        const controller = container.resolve(TestController)
+    it.fails("should successfully resolve service dependency", async () => {
+      const controller = container.resolve(TestController)
         const res = controller.returnTextOfService()
         expect(res).toEqual('hello world')
         

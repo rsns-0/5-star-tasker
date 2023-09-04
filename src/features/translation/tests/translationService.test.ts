@@ -1,12 +1,11 @@
 import { TRANSLATION_MAX_USER_INPUT_CHARS } from "../configs/languageConfig";
 import { TranslationService } from "../services/translationService";
-import { container } from "tsyringe";
 import dotenv from "dotenv"
 import { z } from "zod";
 
 dotenv.config() 
 
-const service = container.resolve(TranslationService)
+const service = new TranslationService()
 
 
 
