@@ -27,11 +27,12 @@ RUN apt-get update -qq && \
 
 # Install node modules
 COPY --link package.json yarn.lock ./
-RUN yarn install --immutable --production=false
+RUN yarn install
+# --immutable --production=false
 
 # Generate Prisma Client
 COPY --link prisma .
-RUN npx prisma generate
+RUN yarn prisma generate
 
 # Copy application code
 COPY --link . .

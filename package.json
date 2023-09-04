@@ -72,8 +72,5 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "prettier": "@sapphire/prettier-config",
-  "packageManager": "yarn@3.6.3",
-  "prisma": {
-    "schema": "src/prisma/schema.prisma"
-  }
+  "packageManager": "yarn@3.6.3"
 }
