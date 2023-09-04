@@ -1,36 +1,59 @@
-FROM node:20-alpine AS deps
+# syntax = docker/dockerfile:1
 
+# Adjust NODE_VERSION as desired
+ARG NODE_VERSION=18.13.0
+FROM node:${NODE_VERSION}-slim as base
+
+LABEL fly_launch_runtime="Node.js/Prisma"
+
+# Node.js/Prisma app lives here
 WORKDIR /app
 
-COPY package.json yarn.lock ./
-RUN  yarn install
+# Set production environment
+ENV NODE_ENV="production"
+ARG YARN_VERSION=3.6.3
 
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+# Install Yarn 3
+RUN corepack enable && \
+    yarn set version ${YARN_VERSION}
 
-ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN yarn build
+# Throw-away build stage to reduce size of final image
+FROM base as build
 
-FROM node:20-alpine AS runner
-WORKDIR /app
+# Install packages needed to build node modules
+RUN apt-get update -qq && \
+    apt-get install -y build-essential openssl pkg-config python-is-python3
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+# Install node modules
+COPY --link package.json yarn.lock ./
+RUN yarn install --immutable --production=false
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-# RUN yarn install
-COPY --from=builder --chown=nextjs:nodejs /app/.dist ./.dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+# Generate Prisma Client
+COPY --link prisma .
+RUN npx prisma generate
 
-USER nextjs
+# Copy application code
+COPY --link . .
 
-EXPOSE 3000
+# Build application
+RUN yarn run build
 
-ENV PORT 3000
+# Remove development dependencies
+RUN yarn install --production=true
 
-CMD ["yarn", "start"]
+
+# Final stage for app image
+FROM base
+
+# Install packages needed for deployment
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y openssl && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+# Copy built application
+COPY --from=build /app /app
+
+# Start the server by default, this can be overwritten at runtime
+EXPOSE 4000
+CMD [ "yarn", "bot" ]
