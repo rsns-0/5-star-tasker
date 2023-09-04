@@ -62,7 +62,7 @@
     "test:watch": "vitest",
     "doc": "typedoc",
     "doc:open": "docs/index.html",
-    "bot": "tsx src/index.ts",
+    "bot": "yarn build && tsx src/index.ts",
     "dbpull": "prisma db pull && prisma generate",
     "build": "swc src -d dist",
     "watch": "swc src -d dist -w",

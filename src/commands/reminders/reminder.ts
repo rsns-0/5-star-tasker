@@ -1,9 +1,10 @@
-import { ActionRowBuilder, ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder, StringSelectMenuBuilder } from 'discord.js';
+import { ActionRowBuilder, ChatInputCommandInteraction, DiscordAPIError, PermissionFlagsBits, SlashCommandBuilder, StringSelectMenuBuilder } from 'discord.js';
 import { ApplyOptions, RequiresClientPermissions } from '@sapphire/decorators';
 import {
 	reminderExplanationEmbed,
 	reminderFinishedEmbed,
 	reminderSelectTimezoneEmbed,
+	reminderSomethingWrongEmbed,
 	reminderTimezoneRegisteredEmbed
 } from '../../features/reminders/commandComponents/createReminderExplanationEmbed';
 import { timezonesNegatives, timezonesPositives } from '../../features/reminders/selectBoxForTimezones';
@@ -12,6 +13,7 @@ import { Subcommand } from '@sapphire/plugin-subcommands';
 import { firstRegistration } from '../../features/reminders/commandComponents/firstRegistration';
 import prisma from '../../db/prismaInstance';
 import { timeStringToDayjsObj } from '../../features/reminders/services/stringToDayjsObj';
+import { logger } from '../../logger/logger';
 
 
 const reminderData = new SlashCommandBuilder()
@@ -74,6 +76,7 @@ export class UserCommand extends Subcommand {
 
 	@RequiresClientPermissions([PermissionFlagsBits.EmbedLinks])
 	public async set(interaction: ChatInputCommandInteraction) {
+		try{
 		await interaction.deferReply({ ephemeral: true }); // with this, the bot don't need to reply within 3s, so no bugs, also feel free to delete my comments
 
 		// * Check db for user timezone data
@@ -156,6 +159,16 @@ export class UserCommand extends Subcommand {
 				embeds: [reminderFinishedEmbed(date, reminder)]
 			});
 		}
+	} catch (e){
+		if (e instanceof DiscordAPIError) {
+            await interaction.editReply({
+                embeds: [reminderSomethingWrongEmbed()],
+            });
+        } else {
+            logger.error(e);
+            throw e;
+        }
+	}
 	}
 
 	@RequiresClientPermissions([PermissionFlagsBits.EmbedLinks])
