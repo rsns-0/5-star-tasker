@@ -73,5 +73,5 @@
     "pgenerate": "prisma generate"
   },
   "prettier": "@sapphire/prettier-config",
-  "packageManager": "yarn@3.6.3"
+  "packageManager": "yarn@1.22.19"
 }

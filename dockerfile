@@ -15,7 +15,7 @@ ARG YARN_VERSION=3.6.3
 
 # Install Yarn 3
 RUN corepack enable && \
-    yarn set version ${YARN_VERSION}
+    yarn set version 1.22.19
 
 
 # Throw-away build stage to reduce size of final image
@@ -27,12 +27,11 @@ RUN apt-get update -qq && \
 
 # Install node modules
 COPY --link package.json yarn.lock ./
-RUN yarn install
-# --immutable --production=false
+RUN yarn install --immutable --production=false
 
 # Generate Prisma Client
 COPY --link prisma .
-RUN yarn pgenerate
+RUN npx prisma generate
 
 # Copy application code
 COPY --link . .
@@ -56,5 +55,5 @@ RUN apt-get update -qq && \
 COPY --from=build /app /app
 
 # Start the server by default, this can be overwritten at runtime
-EXPOSE 4000
-CMD [ "yarn", "bot" ]
+EXPOSE 3000
+CMD [ "yarn", "run", "start" ]
