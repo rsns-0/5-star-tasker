@@ -10,8 +10,7 @@ on:
     types: [created]
 
 concurrency:
-  group:
-    ${{ github.repository }}-${{ github.event.number || github.head_ref ||
+  group: ${{ github.repository }}-${{ github.event.number || github.head_ref ||
     github.sha }}-${{ github.workflow }}-${{ github.event_name ==
     'pull_request_review_comment' && 'pr_comment' || 'pr' }}
   cancel-in-progress: ${{ github.event_name != 'pull_request_review_comment' }}
@@ -31,12 +30,12 @@ jobs:
           review_comment_lgtm: false
           summarize: |
             Provide your final response in markdown with the following content:
-      
+
             - **Walkthrough**: A high-level summary of the overall change instead of 
               specific files.
             - **Changes**: A markdown table of files and their summaries. Group files 
               with similar changes together into a single row to save space.
-      
+
             Avoid additional commentary as this summary will be added as a comment on the 
             GitHub pull request. Use the titles "Walkthrough" and "Changes" and they must be H2.
           summarize_release_notes: |

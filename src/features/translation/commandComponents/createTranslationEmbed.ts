@@ -1,4 +1,4 @@
-import { ColorResolvable, EmbedBuilder } from "discord.js";
+import { ColorResolvable, EmbedBuilder } from 'discord.js';
 
 export const createTranslationEmbed = (
 	translatedText: string,
@@ -10,6 +10,6 @@ export const createTranslationEmbed = (
 		.setColor(color)
 		.setTitle(`${sourceLanguage} to ${targetLanguage}`)
 		.setDescription(translatedText)
-		.setFooter({ text: "Translated using DeepL API" });
+		.setFooter({ text: 'Translated using DeepL API' });
 	return embed;
 };

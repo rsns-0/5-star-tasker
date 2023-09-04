@@ -1,4 +1,4 @@
-import { AvailableLanguages, DeepLData } from "../types/types";
+import { AvailableLanguages, DeepLData } from '../types/types';
 
 export class TranslationData {
 	private data: DeepLData;

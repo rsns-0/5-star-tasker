@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
-import prisma from "../../../db/prismaInstance";
-import { z } from "zod";
+import prisma from '../../../db/prismaInstance';
+import { z } from 'zod';
 
 export class LanguageAbbreviationStrategy {
 	private prisma = prisma;
@@ -68,4 +68,3 @@ const querySchema = z
 		}
 		return val[0].abbreviation;
 	});
-

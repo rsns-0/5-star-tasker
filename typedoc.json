@@ -1,4 +1,4 @@
 {
-    "out": "docs",
-    "entryPoints": ["src/**/services/*.ts", "src/**/types/*.ts", "src/**/schemas/*.ts", "src/**/models/*.ts"]
+	"out": "docs",
+	"entryPoints": ["src/**/services/*.ts", "src/**/types/*.ts", "src/**/schemas/*.ts", "src/**/models/*.ts"]
 }

@@ -11,13 +11,13 @@ declare module '@sapphire/pieces' {
 	export interface Container {
 		translationService: TranslationService;
 		cooldownService: CooldownService;
-		languageRepository: LanguageRepository
+		languageRepository: LanguageRepository;
 	}
 }
 
 container.translationService = new TranslationService();
 container.cooldownService = new CooldownService();
-container.languageRepository = languageRepository
+container.languageRepository = languageRepository;
 
 const client = new SapphireClient({
 	defaultPrefix: '!',
@@ -40,7 +40,7 @@ const client = new SapphireClient({
 		GatewayIntentBits.MessageContent
 	],
 	partials: [Partials.Channel],
-	loadMessageCommandListeners: true,
+	loadMessageCommandListeners: true
 });
 
 const main = async () => {

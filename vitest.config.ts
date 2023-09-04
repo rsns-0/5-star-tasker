@@ -1,12 +1,12 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  test: {
-    globals: true,
-  },
-  resolve:{
-    alias:{
-      jest: "vi"
-    }
-  }
-})
+	test: {
+		globals: true
+	},
+	resolve: {
+		alias: {
+			jest: 'vi'
+		}
+	}
+});
