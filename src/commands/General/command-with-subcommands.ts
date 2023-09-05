@@ -1,7 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
-import { send } from '@sapphire/plugin-editable-commands';
-import { Subcommand } from '@sapphire/plugin-subcommands';
 import type { Message } from 'discord.js';
+import { Subcommand } from '@sapphire/plugin-subcommands';
+import { send } from '@sapphire/plugin-editable-commands';
 
 @ApplyOptions<Subcommand.Options>({
 	aliases: ['cws'],

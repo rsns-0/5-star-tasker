@@ -6,18 +6,21 @@ import { LogLevel, SapphireClient } from '@sapphire/framework';
 
 import { CooldownService } from './features/cooldowns';
 import { container } from '@sapphire/pieces';
+import prisma from './db/prismaInstance';
 
 declare module '@sapphire/pieces' {
 	export interface Container {
 		translationService: TranslationService;
 		cooldownService: CooldownService;
 		languageRepository: LanguageRepository;
+		prisma: typeof prisma;
 	}
 }
 
 container.translationService = new TranslationService();
 container.cooldownService = new CooldownService();
 container.languageRepository = languageRepository;
+container.prisma = prisma;
 
 const client = new SapphireClient({
 	defaultPrefix: '!',
