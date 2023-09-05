@@ -1,7 +1,6 @@
-import { DirectoryTraverser } from "./directoryTraverser";
+import { DirectoryTraverser } from './directoryTraverser';
 
-const defaultFilter = (fullFilePath: string): boolean =>
-	fullFilePath.endsWith(".ts") || fullFilePath.endsWith(".js");
+const defaultFilter = (fullFilePath: string): boolean => fullFilePath.endsWith('.ts') || fullFilePath.endsWith('.js');
 
 /**
  * Starts from the start position and performs bfs to find the first folder with the specified name. Afterwards, retrieves all exports from files within the folder.
@@ -112,9 +111,7 @@ const defaultFilter = (fullFilePath: string): boolean =>
 	// pass this in as the argument for TExportModel
 
  */
-export const descendToFolderThenGetExportsFromFolder = <
-	TExportModel extends Record<any, any> = Record<any, any>,
->(
+export const descendToFolderThenGetExportsFromFolder = <TExportModel extends Record<any, any> = Record<any, any>>(
 	folderName: string,
 	startPosition: string,
 	{ fileFilter = defaultFilter, recursive = false } = {}
@@ -162,13 +159,8 @@ export const goToDescendentFolder = (folderName: string, startingDirectory: stri
 export const getExportsFromFolder = <TExportModel extends Record<any, any> = Record<any, any>>(
 	folderPath: string,
 	{ fileFilter = defaultFilter, recursive = false } = {}
-):Promise<TExportModel[]> => {
+): Promise<TExportModel[]> => {
 	const traverser = new DirectoryTraverser(folderPath);
-	const res = recursive
-		? traverser.recursiveFindFiles(fileFilter)
-		: traverser.getFiles().filter(fileFilter);
+	const res = recursive ? traverser.recursiveFindFiles(fileFilter) : traverser.getFiles().filter(fileFilter);
 	return Promise.all(res.map((file) => import(file)));
 };
-
-
-

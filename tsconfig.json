@@ -7,10 +7,9 @@
 		"paths": {
 			"@/*": ["./src/*"],
 			"#lib/*": ["./lib/*"]
-		  },
+		},
 		"tsBuildInfoFile": "dist/.tsbuildinfo",
-		"types":["vitest/globals"]
-		
+		"types": ["vitest/globals"]
 	},
 	"include": ["src"]
 }

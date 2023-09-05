@@ -1,9 +1,9 @@
-import { ZodString, z } from "zod";
-import { deepLDataSchema, deepLResponseSchema } from "../schemas/deepL";
+import { ZodString, z } from 'zod';
+import { deepLDataSchema, deepLResponseSchema } from '../schemas/deepL';
 
-import { BuiltIn } from "ts-toolbelt/out/Misc/BuiltIn";
-import { O } from "ts-toolbelt";
-import { validLangSchema } from "../schemas/validTextArg";
+import { BuiltIn } from 'ts-toolbelt/out/Misc/BuiltIn';
+import { O } from 'ts-toolbelt';
+import { validLangSchema } from '../schemas/validTextArg';
 
 export type TranslateTextArgs = {
 	text: string[];
@@ -11,19 +11,12 @@ export type TranslateTextArgs = {
 };
 
 type ValidateTranslateTextArgsBase = {
-	text: string | string[]
+	text: string | string[];
 	targetLanguage: string;
-	textValidationSchema?:ZodString
-	
-}
+	textValidationSchema?: ZodString;
+};
 
-export type ValidateTranslateTextArgs = O.Merge<
-	TranslateTextArgs,
-	ValidateTranslateTextArgsBase,
-	"deep",
-	BuiltIn,
-	any
->
+export type ValidateTranslateTextArgs = O.Merge<TranslateTextArgs, ValidateTranslateTextArgsBase, 'deep', BuiltIn, any>;
 export type DeepLDataCollection = z.infer<typeof deepLResponseSchema>;
 export type DeepLData = z.infer<typeof deepLDataSchema>;
 export type AvailableLanguages = z.infer<typeof validLangSchema>;
