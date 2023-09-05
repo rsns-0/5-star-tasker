@@ -1,6 +1,8 @@
+import 'reflect-metadata';
+
 import { injectable } from 'tsyringe';
 
-class TestService {
+export class TestService {
 	public printMessage() {
 		console.log('hello world');
 	}
@@ -12,9 +14,13 @@ class TestService {
 
 @injectable()
 export class TestController {
-	constructor(private testService: TestService) {}
+	constructor(public testService: TestService) {}
 
 	public returnTextOfService() {
 		return this.testService.returnText();
 	}
+}
+
+function testDecorator(constructor: Function) {
+	console.log(constructor);
 }

@@ -5,7 +5,9 @@ import { LanguageRepository, TranslationService, languageRepository } from './fe
 import { LogLevel, SapphireClient } from '@sapphire/framework';
 
 import { CooldownService } from './features/cooldowns';
+import WebhookService from './services/webhookService';
 import { container } from '@sapphire/pieces';
+import { logger } from './logger/logger';
 import prisma from './db/prismaInstance';
 
 declare module '@sapphire/pieces' {
@@ -14,6 +16,8 @@ declare module '@sapphire/pieces' {
 		cooldownService: CooldownService;
 		languageRepository: LanguageRepository;
 		prisma: typeof prisma;
+		webhookService: WebhookService;
+		dbLogger: typeof logger;
 	}
 }
 
@@ -21,6 +25,8 @@ container.translationService = new TranslationService();
 container.cooldownService = new CooldownService();
 container.languageRepository = languageRepository;
 container.prisma = prisma;
+container.webhookService = new WebhookService();
+container.dbLogger = logger;
 
 const client = new SapphireClient({
 	defaultPrefix: '!',
@@ -43,7 +49,10 @@ const client = new SapphireClient({
 		GatewayIntentBits.MessageContent
 	],
 	partials: [Partials.Channel],
-	loadMessageCommandListeners: true
+	loadMessageCommandListeners: true,
+	defaultCooldown: {
+		delay: 1_000
+	}
 });
 
 const main = async () => {

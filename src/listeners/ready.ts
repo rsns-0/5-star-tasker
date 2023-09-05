@@ -1,5 +1,5 @@
 import { ApplyOptions } from '@sapphire/decorators';
-import fs from 'fs';
+
 import { Listener, Store } from '@sapphire/framework';
 import { blue, gray, green, magenta, magentaBright, white, yellow } from 'colorette';
 
@@ -51,25 +51,16 @@ ${line03}${dev ? ` ${pad}${blc('<')}${llc('/')}${blc('>')} ${llc('DEVELOPMENT MO
 		return gray(`${last ? '└─' : '├─'} Loaded ${this.style(store.size.toString().padEnd(3, ' '))} ${store.name}.`);
 	}
 
-	private createWebHooks() {
-		const { client, logger } = this.container;
+	private async createWebhooks() {
+		const { client, webhookService, prisma } = this.container;
+
 		client.guilds.cache.each(async (guild) => {
-			// Loop over all channels in the guild
-			guild.channels.cache.each(async (channel) => {
-				// Check if the channel is a TextChannel (because voice channels don't support webhooks)
-				// Also check that the bot has the necessary permissions ('MANAGE_WEBHOOKS')
-				if (channel.isTextBased() && channel.permissionsFor(client.user!)?.has('ManageWebhooks') && !channel.isThread()) {
-					try {
-						// Create the webhook
-						const res = await channel.createWebhook({
-							name: Math.random().toString()
-						});
-						logger.debug(`Created webhook in channel "${channel.name}" (${channel.id}) of guild "${guild.name}" (${guild.id})`);
-					} catch (err) {
-						logger.debug(`Failed to create webhook in channel "${channel.name}" (${channel.id}) of guild "${guild.name}" (${guild.id})`);
-						logger.error(err);
-					}
-				}
+			const results = await webhookService.createWebHooksInAllChannelsOfGuild(guild);
+			if (results instanceof Error) {
+				prisma.logs.create({ data: { message: results.message } });
+			}
+			await prisma.logs.createMany({
+				data: []
 			});
 		});
 	}
