@@ -3,12 +3,19 @@ import { GuildBasedChannel, User } from 'discord.js';
 import { Dayjs } from 'dayjs';
 import { Prisma } from '@prisma/client';
 
+type CreateReminderArgs = {
+	reminderMessage: string;
+	time: Dayjs;
+	user: User;
+	channel: GuildBasedChannel;
+};
+
 export default Prisma.defineExtension((prisma) => {
 	return prisma.$extends({
 		name: 'reminderExtension',
 		model: {
 			reminders: {
-				async createReminder(reminderMessage: string, time: Dayjs, user: User, channel: GuildBasedChannel) {
+				async createReminder({ reminderMessage, time, user, channel }: CreateReminderArgs) {
 					await prisma.reminders.create({
 						data: {
 							reminder: reminderMessage,
