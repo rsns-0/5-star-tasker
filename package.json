@@ -34,7 +34,6 @@
     "reflect-metadata": "^0.1.13",
     "stacktrace-parser": "^0.1.10",
     "tsx": "^3.12.8",
-    "tsyringe": "^4.8.0",
     "winston": "^3.10.0",
     "zod": "^3.22.1",
     "zod-validation-error": "^1.5.0"
