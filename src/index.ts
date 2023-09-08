@@ -1,11 +1,13 @@
 import './lib/setup';
 
 import { GatewayIntentBits, Partials } from 'discord.js';
-import { LanguageRepository, TranslationService, languageRepository } from './features/translation';
 import { LogLevel, SapphireClient } from '@sapphire/framework';
 
+import { ChannelService } from './services/channelService';
 import { CooldownService } from './features/cooldowns';
-import WebhookService from './services/webhookService';
+import { GuildService } from './services/guildService';
+import { TranslationService } from './features/translation';
+import { WebhookService } from './services/webhookService';
 import { container } from '@sapphire/pieces';
 import { logger } from './logger/logger';
 import prisma from './db/prismaInstance';
@@ -14,16 +16,18 @@ declare module '@sapphire/pieces' {
 	export interface Container {
 		translationService: TranslationService;
 		cooldownService: CooldownService;
-		languageRepository: LanguageRepository;
+
 		prisma: typeof prisma;
 		webhookService: WebhookService;
 		dbLogger: typeof logger;
+		channelService: ChannelService;
+		guildService: GuildService;
 	}
 }
 
 container.translationService = new TranslationService();
 container.cooldownService = new CooldownService();
-container.languageRepository = languageRepository;
+
 container.prisma = prisma;
 container.webhookService = new WebhookService();
 container.dbLogger = logger;

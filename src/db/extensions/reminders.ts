@@ -39,7 +39,7 @@ export default Prisma.defineExtension((prisma) => {
 					const channelId = parseInt(channel.id);
 					return await prisma.reminders.create({
 						data: {
-							reminder: reminderMessage,
+							reminder_message: reminderMessage,
 							discord_user: {
 								connectOrCreate: {
 									where: {

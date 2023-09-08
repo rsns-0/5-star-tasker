@@ -4,7 +4,7 @@ import { logger } from '../../../logger/logger';
 import { Events, Listener } from '@sapphire/framework';
 
 import { ApplyOptions } from '@sapphire/decorators';
-import { languageRepository } from '../../../features/translation/models/languageRepository';
+
 import { TranslationServiceError } from '../../../features/translation/models/translationServiceError';
 import { createTranslationEmbed } from '../../../features/translation/commandComponents/createTranslationEmbed';
 import { cooldownServiceInstanceForDiscordJs } from '../../../utils/cooldownServiceInstance';
@@ -29,8 +29,8 @@ export class UserEvent extends Listener<typeof Events.MessageReactionAdd> {
 		if (emojiName === null) {
 			throw new Error('Unexpected null value in emoji reaction ID.');
 		}
-
-		const targetLanguage = await languageRepository.getLanguageAbbreviation(emojiName, 'byEmoji');
+		this.container.prisma.languages;
+		const targetLanguage = await this.container.prisma.languages.isDiscordReactionSupportedByDeepL(emojiName);
 		if (!targetLanguage) {
 			return; // no throwing since user can react with any emoji
 		}

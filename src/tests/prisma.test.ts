@@ -4,6 +4,7 @@ import prisma from '../db/prismaInstance';
 describe('base functionality check', () => {
 	it('should have return 10 records with take set to 10', async () => {
 		const prisma = new PrismaClient();
+
 		const res = await prisma.test_countries.findMany({
 			where: {
 				id: { lte: 20 }

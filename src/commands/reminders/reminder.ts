@@ -147,7 +147,7 @@ export class UserCommand extends Subcommand {
 				const date = timeStringToDayjsObj(timeString, userTimezone);
 				await prisma.reminders.create({
 					data: {
-						reminder: reminder,
+						reminder_message: reminder,
 						discord_user: {
 							connect: {
 								id: parseInt(interaction.user.id)

@@ -10,9 +10,9 @@
 		},
 		"tsBuildInfoFile": "dist/.tsbuildinfo",
 		"types": ["vitest/globals"],
-		"skipLibCheck": true
+		"skipLibCheck": true,
 	},
 	
 	"include": ["src"],
-	"exclude":[".history"]
+	"exclude":[".history", "internal_scripts"]
 }

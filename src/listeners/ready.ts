@@ -12,8 +12,7 @@ export class UserEvent extends Listener {
 	public override run() {
 		this.printBanner();
 		this.printStoreDebugInformation();
-		this.getWebhooks();
-		// this.createWebHooks();
+		this.runStartupTasks();
 	}
 
 	private printBanner() {
@@ -51,36 +50,5 @@ ${line03}${dev ? ` ${pad}${blc('<')}${llc('/')}${blc('>')} ${llc('DEVELOPMENT MO
 		return gray(`${last ? '└─' : '├─'} Loaded ${this.style(store.size.toString().padEnd(3, ' '))} ${store.name}.`);
 	}
 
-	private async createWebhooks() {
-		const { client, webhookService, prisma } = this.container;
-
-		client.guilds.cache.each(async (guild) => {
-			const results = await webhookService.createWebHooksInAllChannelsOfGuild(guild);
-			if (results instanceof Error) {
-				prisma.logs.create({ data: { message: results.message } });
-			}
-			await prisma.logs.createMany({
-				data: []
-			});
-		});
-	}
-
-	private getWebhooks() {
-		const { client, logger, prisma } = this.container;
-		client.guilds.cache.each(async (guild) => {
-			const res = await guild.fetchWebhooks();
-			const results = res.map((webhook) => {
-				return JSON.stringify(webhook);
-			});
-			logger.debug(results);
-			await prisma.logs.createMany({
-				data: results.map((hook) => {
-					const json = JSON.parse(hook);
-					return {
-						json
-					};
-				})
-			});
-		});
-	}
+	private runStartupTasks() {}
 }
