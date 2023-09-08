@@ -56,14 +56,6 @@ model discord_user {
   discord_messages discord_messages[]
   timezones        timezones?         @relation(fields: [timezone_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   reminders        reminders[]
-  id               BigInt             @id @unique
-  created_at       DateTime           @default(now()) @db.Timestamptz(6)
-  username         String?            @default("")
-  timezone_id      BigInt?
-  discord_guilds   discord_guilds[]
-  discord_messages discord_messages[]
-  timezones        timezones?         @relation(fields: [timezone_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  reminders        reminders[]
 }
 
 model languages {
