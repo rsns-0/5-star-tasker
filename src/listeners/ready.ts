@@ -1,5 +1,5 @@
 import { ApplyOptions } from '@sapphire/decorators';
-import fs from 'fs';
+
 import { Listener, Store } from '@sapphire/framework';
 import { blue, gray, green, magenta, magentaBright, white, yellow } from 'colorette';
 
@@ -12,8 +12,7 @@ export class UserEvent extends Listener {
 	public override run() {
 		this.printBanner();
 		this.printStoreDebugInformation();
-		this.getWebhooks();
-		// this.createWebHooks();
+		this.runStartupTasks();
 	}
 
 	private printBanner() {
@@ -51,45 +50,5 @@ ${line03}${dev ? ` ${pad}${blc('<')}${llc('/')}${blc('>')} ${llc('DEVELOPMENT MO
 		return gray(`${last ? '└─' : '├─'} Loaded ${this.style(store.size.toString().padEnd(3, ' '))} ${store.name}.`);
 	}
 
-	private createWebHooks() {
-		const { client, logger } = this.container;
-		client.guilds.cache.each(async (guild) => {
-			// Loop over all channels in the guild
-			guild.channels.cache.each(async (channel) => {
-				// Check if the channel is a TextChannel (because voice channels don't support webhooks)
-				// Also check that the bot has the necessary permissions ('MANAGE_WEBHOOKS')
-				if (channel.isTextBased() && channel.permissionsFor(client.user!)?.has('ManageWebhooks') && !channel.isThread()) {
-					try {
-						// Create the webhook
-						const res = await channel.createWebhook({
-							name: Math.random().toString()
-						});
-						logger.debug(`Created webhook in channel "${channel.name}" (${channel.id}) of guild "${guild.name}" (${guild.id})`);
-					} catch (err) {
-						logger.debug(`Failed to create webhook in channel "${channel.name}" (${channel.id}) of guild "${guild.name}" (${guild.id})`);
-						logger.error(err);
-					}
-				}
-			});
-		});
-	}
-
-	private getWebhooks() {
-		const { client, logger, prisma } = this.container;
-		client.guilds.cache.each(async (guild) => {
-			const res = await guild.fetchWebhooks();
-			const results = res.map((webhook) => {
-				return JSON.stringify(webhook);
-			});
-			logger.debug(results);
-			await prisma.logs.createMany({
-				data: results.map((hook) => {
-					const json = JSON.parse(hook);
-					return {
-						json
-					};
-				})
-			});
-		});
-	}
+	private runStartupTasks() {}
 }

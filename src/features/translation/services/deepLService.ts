@@ -2,10 +2,10 @@ import axios, { AxiosError, AxiosInstance } from 'axios';
 import { defaultValidTextSchema, validLangSchema } from '../schemas/validTextArg';
 
 import { DeepLDataCollection } from '../types/types';
-import { EnvVarError } from '../../../utils/errors/EnvVarError';
+import { EnvVarError } from '../../../errors/EnvVarError';
 import { TranslateTextArgs } from '../types/types';
 import { TranslationData } from '../models/translationData';
-import { UnexpectedAPISchemaError } from '../../../utils/errors/UnexpectedAPISchemaError';
+import { UnexpectedAPISchemaError } from '../../../errors/UnexpectedAPISchemaError';
 import { ValidateTranslateTextArgs } from '../types/types';
 import { deepLResponseSchema } from '../schemas/deepL';
 import { fromZodError } from 'zod-validation-error';

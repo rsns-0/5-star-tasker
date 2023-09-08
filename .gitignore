@@ -30,8 +30,6 @@ package-lock.json
 .env.production.local
 .env
 
-
-
 # Logs
 logs
 *.log
@@ -132,3 +130,7 @@ typings/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+testLogs
+.history
+internal_scripts

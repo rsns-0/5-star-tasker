@@ -9,7 +9,10 @@
 			"#lib/*": ["./lib/*"]
 		},
 		"tsBuildInfoFile": "dist/.tsbuildinfo",
-		"types": ["vitest/globals"]
+		"types": ["vitest/globals"],
+		"skipLibCheck": true,
 	},
-	"include": ["src"]
+	
+	"include": ["src"],
+	"exclude":[".history", "internal_scripts"]
 }

@@ -1,8 +1,8 @@
 import { O } from 'ts-toolbelt';
 import { Prisma } from '@prisma/client';
 
-export default Prisma.defineExtension((client) => {
-	return client.$extends({
+export default Prisma.defineExtension((prisma) => {
+	return prisma.$extends({
 		name: 'loggingExtension',
 		model: {
 			logs: {
@@ -12,7 +12,7 @@ export default Prisma.defineExtension((client) => {
 				 * @returns A promise that resolves when the log entry is created.
 				 */
 				async logError(err: Error) {
-					return await client.logs.create({
+					return await prisma.logs.create({
 						data: {
 							level: 0,
 							message: err.message,
@@ -28,7 +28,7 @@ export default Prisma.defineExtension((client) => {
 				 * @returns A promise that resolves to the created log entry.
 				 */
 				async logEvent(message: string, meta: Prisma.JsonObject) {
-					return await client.logs.create({
+					return await prisma.logs.create({
 						data: {
 							level: 1,
 							message,
@@ -37,10 +37,16 @@ export default Prisma.defineExtension((client) => {
 					});
 				},
 
+				/**
+				 * The function "dump" takes an object, converts it to a JSON string, parses it back to a JSON
+				 * object, and then creates a log entry with the original message and the parsed JSON object.
+				 * @param obj - The parameter `obj` is of type `O.Object`.
+				 * @returns the result of the `client.logs.create()` method, which is a promise.
+				 */
 				async dump(obj: O.Object) {
 					const message = JSON.stringify(obj);
 					const json = JSON.parse(message);
-					return await client.logs.create({
+					return await prisma.logs.create({
 						data: {
 							level: 1,
 							message,
