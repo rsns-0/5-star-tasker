@@ -1,4 +1,4 @@
-import { Channel, User, WebhookClient, userMention } from 'discord.js';
+import { Channel, User, userMention } from 'discord.js';
 import { Prisma, webhooks } from '@prisma/client';
 import { WebhookService, assertWebhookChannel } from '../../services/webhookService';
 import dayjs, { Dayjs } from 'dayjs';
