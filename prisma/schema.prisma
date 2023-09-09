@@ -19,25 +19,19 @@ model countries {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model discord_channels {
-  id               String             @id
-  name             String             @default("")
-  created_at       DateTime           @default(now()) @db.Timestamptz(6)
-  discord_guild_id String?
-  discord_guilds   discord_guilds?    @relation(fields: [discord_guild_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  discord_messages discord_messages[]
-  reminders        reminders[]
-  webhooks         webhooks[]
+  id         BigInt      @id @unique
+  name       String?     @default("")
+  created_at DateTime    @default(now()) @db.Timestamptz(6)
+  reminders  reminders[]
 }
 
 model discord_user {
-  id               String             @id @unique
-  created_at       DateTime           @default(now()) @db.Timestamptz(6)
-  username         String?            @default("")
-  timezone_id      BigInt?
-  discord_guilds   discord_guilds[]
-  discord_messages discord_messages[]
-  timezones        timezones?         @relation(fields: [timezone_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  reminders        reminders[]
+  id          BigInt      @id @unique
+  created_at  DateTime    @default(now()) @db.Timestamptz(6)
+  username    String?     @default("")
+  timezone_id BigInt?
+  timezones   timezones?  @relation(fields: [timezone_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reminders   reminders[]
 }
 
 model languages {
@@ -103,99 +97,23 @@ model discord_guilds {
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model discord_messages {
-  id                 String            @id
-  created_at         DateTime          @default(now()) @db.Timestamptz(6)
-  text               String            @default("")
-  discord_channel_id String?
-  discord_guild_id   String?
-  owner_id           String?
-  discord_channels   discord_channels? @relation(fields: [discord_channel_id], references: [id], onUpdate: NoAction)
-  discord_guilds     discord_guilds?   @relation(fields: [discord_guild_id], references: [id], onUpdate: NoAction)
-  discord_user       discord_user?     @relation(fields: [owner_id], references: [id], onUpdate: NoAction)
+model users {
+  id         String       @id @db.Uuid
+  username   String?
+  status     user_status? @default(OFFLINE)
+  channels   channels[]
+  messages   messages[]
+  user_roles user_roles[]
 }
 
-model logs {
-  id         BigInt   @id @default(autoincrement())
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  level      Int      @default(6) @db.SmallInt
-  message    String   @default("")
-  json       Json?
-  tags       String[] @default([])
+enum app_permission {
+  channels_delete @map("channels.delete")
+  messages_delete @map("messages.delete")
 }
 
-model countries_old {
-  id          BigInt   @id(map: "countries_pkey1") @default(autoincrement())
-  created_at  DateTime @default(now()) @db.Timestamptz(6)
-  name        String   @unique(map: "countries_name_key")
-  flag_emoji  String?  @unique(map: "countries_flag_emoji_key")
-  language_id BigInt?
-}
-
-model discord_flag_emojis {
-  id          BigInt     @id @default(autoincrement())
-  created_at  DateTime   @default(now()) @db.Timestamptz(6)
-  value       String     @unique
-  languagesId BigInt?
-  languages   languages? @relation(fields: [languagesId], references: [id], onDelete: Restrict, onUpdate: NoAction)
-}
-
-model rest_countries_api_data {
-  id           Int      @id(map: "RestCountriesAPIData_pkey") @default(autoincrement())
-  cca2         String
-  ccn3         String?
-  cca3         String
-  cioc         String?
-  independent  Boolean?
-  unMember     Boolean
-  capital      String[]
-  altSpellings String[]
-  subregion    String?
-  languages    Json?
-  translations Json
-  latlng       Float[]
-  landlocked   Boolean
-  borders      String[]
-  area         Float
-  flag         String
-  population   Int
-  gini         Json?
-  fifa         String?
-  timezones    String[]
-  capitalInfo  Json
-  car          Json
-  coatOfArms   Json
-  flags        Json
-  idd          Json
-  maps         Json
-  name         Json
-  postalCode   Json?
-  status       String
-  region       Json
-  continents   Json[]
-  startOfWeek  Json
-  currencies   Json?
-  demonyms     Json?
-}
-
-model unstructured_storage {
-  id         BigInt   @id @default(autoincrement())
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  name       String   @default("")
-  text       String   @default("")
-  tags       String[] @default([])
-  json       Json?
-}
-
-model webhooks {
-  id                 String           @id
-  created_at         DateTime         @default(now()) @db.Timestamptz(6)
-  name               String           @default("")
-  url                String           @unique
-  discord_channel_id String
-  token              String?          @unique
-  reminders          reminders[]
-  discord_channels   discord_channels @relation(fields: [discord_channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+enum app_role {
+  admin
+  moderator
 }
 
 enum continents {

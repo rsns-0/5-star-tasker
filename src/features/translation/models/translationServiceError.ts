@@ -1,5 +1,5 @@
-import { AxiosError } from "axios";
-import { ZodError } from "zod";
+import { AxiosError } from 'axios';
+import { ZodError } from 'zod';
 
 export class TranslationServiceErrorFactory {
 	static fromError(error: unknown) {
@@ -13,9 +13,9 @@ export class TranslationServiceErrorFactory {
 			return new TranslationNetworkError(error);
 		}
 		if (error instanceof Error) {
-            return new TranslationServiceError(error);
-        }
-        throw error
+			return new TranslationServiceError(error);
+		}
+		throw error;
 	}
 }
 
@@ -42,18 +42,18 @@ export class TranslationServiceError<TError extends Error = Error> extends Error
 			if (this.statusCode === undefined) {
 				return {
 					status: 500,
-					message: "Unknown error at DeepL API interface",
+					message: 'Unknown error at DeepL API interface'
 				};
 			}
 			return {
 				status: parseInt(this.statusCode),
-				message: this.message,
+				message: this.message
 			};
 		}
 		if (this.isValidationError()) {
 			return {
 				status: 400,
-				message: this.friendlyErrorMessage,
+				message: this.friendlyErrorMessage
 			};
 		}
 		this.message = `Could not auto resolve error. Original error message: ${this.message}`;
@@ -73,6 +73,6 @@ export class TranslationNetworkError extends TranslationServiceError<AxiosError>
 
 export class TranslationValidationError extends TranslationServiceError<ZodError> {
 	get friendlyErrorMessage() {
-		return this.e.issues.map((issue) => issue.message).join("\n");
+		return this.e.issues.map((issue) => issue.message).join('\n');
 	}
 }

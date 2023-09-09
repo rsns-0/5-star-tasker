@@ -1,13 +1,9 @@
-import Decimal from "decimal.js";
-import { _CommandCooldownRepository } from "../models/commandCooldownRepository";
-import { _CooldownEventRepository } from "../models/cooldownEventRepository";
-import { createLogTimeMessage } from "../../../utils/logTime";
-import { logger } from "../../../logger/logger";
-import { assertExists } from "../../../utils/assertExists";
-
-
-
-
+import Decimal from 'decimal.js';
+import { _CommandCooldownRepository } from '../models/commandCooldownRepository';
+import { _CooldownEventRepository } from '../models/cooldownEventRepository';
+import { createLogTimeMessage } from '../../../utils/logTime';
+import { logger } from '../../../logger/logger';
+import { assertExists } from '../../../utils/assertExists';
 
 /**
  * CooldownService is a class that manages command cooldowns.
@@ -82,10 +78,7 @@ export class CooldownService {
 	 * @param commandCooldownRepository - An instance of _CommandCooldownRepository (defaults to a new instance).
 	 * @param cooldownEventRepository - An instance of _CooldownEventRepository (defaults to a new instance).
 	 */
-	constructor(
-		commandCooldownRepository = new _CommandCooldownRepository(),
-		cooldownEventRepository = new _CooldownEventRepository()
-	) {
+	constructor(commandCooldownRepository = new _CommandCooldownRepository(), cooldownEventRepository = new _CooldownEventRepository()) {
 		this._commandCooldownRepository = commandCooldownRepository;
 		this._cooldownEventRepository = cooldownEventRepository;
 	}
@@ -121,21 +114,18 @@ export class CooldownService {
 		const cooldownEvent = this._cooldownEventRepository.getCooldownEvent(userId, commandName);
 		let commandCooldown = this._commandCooldownRepository.getCooldown(commandName);
 		if (!commandCooldown) {
-			this.registerCommandCooldown(commandName)
+			this.registerCommandCooldown(commandName);
 			commandCooldown = this._commandCooldownRepository.getCooldown(commandName);
 		}
-		assertExists(commandCooldown, `Assertion error: Command cooldown must exist. Got ${commandCooldown}`)
+		assertExists(commandCooldown, `Assertion error: Command cooldown must exist. Got ${commandCooldown}`);
 
 		if (!cooldownEvent || cooldownEvent.isExpired()) {
-			this.logger.debug(
-				`Cooldown not found or has expired for user ${userId} for command ${commandName}`
-			);
+			this.logger.debug(`Cooldown not found or has expired for user ${userId} for command ${commandName}`);
 
 			this.registerCooldownEvent(userId, commandName, commandCooldown);
 			return CooldownResult.asExpired();
 		}
 
-		
 		this.logger.debug(`Cooldown for user ${userId} for command ${commandName} is still active`);
 		return CooldownResult.millisecondsToSeconds(cooldownEvent.timeRemaining());
 	}
@@ -147,13 +137,9 @@ export class CooldownService {
 	 * @returns An array of cooldown events for the specified command.
 	 */
 	public async getUsersOnCooldownForCommand(commandName: string) {
-		const cooldownEvents =
-			this._cooldownEventRepository.getCooldownEventsForCommand(commandName);
+		const cooldownEvents = this._cooldownEventRepository.getCooldownEventsForCommand(commandName);
 		return cooldownEvents;
 	}
-
-
-	
 
 	/**
 	 * Registers a cooldown event for a user.
@@ -163,19 +149,15 @@ export class CooldownService {
 	 * @param commandCooldown - The cooldown time for the command in milliseconds.
 	 */
 	private registerCooldownEvent(userId: string, commandName: string, commandCooldown: number) {
-		if(commandCooldown <0){
-			throw new Error(`Assertion error: commandCooldown must be greater than 0. Got ${commandCooldown}`)
+		if (commandCooldown < 0) {
+			throw new Error(`Assertion error: commandCooldown must be greater than 0. Got ${commandCooldown}`);
 		}
-		
+
 		const expireTime = Date.now() + commandCooldown;
 		this._cooldownEventRepository.setCooldown(userId, commandName, expireTime);
 		const msg = createLogTimeMessage(expireTime);
-		this.logger.debug(
-			`Registered cooldown event for command ${commandName} for user ${userId} which is set to expire at ${msg}`
-		);
+		this.logger.debug(`Registered cooldown event for command ${commandName} for user ${userId} which is set to expire at ${msg}`);
 	}
-
-	
 }
 
 /**
@@ -184,9 +166,9 @@ export class CooldownService {
  * It provides static methods to create instances representing different states and units of time.
  */
 export class CooldownResult<
-	const TUnit extends "milliseconds" | "seconds",
+	const TUnit extends 'milliseconds' | 'seconds',
 	const TOnCooldown extends boolean,
-	const TNumber extends number | Decimal,
+	const TNumber extends number | Decimal
 > {
 	/**
 	 * Creates an instance of CooldownResult in milliseconds.
@@ -195,7 +177,7 @@ export class CooldownResult<
 	 * @returns An instance of CooldownResult with the provided time and unit set to "milliseconds".
 	 */
 	public static asMilliseconds(milliseconds: number) {
-		return new CooldownResult(true, milliseconds, "milliseconds");
+		return new CooldownResult(true, milliseconds, 'milliseconds');
 	}
 	/**
 	 * Converts milliseconds to seconds and creates an instance of CooldownResult.
@@ -204,11 +186,7 @@ export class CooldownResult<
 	 * @returns An instance of CooldownResult with the provided time converted to seconds and unit set to "seconds".
 	 */
 	public static millisecondsToSeconds(milliseconds: number) {
-		return new CooldownResult(
-			true,
-			new Decimal(milliseconds / 1000).toDecimalPlaces(3),
-			"seconds"
-		);
+		return new CooldownResult(true, new Decimal(milliseconds / 1000).toDecimalPlaces(3), 'seconds');
 	}
 	/**
 	 * Creates an instance of CooldownResult representing an expired cooldown.
@@ -216,7 +194,7 @@ export class CooldownResult<
 	 * @returns An instance of CooldownResult with isOnCooldown set to false, timeRemaining set to 0, and unit set to "seconds".
 	 */
 	public static asExpired() {
-		return new CooldownResult(false, 0, "milliseconds");
+		return new CooldownResult(false, 0, 'milliseconds');
 	}
 	/**
 	 * Private constructor for CooldownResult. Use the public static methods to create instances.
@@ -231,4 +209,3 @@ export class CooldownResult<
 		public readonly unit: TUnit
 	) {}
 }
-

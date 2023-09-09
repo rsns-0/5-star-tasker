@@ -1,9 +1,8 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from '@prisma/client';
 
 export default Prisma.defineExtension((client) => {
 	return client.$extends({
 		model: {
-			
 			$allModels: {
 				/**
 				 * Pulls the specified field from the model in the return result.
@@ -13,15 +12,15 @@ export default Prisma.defineExtension((client) => {
 				 * @typeparam T The model type
 				 * @typeparam K The return type of Prisma `findMany` method on model T
 				 */
-				async extractValue<T, K extends Prisma.Result<T, null, "findMany">>(
+				async extractValue<T, K extends Prisma.Result<T, null, 'findMany'>>(
 					this: T,
 					field: keyof K[0],
-					where: Prisma.Args<T, "findMany">["where"]
+					where: Prisma.Args<T, 'findMany'>['where']
 				) {
 					const context = Prisma.getExtensionContext(this);
 					const result = await (context as any).findMany({
 						where,
-						select: { [field]: true },
+						select: { [field]: true }
 					});
 
 					return result.map((item: any) => item[field]);
@@ -34,21 +33,15 @@ export default Prisma.defineExtension((client) => {
 				 * @typeparam T The model type
 				 * @typeparam K The return type of Prisma `findMany` method on model T
 				 */
-				ci<T, K extends Prisma.Result<T, null, "findMany">>(
-					this: T,
-					field: keyof K[0],
-					value: string
-				) {
+				ci<T, K extends Prisma.Result<T, null, 'findMany'>>(this: T, field: keyof K[0], value: string) {
 					return {
 						[field]: {
-							mode: "insensitive",
-							equals: value,
-						},
+							mode: 'insensitive',
+							equals: value
+						}
 					};
-				},
-			},
-			
-			
-		},
+				}
+			}
+		}
 	});
 });

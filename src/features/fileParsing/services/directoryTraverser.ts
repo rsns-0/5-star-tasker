@@ -1,8 +1,8 @@
-import { existsSync, lstatSync, readdirSync } from "fs";
+import { existsSync, lstatSync, readdirSync } from 'fs';
 
-import Denque from "denque";
-import { TraverserError } from "../errors/traverserError";
-import path from "path";
+import Denque from 'denque';
+import { TraverserError } from '../errors/traverserError';
+import path from 'path';
 
 /**
  * A utility class for traversing directories and finding files.
@@ -10,7 +10,7 @@ import path from "path";
  * Not intended for external use, needs better behavior for managing control flow when unexpected events occur.
  */
 export class DirectoryTraverser {
-	private _directory: string = "";
+	private _directory: string = '';
 	constructor(directory: string) {
 		this.currentDirectory = directory;
 	}
@@ -37,15 +37,11 @@ export class DirectoryTraverser {
 	}
 
 	getFolders() {
-		return readdirSync(this.currentDirectory).filter((file: string) =>
-			lstatSync(path.join(this.currentDirectory, file)).isDirectory()
-		);
+		return readdirSync(this.currentDirectory).filter((file: string) => lstatSync(path.join(this.currentDirectory, file)).isDirectory());
 	}
 
 	getFiles({ withFullPath = true } = {}) {
-		const res = readdirSync(this.currentDirectory).filter((file: string) =>
-			lstatSync(path.join(this.currentDirectory, file)).isFile()
-		);
+		const res = readdirSync(this.currentDirectory).filter((file: string) => lstatSync(path.join(this.currentDirectory, file)).isFile());
 		if (withFullPath) {
 			return res.map((file) => path.join(this.currentDirectory, file));
 		}
@@ -82,7 +78,7 @@ export class DirectoryTraverser {
 	 * // Navigate to the folder containing the file 'myFile.txt'
 	 * traverser.descendTo('myFile.txt', 'file');
 	 */
-	descendTo(itemName: string, itemType: "file" | "folder" = "folder") {
+	descendTo(itemName: string, itemType: 'file' | 'folder' = 'folder') {
 		const queue = new Denque<string>([this.currentDirectory]);
 
 		while (queue.size() > 0) {
@@ -103,12 +99,12 @@ export class DirectoryTraverser {
 	}
 
 	/**Returns true if should return, false if should continue. */
-	private handleControlFlow(itemName: string, itemType: "file" | "folder") {
-		if (itemType === "file" && this.getFiles({ withFullPath: false }).includes(itemName)) {
+	private handleControlFlow(itemName: string, itemType: 'file' | 'folder') {
+		if (itemType === 'file' && this.getFiles({ withFullPath: false }).includes(itemName)) {
 			this.currentDirectory = path.dirname(path.join(this.currentDirectory, itemName));
 			return true;
 		}
-		if (itemType === "folder" && this.getFolders().includes(itemName)) {
+		if (itemType === 'folder' && this.getFolders().includes(itemName)) {
 			this.currentDirectory = path.join(this.currentDirectory, itemName);
 			return true;
 		}
@@ -170,10 +166,7 @@ export class DirectoryTraverser {
 	 
 	 */
 	recursiveFindFiles(fileNameOrFileFilter: string | ((fullFilePath: string) => boolean)) {
-		const filter =
-			typeof fileNameOrFileFilter === "string"
-				? (fileName: string) => fileName === fileNameOrFileFilter
-				: fileNameOrFileFilter;
+		const filter = typeof fileNameOrFileFilter === 'string' ? (fileName: string) => fileName === fileNameOrFileFilter : fileNameOrFileFilter;
 
 		const queue = new Denque<string>([this.currentDirectory]);
 		const res: string[] = [];
@@ -197,8 +190,6 @@ export class DirectoryTraverser {
 }
 function validateDirectory(directory: string) {
 	if (!existsSync(directory) || !lstatSync(directory).isDirectory()) {
-		throw new TraverserError(
-			`Directory ${directory} does not exist or is not a valid directory`
-		);
+		throw new TraverserError(`Directory ${directory} does not exist or is not a valid directory`);
 	}
 }

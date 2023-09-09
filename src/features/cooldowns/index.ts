@@ -1,3 +1,1 @@
-
-
-export * from "./services/cooldownService";
+export * from './services/cooldownService';

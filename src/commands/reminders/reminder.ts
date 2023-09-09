@@ -85,7 +85,7 @@ export class UserCommand extends Subcommand {
 			const timeString = interaction.options.getString('time')!;
 			const result = await prisma.discord_user.findUnique({
 				where: {
-					id: parseInt(interaction.user.id)
+					id: interaction.user.id
 				},
 				include: {
 					timezones: {
@@ -114,7 +114,6 @@ export class UserCommand extends Subcommand {
 						embeds: [embedToUpdate.setTitle('Saving your timezone...').setDescription(' ')],
 						components: []
 					});
-
 					await firstRegistration(interaction.user);
 
 					const tzinfo = await prisma.timezones.findFirst({
@@ -129,30 +128,34 @@ export class UserCommand extends Subcommand {
 					}
 					await prisma.discord_user.update({
 						where: {
-							id: parseInt(interaction.user.id)
+							id: interaction.user.id
 						},
 						data: {
 							timezone_id: tzinfo?.id
 						}
 					});
 					await interaction.followUp({
+						// Matuz TODO: Make another command and call that command here, so no repetitive use of things (soon)
+						// edit: reading on the next day, I'm now confused, I'll do it later
 						embeds: [reminderTimezoneRegisteredEmbed(tzinfo, timeString)],
 						ephemeral: true
 					});
 				}
-			} else {
+			}
+			// * Else create reminder for user.
+			else {
 				let reminder = interaction.options.getString('reminder') ?? 'Pong 🏓';
-				// let channel_id = parseInt(interaction.options.getString('channel') ?? interaction.channelId);
+
 				const date = timeStringToDayjsObj(timeString, userTimezone);
 				await prisma.reminders.create({
 					data: {
 						reminder: reminder,
-						time: date.unix(),
 						discord_user: {
 							connect: {
-								id: parseInt(interaction.user.id)
+								id: interaction.user.id
 							}
-						}
+						},
+						time: date.unix()
 					}
 				});
 				await interaction.editReply({
