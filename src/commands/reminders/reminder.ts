@@ -21,8 +21,8 @@ import { firstRegistration } from '../../features/reminders/commandComponents/fi
 import prisma from '../../db/prismaInstance';
 import { timeStringToDayjsObj } from '../../features/reminders/services/stringToDayjsObj';
 import { logger } from '../../logger/logger';
-import { container } from '@sapphire/framework';
 
+import {container} from '@sapphire/framework';
 const reminderData = new SlashCommandBuilder()
 	.setName('reminder')
 	.setDescription('Create a reminder')
@@ -37,10 +37,13 @@ const reminderData = new SlashCommandBuilder()
 			.addStringOption((option) =>
 				option.setName('message').setDescription('What do you want to be pinged for? (200 chars limit)').setRequired(false)
 			)
+			.addChannelOption((option) =>
+				option.setName('channel').setDescription('What channel do you want the reminder to be sent in?').setRequired(false)
+			)
 	)
 	.addSubcommand((subcommand) => subcommand.setName('help').setDescription('Explanation of how to use /reminder'));
 
-//? apparently sapphire has built in error handling?
+
 @ApplyOptions<Subcommand.Options>({
 	name: 'reminder',
 	description: 'Manage reminders. Use help for more information.',
@@ -77,7 +80,7 @@ export class UserCommand extends Subcommand {
 	@RequiresClientPermissions([PermissionFlagsBits.EmbedLinks])
 	public async set(interaction: ChatInputCommandInteraction) {
 		try {
-			await interaction.deferReply({ ephemeral: true }); // with this, the bot don't need to reply within 3s, so no bugs, also feel free to delete my comments
+			await interaction.deferReply({ ephemeral: true });
 
 			// * Check db for user timezone data
 			const timeString = interaction.options.getString('time')!;
@@ -112,55 +115,69 @@ export class UserCommand extends Subcommand {
 					await confirmation.update({
 						embeds: [embedToUpdate.setTitle('Saving your timezone...').setDescription(' ')],
 						components: []
-					}); // block user to select smth else while bot processing, no reason to make like a catch but feel free to do it, nvm just (Matuz TODO)
-					//? The bot already blocks actions while it is processing a command for a user.
+					});
+					
 					container.dbLogger.emit('info', 'User selected timezone. Saving to database.');
 					await firstRegistration(interaction.user);
 
-					const tzinfo = await prisma.timezones.findFirst({
-						where: {
-							value: confirmation.values[0]
-						}
-					});
-					if (!tzinfo) {
-						throw new Error(
-							'Assertion error: Timezone not found. Check to make sure the form field options align with the database data.'
-						);
+				const tzinfo = await prisma.timezones.findFirst({
+					where: {
+						value: confirmation.values[0]
 					}
-					await prisma.discord_user.update({
-						where: {
-							id: interaction.user.id
-						},
-						data: {
-							timezone_id: tzinfo?.id
-						}
-					});
-					await interaction.followUp({
-						// Matuz TODO: Make another command and call that command here, so no repetitive use of things (soon)
-						// edit: reading on the next day, I'm now confused, I'll do it later
-						embeds: [reminderTimezoneRegisteredEmbed(tzinfo, timeString)],
-						ephemeral: true
-					});
+				});
+				if (!tzinfo) {
+					throw new Error('Assertion error: Timezone not found. Check to make sure the form field options align with the database data.');
 				}
+				await prisma.discord_user.update({
+					where: {
+						id: interaction.user.id
+					},
+					data: {
+						timezone_id: tzinfo?.id
+					}
+				});
+				await interaction.followUp({
+					embeds: [reminderTimezoneRegisteredEmbed(tzinfo, timeString)],
+					ephemeral: true
+				});
 			}
-			// * Else create reminder for user.
-			else {
-				let reminder = interaction.options.getString('reminder') ?? 'Pong 🏓'; // this is not picking up the user's input, presumably fixed in other branch
+		}
+		// * Else create reminder for user.
+		else {
+			let reminder = interaction.options.getString('reminder') ?? 'Pong 🏓'; // this is not picking up the user's input, presumably fixed in other branch
+			if(!interaction.channel){
+				throw new Error("Unexpected missing channel")
+			}
 
-				const date = timeStringToDayjsObj(timeString, userTimezone);
-				if (!interaction.channel) {
-					throw new Error('Assertion error: Channel not found. Check to make sure the channel exists.');
-				}
-				await prisma.reminders.createReminder({
-					channel: interaction.channel,
-					user: interaction.user,
-					time: date,
-					reminderMessage: reminder
-				});
-				await interaction.editReply({
-					embeds: [reminderFinishedEmbed(date, reminder)]
-				});
-			}
+			const date = timeStringToDayjsObj(timeString, userTimezone);
+			await prisma.reminders.createReminder({
+				channel: interaction.channel,
+				user: interaction.user,
+				time: date,
+				reminderMessage: reminder
+			});
+			await interaction.editReply({
+				embeds: [reminderFinishedEmbed(date, reminder)]
+			});
+		}
+	} catch (e){
+		if (e instanceof DiscordAPIError) {
+            await interaction.editReply({
+                embeds: [reminderSomethingWrongEmbed()],
+            });
+        } else {
+            logger.error(e);
+            throw e;
+        }
+	}
+	}
+
+	@RequiresClientPermissions([PermissionFlagsBits.EmbedLinks])
+	public async edit(interaction: ChatInputCommandInteraction) {
+		try {
+			await interaction.deferReply({ ephemeral: true });
+
+			await prisma.reminders.findMany();
 		} catch (e) {
 			if (e instanceof DiscordAPIError) {
 				await interaction.editReply({
@@ -171,11 +188,6 @@ export class UserCommand extends Subcommand {
 				throw e;
 			}
 		}
-	}
-
-	@RequiresClientPermissions([PermissionFlagsBits.EmbedLinks])
-	public async edit(interaction: ChatInputCommandInteraction) {
-		//TODO: getUserReminders
 		interaction;
 		throw new Error('Assertion error: Method not implemented.');
 	}
