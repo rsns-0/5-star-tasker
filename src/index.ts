@@ -31,7 +31,6 @@ container.cooldownService = new CooldownService();
 container.prisma = prisma;
 container.webhookService = new WebhookService();
 container.dbLogger = logger;
-
 const client = new SapphireClient({
 	defaultPrefix: '!',
 	regexPrefix: /^(hey +)?bot[,! ]/i,

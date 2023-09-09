@@ -45,7 +45,7 @@ export default Prisma.defineExtension((prisma) => {
 					assertWebhookChannel(channel);
 
 					const webhook = await webhookService.getOrCreateAnyOwnedWebhookInChannel(channel);
-					await gPrisma.discord_channels.registerChannel(channel);
+					await gPrisma.discord_channels.registerChannel(channel); // test before removing
 					return prisma.reminders.create({
 						data: {
 							reminder_message: reminderMessage,
@@ -163,6 +163,10 @@ export default Prisma.defineExtension((prisma) => {
 					return res;
 				},
 
+				/**
+				 * Sends due reminders to users.
+				 * @returns A promise that resolves to an array of results from sending the reminders.
+				 */
 				async sendDueReminders() {
 					const reminders = await this.getExpiredRemindersAndDelete();
 					if (!reminders.length) {
