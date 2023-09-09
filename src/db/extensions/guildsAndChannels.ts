@@ -13,9 +13,9 @@ export default Prisma.defineExtension((prisma) => {
 				 * @returns A promise that resolves to the registered channel.
 				 */
 				async registerChannel(channel: GuildBasedChannel) {
-					const channelId = parseInt(channel.id);
-					const guildId = parseInt(channel.guild.id);
-					const ownerId = parseInt(channel.guild.ownerId);
+					const channelId = channel.id;
+					const guildId = channel.id;
+					const ownerId = channel.id;
 
 					return await prisma.discord_channels.upsert({
 						where: {
@@ -23,7 +23,29 @@ export default Prisma.defineExtension((prisma) => {
 						},
 						create: {
 							id: channelId,
-							name: channel.name
+							name: channel.name,
+							discord_guilds: {
+								connectOrCreate: {
+									where: {
+										id: guildId
+									},
+									create: {
+										id: guildId,
+										name: channel.guild.name,
+										discord_user: {
+											connectOrCreate: {
+												where: {
+													id: ownerId
+												},
+												create: {
+													id: ownerId,
+													username: (await channel.guild.fetchOwner()).user.username // if there are performance bottlenecks later remove
+												}
+											}
+										}
+									}
+								}
+							}
 						},
 						update: {
 							name: channel.name,
@@ -51,6 +73,7 @@ export default Prisma.defineExtension((prisma) => {
 							}
 						}
 					});
+					
 				}
 			},
 			discord_guilds: {
@@ -60,10 +83,10 @@ export default Prisma.defineExtension((prisma) => {
 				 * @returns A promise that resolves to the registered guild.
 				 */
 				async registerGuild(guild: Guild) {
-					const guildId = parseInt(guild.id);
-					const ownerId = parseInt(guild.ownerId);
+					const guildId = (guild.id);
+					const ownerId = (guild.ownerId);
 					const channels = guild.channels.cache.map((channel) => {
-						const id = parseInt(channel.id);
+						const id = channel.id
 						const res: Prisma.discord_channelsCreateOrConnectWithoutDiscord_guildsInput = {
 							where: {
 								id
@@ -99,7 +122,21 @@ export default Prisma.defineExtension((prisma) => {
 							}
 						},
 						update: {
-							name: guild.name
+							name: guild.name,
+							discord_channels: {
+								connectOrCreate: channels
+							},
+							discord_user: {
+								connectOrCreate: {
+									where: {
+										id: ownerId
+									},
+									create: {
+										id: ownerId,
+										username: (await guild.fetchOwner()).user.username // if there are performance bottlenecks later remove
+									}
+								}
+							}
 						}
 					});
 				}

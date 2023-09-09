@@ -1,6 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 
 import { Listener, Store } from '@sapphire/framework';
+
 import { blue, gray, green, magenta, magentaBright, white, yellow } from 'colorette';
 
 const dev = process.env.NODE_ENV !== 'production';
@@ -50,5 +51,8 @@ ${line03}${dev ? ` ${pad}${blc('<')}${llc('/')}${blc('>')} ${llc('DEVELOPMENT MO
 		return gray(`${last ? '└─' : '├─'} Loaded ${this.style(store.size.toString().padEnd(3, ' '))} ${store.name}.`);
 	}
 
-	private runStartupTasks() {}
+	private async runStartupTasks() {
+		const c = this.container;
+		setInterval(() => c.prisma.reminders.sendDueReminders(), 1000 * 60); // every minute, exact interval will deviate gradually in a long running server but since precision is not important this is fine
+	}
 }

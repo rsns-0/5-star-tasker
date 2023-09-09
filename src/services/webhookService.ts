@@ -1,9 +1,13 @@
-import { type Guild, type GuildBasedChannel, type Webhook } from 'discord.js';
+import { Channel, Collection, type Guild, type Webhook } from 'discord.js';
 
 import { type WebhookChannel } from 'types/channelTypes';
 import { container } from '@sapphire/pieces';
-import { randomUUID } from 'crypto';
+import { assertExists } from '../utils/assertExists';
+import { OwnedWebhook } from '../types/webhookTypes';
 
+function defaultWebhookName() {
+	return `5StarWebhook-${Math.random() * 100}`;
+}
 /**
  * The `CreateWebhookInChannelOptions` type is used to specify optional parameters when creating a
  * webhook in a channel.
@@ -53,7 +57,7 @@ export class WebhookService {
 	 */
 	public async createWebhookInChannel(
 		channel: WebhookChannel,
-		{ name = 'Webhook' + randomUUID(), avatar, reason }: CreateWebhookInChannelOptions = {}
+		{ name = defaultWebhookName(), avatar, reason }: CreateWebhookInChannelOptions = {}
 	) {
 		try {
 			const res = await channel.createWebhook({
@@ -61,10 +65,14 @@ export class WebhookService {
 				avatar,
 				reason
 			});
+			assertOwnedWebhook(res);
 			return res;
 		} catch (err) {
 			container.dbLogger.emit('error', err);
-			throw new Error('Failed to create webhook at network layer with discord. Unknown what happened.' as const, { cause: err });
+			throw new Error(
+				`Failed to create webhook at network layer with discord. Unknown what happened. Occurred at channel:${channel.toJSON()}}` as const,
+				{ cause: err }
+			);
 		}
 	}
 
@@ -78,7 +86,12 @@ export class WebhookService {
 	public async deleteWebhooksInChannel(channel: WebhookChannel, filter: (webhook: Webhook) => boolean) {
 		try {
 			const webhooks = await channel.fetchWebhooks();
-			const filteredWebhooks = webhooks.filter(filterOwnedWebhook).filter(filter);
+
+			const filteredWebhooks = webhooks.filter(isOwnedWebhook).filter(filter);
+			if (!filteredWebhooks.size) {
+				container.dbLogger.emit('warn', `No owned webhooks found to delete. Channel info: ${channel.toJSON()}`);
+				return;
+			}
 			await Promise.all(filteredWebhooks.map((webhook) => webhook.delete()));
 		} catch (err) {
 			container.dbLogger.emit('error', err);
@@ -122,6 +135,75 @@ export class WebhookService {
 	}
 
 	/**
+	 * Retrieves or creates an owned webhook in the specified channel.
+	 * If there are any owned webhooks in the channel, the first one is returned.
+	 * Otherwise, a new webhook is created in the channel and returned.
+	 * @param channel The channel to retrieve or create the webhook in.
+	 * @returns The owned webhook in the channel, or a newly created one.
+	 */
+	public async getOrCreateAnyOwnedWebhookInChannel(channel: WebhookChannel) {
+		const webhooks = await this.getWebhooksInChannel(channel);
+		const ownedWebhooks = webhooks.filter(isOwnedWebhook);
+		if (ownedWebhooks.size) {
+			const res = ownedWebhooks.first();
+			assertExists(res);
+			return res;
+		}
+
+		return this.createWebhookInChannel(channel);
+	}
+
+	/**
+	 * Retrieves all webhooks from all guilds.
+	 * @returns A Promise that resolves to an array of webhooks.
+	 */
+	public async getAllWebhooksOfAllGuilds() {
+		const guilds = container.client.guilds.cache;
+		const webhooks: Promise<Collection<string, Webhook>>[] = [];
+		for (const guild of guilds.values()) {
+			const channels = guild.channels.cache.filter(isWebhookChannel);
+			for (const channel of channels.values()) {
+				const res = this.getWebhooksInChannel(channel);
+				webhooks.push(res);
+			}
+		}
+		const res = await Promise.all(webhooks);
+		const reduced = res.reduce((acc, curr) => {
+			return acc.concat(curr);
+		});
+		return reduced;
+	}
+
+	/**
+	 * Retrieves all owned webhooks.
+	 * @returns An array of owned webhooks.
+	 */
+	public async getAllOwnedWebhooks() {
+		const webhooks = await this.getAllWebhooksOfAllGuilds();
+		const ownedWebhooks = webhooks.filter(isOwnedWebhook);
+		return ownedWebhooks;
+	}
+
+	/**
+	 * Retrieves a webhook by its ID.
+	 * @param id The ID of the webhook to retrieve.
+	 * @returns The retrieved webhook.
+	 */
+	public async getWebhookById(id: string) {
+		const webhook = await container.client.fetchWebhook(id);
+		return webhook;
+	}
+
+	/**
+	 * Deletes a webhook by its ID.
+	 * @param id The ID of the webhook to delete.
+	 */
+	public async deleteWebhookById(id: string) {
+		const webhook = await container.client.fetchWebhook(id);
+		webhook.delete();
+	}
+
+	/**
 	 * Retrieves all webhooks in all channels of a guild.
 	 * @param guild The guild object.
 	 * @returns A map of channels and their corresponding webhooks.
@@ -136,12 +218,6 @@ export class WebhookService {
 			};
 		});
 	}
-	public deleteWebhooks() {
-		const channels = container.client.guilds.cache.find((guild) => guild.name === '5-star-tasker')!.channels.cache.filter(isWebhookChannel);
-		channels.each((channel) => {
-			container.webhookService.deleteWebhooksInChannel(channel, () => true);
-		});
-	}
 }
 
 /**
@@ -149,8 +225,20 @@ export class WebhookService {
  * @param webhook - The webhook to filter.
  * @returns True if the webhook is owned, false otherwise.
  */
-export function filterOwnedWebhook(webhook: Webhook) {
+export function isOwnedWebhook(webhook: Webhook): webhook is OwnedWebhook {
 	return webhook.token !== null;
+}
+
+/**
+ * Asserts that a webhook is owned by the bot.
+ * Throws an error if the webhook is not owned.
+ * @param webhook - The webhook to assert ownership for.
+ * @throws Error - If the webhook is not owned by the bot.
+ */
+export function assertOwnedWebhook(webhook: Webhook): asserts webhook is OwnedWebhook {
+	if (!isOwnedWebhook(webhook)) {
+		throw new Error(`Webhook ${webhook.name} is not owned by the bot. Webhook info: ${JSON.stringify(webhook)}`);
+	}
 }
 
 /**
@@ -158,10 +246,22 @@ export function filterOwnedWebhook(webhook: Webhook) {
  * @param channel - The channel to check.
  * @returns True if the channel is a webhook channel, false otherwise.
  */
-export function isWebhookChannel(channel: GuildBasedChannel): channel is WebhookChannel {
+export function isWebhookChannel(channel: Channel): channel is WebhookChannel {
 	if (channel.isTextBased() && !channel.isThread()) {
 		return true;
 	}
 
 	return false;
+}
+
+/**
+ * Asserts that the given channel is a webhook channel.
+ * If the channel is not a webhook channel, an error is thrown.
+ * @param channel The channel to assert as a webhook channel.
+ * @throws {Error} If the channel is not a webhook channel.
+ */
+export function assertWebhookChannel(channel: Channel): asserts channel is WebhookChannel {
+	if (!isWebhookChannel(channel)) {
+		throw new Error(`Channel ${channel.id} is not a webhook channel. Channel info: ${channel.toJSON()}`);
+	}
 }

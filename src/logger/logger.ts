@@ -15,7 +15,18 @@ const logger = createLogger({
 });
 
 logger.on('error', async (err) => {
+	logger.error(err);
 	await prisma.logs.logError(err);
+});
+
+logger.on('warn', async (warn) => {
+	logger.warn(warn);
+	await prisma.logs.dump(warn);
+});
+
+logger.on('info', async (info) => {
+	logger.info(info);
+	await prisma.logs.dump(info);
 });
 
 export { logger };

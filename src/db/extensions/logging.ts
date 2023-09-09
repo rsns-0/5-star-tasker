@@ -12,7 +12,7 @@ export default Prisma.defineExtension((prisma) => {
 				 * @returns A promise that resolves when the log entry is created.
 				 */
 				async logError(err: Error) {
-					return await prisma.logs.create({
+					return prisma.logs.create({
 						data: {
 							level: 0,
 							message: err.message,
@@ -28,7 +28,7 @@ export default Prisma.defineExtension((prisma) => {
 				 * @returns A promise that resolves to the created log entry.
 				 */
 				async logEvent(message: string, meta: Prisma.JsonObject) {
-					return await prisma.logs.create({
+					return prisma.logs.create({
 						data: {
 							level: 1,
 							message,
@@ -46,7 +46,7 @@ export default Prisma.defineExtension((prisma) => {
 				async dump(obj: O.Object) {
 					const message = JSON.stringify(obj);
 					const json = JSON.parse(message);
-					return await prisma.logs.create({
+					return prisma.logs.create({
 						data: {
 							level: 1,
 							message,
