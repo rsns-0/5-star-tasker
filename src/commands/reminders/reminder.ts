@@ -21,6 +21,7 @@ import { firstRegistration } from '../../features/reminders/commandComponents/fi
 import prisma from '../../db/prismaInstance';
 import { timeStringToDayjsObj } from '../../features/reminders/services/stringToDayjsObj';
 import { logger } from '../../logger/logger';
+import { container } from '@sapphire/framework';
 
 const reminderData = new SlashCommandBuilder()
 	.setName('reminder')
@@ -82,7 +83,7 @@ export class UserCommand extends Subcommand {
 			const timeString = interaction.options.getString('time')!;
 			const result = await prisma.discord_user.findUnique({
 				where: {
-					id: parseInt(interaction.user.id)
+					id: interaction.user.id
 				},
 				include: {
 					timezones: {
@@ -102,6 +103,7 @@ export class UserCommand extends Subcommand {
 					embeds: [reminderSelectTimezoneEmbed()],
 					components: [row1.toJSON(), row2.toJSON()]
 				});
+				container.dbLogger.emit('info', 'Waiting for user to select timezone.');
 				const confirmation = await response.awaitMessageComponent({
 					filter: (i): boolean => i.user.id === interaction.user.id,
 					time: 60000
@@ -112,6 +114,7 @@ export class UserCommand extends Subcommand {
 						components: []
 					}); // block user to select smth else while bot processing, no reason to make like a catch but feel free to do it, nvm just (Matuz TODO)
 					//? The bot already blocks actions while it is processing a command for a user.
+					container.dbLogger.emit('info', 'User selected timezone. Saving to database.');
 					await firstRegistration(interaction.user);
 
 					const tzinfo = await prisma.timezones.findFirst({
@@ -126,7 +129,7 @@ export class UserCommand extends Subcommand {
 					}
 					await prisma.discord_user.update({
 						where: {
-							id: parseInt(interaction.user.id)
+							id: interaction.user.id
 						},
 						data: {
 							timezone_id: tzinfo?.id
@@ -142,19 +145,17 @@ export class UserCommand extends Subcommand {
 			}
 			// * Else create reminder for user.
 			else {
-				let reminder = interaction.options.getString('reminder') ?? 'Pong 🏓';
+				let reminder = interaction.options.getString('reminder') ?? 'Pong 🏓'; // this is not picking up the user's input, presumably fixed in other branch
 
 				const date = timeStringToDayjsObj(timeString, userTimezone);
-				await prisma.reminders.create({
-					data: {
-						reminder_message: reminder,
-						discord_user: {
-							connect: {
-								id: parseInt(interaction.user.id)
-							}
-						},
-						time: date.unix()
-					}
+				if (!interaction.channel) {
+					throw new Error('Assertion error: Channel not found. Check to make sure the channel exists.');
+				}
+				await prisma.reminders.createReminder({
+					channel: interaction.channel,
+					user: interaction.user,
+					time: date,
+					reminderMessage: reminder
 				});
 				await interaction.editReply({
 					embeds: [reminderFinishedEmbed(date, reminder)]

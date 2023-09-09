@@ -18,11 +18,13 @@ model unstructured_storage {
 }
 
 model webhooks {
-  id                 BigInt           @id @default(autoincrement())
+  id                 String           @id
   created_at         DateTime         @default(now()) @db.Timestamptz(6)
   name               String           @default("")
-  url                String           @default("")
-  discord_channel_id BigInt
+  url                String           @unique
+  discord_channel_id String
+  token              String?          @unique
+  reminders          reminders[]
   discord_channels   discord_channels @relation(fields: [discord_channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
@@ -37,18 +39,30 @@ model countries {
 }
 
 model discord_channels {
-  id               BigInt             @id @unique
+  id               String             @id 
   name             String             @default("")
   created_at       DateTime           @default(now()) @db.Timestamptz(6)
-  discord_guild_id BigInt?
+  discord_guild_id String?
   discord_guilds   discord_guilds?    @relation(fields: [discord_guild_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   discord_messages discord_messages[]
   reminders        reminders[]
   webhooks         webhooks[]
 }
+model reminders {
+  id               BigInt           @id @default(autoincrement())
+  created_at       DateTime         @default(now()) @db.Timestamptz(6)
+  user_id          String
+  channel_id       String
+  reminder_message String           @default("")
+  time             Decimal          @db.Decimal
+  webhook_id       String
+  discord_channels discord_channels @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  discord_user     discord_user     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  webhook          webhooks         @relation(fields: [webhook_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
 
 model discord_user {
-  id               BigInt             @id @unique
+  id               String             @id @unique
   created_at       DateTime           @default(now()) @db.Timestamptz(6)
   username         String?            @default("")
   timezone_id      BigInt?
@@ -58,6 +72,28 @@ model discord_user {
   reminders        reminders[]
 }
 
+model discord_guilds {
+  id               String             @id
+  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  name             String             @default("")
+  owner_id         String?
+  discord_channels discord_channels[]
+  discord_user     discord_user?      @relation(fields: [owner_id], references: [id], onUpdate: NoAction)
+  discord_messages discord_messages[]
+}
+
+
+model discord_messages {
+  id                 String            @id
+  created_at         DateTime          @default(now()) @db.Timestamptz(6)
+  text               String            @default("")
+  discord_channel_id String?
+  discord_guild_id   String?
+  owner_id           String?
+  discord_channels   discord_channels? @relation(fields: [discord_channel_id], references: [id], onUpdate: NoAction)
+  discord_guilds     discord_guilds?   @relation(fields: [discord_guild_id], references: [id], onUpdate: NoAction)
+  discord_user       discord_user?     @relation(fields: [owner_id], references: [id], onUpdate: NoAction)
+}
 model languages {
   id                     BigInt                @id @default(autoincrement())
   created_at             DateTime              @default(now()) @db.Timestamptz(6)
@@ -66,17 +102,6 @@ model languages {
   iso_639_2              String                @unique
   is_supported_by_deep_l Boolean?              @default(false)
   discord_flag_emojis    discord_flag_emojis[]
-}
-
-model reminders {
-  id               BigInt            @id @default(autoincrement())
-  created_at       DateTime          @default(now()) @db.Timestamptz(6)
-  user_id          BigInt?
-  channel_id       BigInt?
-  reminder_message String            @default("")
-  time             Decimal           @db.Decimal
-  discord_channels discord_channels? @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  discord_user     discord_user?     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model test_countries {
@@ -108,33 +133,12 @@ model timezones {
 model logs {
   id         BigInt   @id @default(autoincrement())
   created_at DateTime @default(now()) @db.Timestamptz(6)
-  level      Int?     @default(6) @db.SmallInt
-  message    String?  @default("")
+  level      Int      @default(6) @db.SmallInt
+  message    String   @default("")
   json       Json?
   tags       String[] @default([])
 }
 
-model discord_guilds {
-  id               BigInt             @id @unique
-  created_at       DateTime           @default(now()) @db.Timestamptz(6)
-  name             String             @default("")
-  owner_id         BigInt?
-  discord_channels discord_channels[]
-  discord_user     discord_user?      @relation(fields: [owner_id], references: [id], onUpdate: NoAction)
-  discord_messages discord_messages[]
-}
-
-model discord_messages {
-  id                 BigInt            @id @unique @default(autoincrement())
-  created_at         DateTime          @default(now()) @db.Timestamptz(6)
-  text               String            @default("")
-  discord_channel_id BigInt?
-  discord_guild_id   BigInt?
-  owner_id           BigInt?
-  discord_channels   discord_channels? @relation(fields: [discord_channel_id], references: [id], onUpdate: NoAction)
-  discord_guilds     discord_guilds?   @relation(fields: [discord_guild_id], references: [id], onUpdate: NoAction)
-  discord_user       discord_user?     @relation(fields: [owner_id], references: [id], onUpdate: NoAction)
-}
 
 model countries_old {
   id          BigInt   @id(map: "countries_pkey1") @default(autoincrement())

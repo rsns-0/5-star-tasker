@@ -6,7 +6,7 @@ import prisma from '../../../db/prismaInstance';
 export const firstRegistration = async (user: User) => {
 	await prisma.discord_user.create({
 		data: {
-			id: parseInt(user.id),
+			id: user.id,
 			username: user.username
 		}
 	});
