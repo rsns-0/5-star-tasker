@@ -145,7 +145,7 @@ export class UserCommand extends Subcommand {
 			}
 			// * Else create reminder for user.
 			else {
-				let reminder = interaction.options.getString('reminder') ?? 'Pong 🏓';
+				let reminder = interaction.options.getString('reminder') ?? 'Pong 🏓'; // this is not picking up the user's input, presumably fixed in other branch
 
 				const date = timeStringToDayjsObj(timeString, userTimezone);
 				if (!interaction.channel) {
