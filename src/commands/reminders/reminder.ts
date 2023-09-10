@@ -144,9 +144,9 @@ export class UserCommand extends Subcommand {
 		}
 		// * Else create reminder for user.
 		else {
-			let reminder = interaction.options.getString('reminder') ?? 'Pong 🏓'; // this is not picking up the user's input, presumably fixed in other branch
-			if(!interaction.channel){
-				throw new Error("Unexpected missing channel")
+			let reminder = interaction.options.getString('message') ?? 'Pong 🏓';
+			if (!interaction.channel) {
+				throw new Error('Unexpected missing channel');
 			}
 
 			const date = timeStringToDayjsObj(timeString, userTimezone);
