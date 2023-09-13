@@ -1,7 +1,8 @@
 /**
  * CooldownEvent is a class that represents a cooldown event.
  *
- * It provides methods to check if the cooldown has expired and to get the time remaining on the cooldown.
+ * It provides methods to check if the cooldown has expired and to get the time
+ * remaining on the cooldown.
  */
 export class CooldownEvent {
 	/**
@@ -14,7 +15,7 @@ export class CooldownEvent {
 	/**
 	 * Checks if the cooldown has expired.
 	 *
-	 * @returns true if the cooldown has expired, false otherwise.
+	 * @returns True if the cooldown has expired, false otherwise.
 	 */
 	public isExpired() {
 		return this.expireTime <= Date.now();
@@ -23,7 +24,8 @@ export class CooldownEvent {
 	/**
 	 * Gets the time remaining on the cooldown.
 	 *
-	 * @returns The time remaining in seconds. If the cooldown has expired, returns 0.
+	 * @returns The time remaining in seconds. If the cooldown has expired,
+	 *   returns 0.
 	 */
 	public timeRemaining() {
 		const timeRemaining = this.expireTime - Date.now();
@@ -32,7 +34,8 @@ export class CooldownEvent {
 }
 
 /**
- * UserCommandCooldownEvent is a class that extends CooldownEvent to include user and command information.
+ * UserCommandCooldownEvent is a class that extends CooldownEvent to include
+ * user and command information.
  */
 export class UserCommandCooldownEvent extends CooldownEvent {
 	/**

@@ -1,8 +1,8 @@
-import { WebhookClient } from 'discord.js';
-import { container } from '@sapphire/framework';
-import { main } from '../init/initBot.js';
+import { container } from "@sapphire/framework";
+import { WebhookClient } from "discord.js";
+import { main } from "../init/initBot.js";
 
-describe.skipIf(!process.env.RUN_BOT_TESTS)('Bot tests that require startup', () => {
+describe.skipIf(!process.env.RUN_BOT_TESTS)("Bot tests that require startup", () => {
 	let c: typeof container;
 
 	beforeAll(async () => {
@@ -12,13 +12,15 @@ describe.skipIf(!process.env.RUN_BOT_TESTS)('Bot tests that require startup', ()
 	afterAll(async () => {
 		await container.client.destroy();
 	});
-	it('webhook test functional test', async () => {
-		const res = await c.prisma.webhooks.findFirst({ where: { name: '5StarWebhookPrimary' } });
+	it("webhook test functional test", async () => {
+		const res = await c.prisma.webhooks.findFirst({
+			where: { name: "5StarWebhookPrimary" },
+		});
 		const resp = await new WebhookClient({
 			id: res!.id.toString(),
 			token: res!.token!,
-			url: res!.url
+			url: res!.url,
 		}).send(`hello world 123`);
-		expect(resp.content).toContain('hello world 123');
+		expect(resp.content).toContain("hello world 123");
 	}, 60000);
 });

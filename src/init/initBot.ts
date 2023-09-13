@@ -1,17 +1,17 @@
-import '../lib/setup';
+import "../lib/setup";
 
-import { GatewayIntentBits, Partials } from 'discord.js';
-import { LogLevel, SapphireClient, container } from '@sapphire/framework';
+import { LogLevel, SapphireClient, container } from "@sapphire/framework";
+import { GatewayIntentBits, Partials } from "discord.js";
 
-import { ChannelService } from '../services/channelService';
-import { CooldownService } from '../features/cooldowns';
-import { GuildService } from '../services/guildService';
-import { TranslationService } from '../features/translation';
-import { WebhookService } from '../services/webhookService';
-import { logger } from '../logger/logger';
-import prisma from '../db/prismaInstance';
+import prisma from "../db/prismaInstance";
+import { CooldownService } from "../features/cooldowns";
+import { TranslationService } from "../features/translation";
+import { logger } from "../logger/logger";
+import { ChannelService } from "../services/channelService";
+import { GuildService } from "../services/guildService";
+import { WebhookService } from "../services/webhookService";
 
-declare module '@sapphire/pieces' {
+declare module "@sapphire/pieces" {
 	export interface Container {
 		translationService: TranslationService;
 		cooldownService: CooldownService;
@@ -32,13 +32,13 @@ container.webhookService = new WebhookService();
 container.dbLogger = logger;
 
 const client = new SapphireClient({
-	defaultPrefix: '!',
+	defaultPrefix: "!",
 	regexPrefix: /^(hey +)?bot[,! ]/i,
 	caseInsensitiveCommands: true,
 	logger: {
-		level: LogLevel.Debug
+		level: LogLevel.Debug,
 	},
-	shards: 'auto',
+	shards: "auto",
 	intents: [
 		GatewayIntentBits.DirectMessageReactions,
 		GatewayIntentBits.DirectMessages,
@@ -49,20 +49,20 @@ const client = new SapphireClient({
 		GatewayIntentBits.GuildMessages,
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.GuildVoiceStates,
-		GatewayIntentBits.MessageContent
+		GatewayIntentBits.MessageContent,
 	],
 	partials: [Partials.Channel],
 	loadMessageCommandListeners: true,
 	defaultCooldown: {
-		delay: 1_000
-	}
+		delay: 1_000,
+	},
 });
 
 export const main = async () => {
 	try {
-		client.logger.info('Logging in');
+		client.logger.info("Logging in");
 		await client.login();
-		client.logger.info('logged in');
+		client.logger.info("logged in");
 	} catch (error) {
 		client.logger.fatal(error);
 		client.destroy();

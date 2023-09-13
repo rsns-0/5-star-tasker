@@ -1,30 +1,27 @@
-import { Collection } from 'discord.js';
-import { UserCommandCooldownEvent } from './cooldownEvent';
-import { logger as _logger } from '../../../logger/logger';
+import { Collection } from "discord.js";
+import { UserCommandCooldownEvent } from "./cooldownEvent";
 
 /**
- * !Not ready to be used as a public class yet. Used internally for CooldownService.
- * CooldownEventRepository is a class that manages the cooldown events of users.
+ * !Not ready to be used as a public class yet. Used internally for
+ * CooldownService. CooldownEventRepository is a class that manages the cooldown
+ * events of users.
  *
- * It provides methods to set and delete cooldown events, cleanup expired cooldowns,
- * and get cooldown events for specific users or commands.
+ * It provides methods to set and delete cooldown events, cleanup expired
+ * cooldowns, and get cooldown events for specific users or commands.
  */
 export class _CooldownEventRepository {
 	/**
-	 * @property userCooldownData - A collection of UserCommandCooldownEvent objects.
+	 * @property userCooldownData - A collection of UserCommandCooldownEvent
+	 *   objects.
 	 */
 	private userCooldownData: Collection<string, UserCommandCooldownEvent> = new Collection();
 
-	/**
-	 * Creates an instance of CooldownEventRepository.
-	 *
-	 *
-	 *
-	 */
+	/** Creates an instance of CooldownEventRepository. */
 	constructor() {}
 
 	/**
-	 * Sets a cooldown event for a user command. Automatically deletes the cooldown event when it expires.
+	 * Sets a cooldown event for a user command. Automatically deletes the
+	 * cooldown event when it expires.
 	 *
 	 * @param userId - The ID of the user.
 	 * @param commandName - The name of the command.

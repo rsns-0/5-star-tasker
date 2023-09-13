@@ -1,3 +1,3 @@
-import { CooldownService } from '../features/cooldowns/services/cooldownService';
+import { CooldownService } from "../features/cooldowns/services/cooldownService";
 
 export const cooldownServiceInstanceForDiscordJs = new CooldownService();

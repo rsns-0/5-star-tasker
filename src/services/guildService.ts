@@ -1,5 +1,5 @@
-import { Guild } from 'discord.js';
-import { container } from '@sapphire/framework';
+import { container } from "@sapphire/framework";
+import { Guild } from "discord.js";
 
 export class GuildService {
 	async getBotGuildById(id: string) {
