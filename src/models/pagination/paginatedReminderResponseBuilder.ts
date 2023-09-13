@@ -1,9 +1,7 @@
-import { PaginatedMessage, PaginatedMessagePage } from "@sapphire/discord.js-utilities";
-import { EmbedBuilder, EmbedField, time } from "discord.js";
-
 import { reminders } from "@prisma/client";
-import { ReminderComponentData } from "../../types/paginationTypes";
-import { ReminderDataPaginationCollection } from "./ReminderPaginationDataCollection";
+import { PaginatedMessage } from "@sapphire/discord.js-utilities";
+import { EmbedBuilder } from "discord.js";
+import { ReminderPages } from "./ReminderPaginationDataCollection";
 import { reminderAPIEmbedSchema } from "./embedAPI";
 import { paginatedMessageMessageOptionsSchema } from "./paginatedPage";
 
@@ -76,12 +74,12 @@ const defaultEmbedBuilder = new EmbedBuilder()
  * 		return message;
  * 	}
  */
-export class ReminderPaginatedMessage extends PaginatedMessage {
+export class ReminderPaginatedResponseBuilder extends PaginatedMessage {
 	/**
 	 * Constructs a new instance of the PaginatedReminderResponseBuilder class.
 	 * @param reminderPageData Contains a map of page index to reminder data, which is another map of reminder ID to reminder data.
 	 */
-	public constructor(private readonly reminderData: ReminderDataPaginationCollection) {
+	public constructor(private readonly reminderPages: ReminderPages) {
 		super({
 			template: defaultEmbedBuilder,
 		});
@@ -104,38 +102,16 @@ export class ReminderPaginatedMessage extends PaginatedMessage {
 		);
 	}
 
-	public static fromReminderData(reminders: reminders[], pageSize = 5) {
-		return new this(ReminderDataPaginationCollection.fromReminders(reminders, { pageSize }));
-	}
-
 	public generatePages() {
-		const pages = this.reminderData.map((data) => {
-			const fields = Array.from(data).map(([_, data], i) => {
-				const embedField: EmbedField = {
-					name: `Entry ${i + 1}`,
-					value: `Time: ${time(data.time)}\nMessage: ${data.message}`,
-					inline: false,
-				};
-				return embedField;
-			});
-			const embed = new EmbedBuilder({
-				fields: fields,
-				description: "Reminders",
-				author: { name: "Edit your reminders" },
-			});
-
-			const actions = data.map((data) => data.button);
-			actions.push(...ReminderPaginatedMessage.defaultActions);
-
-			const page: PaginatedMessagePage = {
-				actions: actions,
-				embeds: [embed],
-			};
-
-			return page;
-		});
+		// generate data needed to build a page, which has a set of actions mapped to the fields and one embed with 5 fields
+		// then dynamically use builder utils from that data
+		const pages = this.reminderPages.map((page) => {});
 
 		return this;
+	}
+
+	public static fromReminderData(reminders: reminders[], pageSize = 5) {
+		return new this(ReminderPages.fromReminders(reminders, { pageSize }));
 	}
 
 	public getEmbedDataOfAllPages() {
@@ -160,13 +136,4 @@ export class ReminderPaginatedMessage extends PaginatedMessage {
 
 		return res;
 	}
-}
-
-function create(data: ReminderComponentData, entryIndex: number) {
-	const embedField: EmbedField = {
-		name: `Entry ${entryIndex + 1}`,
-		value: `Time: ${time(data.time)}\nMessage: ${data.message}`,
-		inline: false,
-	};
-	return embedField;
 }

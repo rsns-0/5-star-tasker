@@ -1,22 +1,20 @@
-import { ButtonStyle, Collection, ComponentType, EmbedField, ModalBuilder, time } from "discord.js";
-import { FromRemindersOptions, ReminderComponentData } from "types/paginationTypes";
+import {
+	PaginatedMessageAction,
+	PaginatedMessageActionContext,
+} from "@sapphire/discord.js-utilities";
+import { ButtonStyle, Collection, ComponentType, ModalBuilder } from "discord.js";
+import { ReminderComponentData, ReminderPage } from "models/pagination/reminderComponentData";
 
 import { reminders } from "@prisma/client";
-import { PaginatedMessageActionContext } from "@sapphire/discord.js-utilities";
 import { paginateArrays } from "../../utils/paginateArrays";
 import { CustomId } from "./CustomId";
 import { createReminderRowComponent } from "./paginationRowData";
-
-class ReminderPaginationDataCollection extends Collection<bigint, ReminderComponentData> {}
 
 /**
  * This class paginates the reminder data and maps their index to data required for building the embeds and their page actions.
  *
  */
-export class ReminderDataPaginationCollection extends Collection<
-	number,
-	ReminderPaginationDataCollection
-> {
+export class ReminderPages extends Collection<number, ReminderPage> {
 	private constructor() {
 		super();
 	}
@@ -27,7 +25,7 @@ export class ReminderDataPaginationCollection extends Collection<
 	 * @param options - The options for pagination.
 	 * @returns The paginated reminder collection.
 	 */
-	public static fromReminders(reminders: reminders[], { pageSize = 5 }: FromRemindersOptions) {
+	public static fromReminders(reminders: reminders[], { pageSize = 5 }) {
 		const remindersPaginated = paginateArrays(reminders, pageSize);
 		const reminderData = new this();
 		remindersPaginated.forEach((reminders, pageIndex) => {
@@ -43,7 +41,7 @@ export class ReminderDataPaginationCollection extends Collection<
  * @returns A Collection of ReminderPaginationData objects.
  */
 function createReminderEmbedDataCollection(reminders: reminders[]) {
-	const collection = new ReminderPaginationDataCollection();
+	const collection = new ReminderPage();
 	reminders.forEach((reminder, entryIndex) => {
 		collection.set(reminder.id, convertReminder(reminder, entryIndex));
 	});
@@ -57,37 +55,33 @@ function createReminderEmbedDataCollection(reminders: reminders[]) {
  * @returns The converted ReminderPaginationData object.
  */
 function convertReminder(reminder: reminders, entryIndex: number): ReminderComponentData {
-	const row = createReminderRowComponent(reminder.reminder_message, "");
-	const data: ReminderComponentData = {
+	const data: ReminderComponentData = new ReminderComponentData({
 		id: reminder.id,
 		message: reminder.reminder_message,
 		time: reminder.time,
-		button: {
-			style: ButtonStyle.Primary,
-			type: ComponentType.Button,
-			label: `Option ${entryIndex}`,
-			customId: "@sapphire/paginated-messages.stop",
-			run(context: PaginatedMessageActionContext) {
-				const modal = new ModalBuilder()
-					.setCustomId(
-						new CustomId({
-							type: "reminder",
-							reminderId: reminder.id.toString(),
-						}).toString()
-					)
-					.setTitle("Edit Reminder")
-					.setComponents([row]);
-				context.interaction.showModal(modal);
-			},
-		},
-	};
+		button: createButton(entryIndex, reminder),
+	});
 	return data;
 }
-function create(data: ReminderComponentData, entryIndex: number) {
-	const embedField: EmbedField = {
-		name: `Entry ${entryIndex + 1}`,
-		value: `Time: ${time(data.time)}\nMessage: ${data.message}`,
-		inline: false,
+
+function createButton(entryIndex: number, reminder: reminders): PaginatedMessageAction {
+	const row = createReminderRowComponent(reminder.reminder_message, "");
+	return {
+		style: ButtonStyle.Primary,
+		type: ComponentType.Button,
+		label: `Option ${entryIndex}`,
+		customId: "@sapphire/paginated-messages.stop",
+		run(context: PaginatedMessageActionContext) {
+			const modal = new ModalBuilder()
+				.setCustomId(
+					new CustomId({
+						type: "reminder",
+						reminderId: reminder.id.toString(),
+					}).toString()
+				)
+				.setTitle("Edit Reminder")
+				.setComponents([row]);
+			context.interaction.showModal(modal);
+		},
 	};
-	return embedField;
 }

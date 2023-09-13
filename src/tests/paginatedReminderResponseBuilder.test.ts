@@ -1,22 +1,23 @@
 import {
-	ENTRY_1,
-	ENTRY_1_VALUE,
-	ENTRY_2,
-	ENTRY_2_VALUE,
+ENTRY_1,
+ENTRY_1_VALUE,
+ENTRY_2,
+ENTRY_2_VALUE,
 } from "./testResources/reminderPaginationModelResources/constants";
 
-import { ReminderPaginatedMessage } from "../models/pagination/paginatedReminderResponseBuilder";
+
+import { ReminderPaginatedResponseBuilder } from "../models/pagination/paginatedReminderResponseBuilder";
 import { premadePageData } from "./testResources/reminderPaginationModelResources/premadePageData";
 import { sampleReminderTestData } from "./testResources/reminderPaginationModelResources/sampleReminderTestData";
 
 describe("page data generation", () => {
 	const msgWithoutReminderData = () => {
-		const msg = ReminderPaginatedMessage.fromReminderData([]);
+		const msg = ReminderPaginatedResponseBuilder.fromReminderData([]);
 		msg.addPages(premadePageData);
 		return msg;
 	};
 	const msgWithReminderData = () => {
-		const msg = ReminderPaginatedMessage.fromReminderData(sampleReminderTestData);
+		const msg = ReminderPaginatedResponseBuilder.fromReminderData(sampleReminderTestData);
 		msg.generatePages();
 		return msg;
 	};

@@ -2,23 +2,23 @@ import { ApplyOptions,RequiresClientPermissions } from "@sapphire/decorators";
 
 
 import {
-	ActionRowBuilder,
-	ChatInputCommandInteraction,
-	DiscordAPIError,
-	PermissionFlagsBits,
-	SlashCommandBuilder,
-	StringSelectMenuBuilder,
+ActionRowBuilder,
+ChatInputCommandInteraction,
+DiscordAPIError,
+PermissionFlagsBits,
+SlashCommandBuilder,
+StringSelectMenuBuilder,
 } from "discord.js";
 import {
-	reminderExplanationEmbed,
-	reminderFinishedEmbed,
-	reminderSelectTimezoneEmbed,
-	reminderSomethingWrongEmbed,
-	reminderTimezoneRegisteredEmbed,
+reminderExplanationEmbed,
+reminderFinishedEmbed,
+reminderSelectTimezoneEmbed,
+reminderSomethingWrongEmbed,
+reminderTimezoneRegisteredEmbed,
 } from "../../embeds/createReminderExplanationEmbed";
 import {
-	timezonesNegatives,
-	timezonesPositives,
+timezonesNegatives,
+timezonesPositives,
 } from "../../features/reminders/selectBoxForTimezones";
 
 import { Subcommand } from "@sapphire/plugin-subcommands";
@@ -26,8 +26,9 @@ import { Subcommand } from "@sapphire/plugin-subcommands";
 import prisma from "../../db/prismaInstance";
 import { timeStringToDayjsObj } from "../../features/reminders/services/stringToDayjsObj";
 
+
 import { container } from "@sapphire/framework";
-import { ReminderPaginatedMessage } from "../../models/pagination/paginatedReminderResponseBuilder";
+import { ReminderPaginatedResponseBuilder } from "../../models/pagination/paginatedReminderResponseBuilder";
 
 const reminderData = new SlashCommandBuilder()
 	.setName("reminder")
@@ -208,7 +209,7 @@ export class UserCommand extends Subcommand {
 	public async edit(interaction: ChatInputCommandInteraction) {
 		try {
 			const reminders = await prisma.reminders.getAllRemindersOfUser(interaction.user);
-			await ReminderPaginatedMessage.fromReminderData(reminders).run(interaction);
+			await ReminderPaginatedResponseBuilder.fromReminderData(reminders).run(interaction);
 		} catch (e) {
 			container.dbLogger.emit("error", e);
 			if (e instanceof DiscordAPIError) {

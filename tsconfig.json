@@ -10,7 +10,6 @@
 		"tsBuildInfoFile": "dist/.tsbuildinfo",
 		"types": ["vitest/globals"],
 		"skipLibCheck": true,
-		"noErrorTruncation": true,
 	},
 	
 	"include": [
