@@ -1,5 +1,11 @@
-import { PaginatedMessageAction } from "@sapphire/discord.js-utilities";
-import { Collection, EmbedField } from "discord.js";
+import { reminders } from "@prisma/client";
+import {
+	PaginatedMessageAction,
+	PaginatedMessageActionContext,
+} from "@sapphire/discord.js-utilities";
+import { ButtonStyle, Collection, ComponentType, EmbedField, ModalBuilder } from "discord.js";
+import { CustomId } from "./CustomId";
+import { createReminderRowComponent } from "./paginationRowData";
 
 /**
  * This class is a flattened data structure with all the data required to produce one embed entry and one associated page action.
@@ -95,4 +101,50 @@ export class ReminderPage extends Collection<bigint, ReminderComponentData> {
 			return component.button;
 		});
 	}
+
+	public static fromReminders(reminders: reminders[]) {
+		const collection = new ReminderPage();
+		reminders.forEach((reminder, entryIndex) => {
+			collection.set(reminder.id, convertReminder(reminder, entryIndex));
+		});
+		return collection;
+	}
+}
+
+/**
+ * Converts a reminder object to a ReminderPaginationData object.
+ * @param reminder - The reminder object to convert.
+ * @param entryIndex - The index of the entry.
+ * @returns The converted ReminderPaginationData object.
+ */
+function convertReminder(reminder: reminders, entryIndex: number): ReminderComponentData {
+	const data: ReminderComponentData = new ReminderComponentData({
+		id: reminder.id,
+		message: reminder.reminder_message,
+		time: reminder.time,
+		button: createButton(entryIndex, reminder),
+	});
+	return data;
+}
+
+function createButton(entryIndex: number, reminder: reminders): PaginatedMessageAction {
+	const row = createReminderRowComponent(reminder.reminder_message, "");
+	return {
+		style: ButtonStyle.Primary,
+		type: ComponentType.Button,
+		label: `Option ${entryIndex}`,
+		customId: "@sapphire/paginated-messages.stop",
+		run(context: PaginatedMessageActionContext) {
+			const modal = new ModalBuilder()
+				.setCustomId(
+					new CustomId({
+						type: "reminder",
+						reminderId: reminder.id.toString(),
+					}).toString()
+				)
+				.setTitle("Edit Reminder")
+				.setComponents([row]);
+			context.interaction.showModal(modal);
+		},
+	};
 }
