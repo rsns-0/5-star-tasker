@@ -1,22 +1,19 @@
-import { ActionRowBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import { ActionRowBuilder, TextInputBuilder, TextInputStyle } from "discord.js"
 
-export function createReminderRowComponent(descriptionValue: string, dateValue: string) {
+export function createReminderRowComponents(descriptionValue: string) {
+	const reminderMessageInput = new TextInputBuilder()
+		.setCustomId("reminder_message")
+		.setLabel("Reminder Message")
+		.setStyle(TextInputStyle.Short)
+		.setValue(descriptionValue)
 	const reminderDateTime = new TextInputBuilder()
 		.setCustomId(`time`)
 		.setLabel("Reminder Time")
 		.setStyle(TextInputStyle.Short)
-		.setValue(dateValue)
 		.setMinLength(2)
-		.setPlaceholder("Enter any date format.");
-	const reminderMessageInput = new TextInputBuilder()
-		.setCustomId("message")
-		.setLabel("Reminder Message")
-		.setStyle(TextInputStyle.Short)
-		.setValue(descriptionValue);
+		.setPlaceholder("Enter any date format.")
 
-	const row = new ActionRowBuilder<TextInputBuilder>().addComponents([
-		reminderMessageInput,
-		reminderDateTime,
-	]);
-	return row;
+	const row = new ActionRowBuilder<TextInputBuilder>().addComponents(reminderMessageInput)
+	const row2 = new ActionRowBuilder<TextInputBuilder>().addComponents(reminderDateTime)
+	return [row, row2]
 }

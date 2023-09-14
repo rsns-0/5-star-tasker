@@ -1,9 +1,9 @@
 import { ApplyOptions } from "@sapphire/decorators";
-import { InteractionHandler, InteractionHandlerTypes } from "@sapphire/framework";
-import type { ModalSubmitInteraction } from "discord.js";
-import z from "zod";
-import { timeStringToDayjsObj } from "../features/reminders/services/stringToDayjsObj";
-import { stringToBigIntPipeline } from "../transforms/timeUtils/bigIntHelpers";
+import type { ModalSubmitInteraction } from "discord.js"
+import z from "zod"
+import { stringToBigIntPipeline } from "../transforms/timeUtils/bigIntHelpers"
+import { InteractionHandler, InteractionHandlerTypes, container } from "@sapphire/framework"
+import { timeStringToDayjsObj } from "../features/reminders/services/stringToDayjsObj"
 
 const reminderModalIdPipeline = z
 	.string()
@@ -13,24 +13,22 @@ const reminderModalIdPipeline = z
 			type: z.literal("reminder"),
 			reminderId: stringToBigIntPipeline,
 		})
-	);
+	)
 
 const formDataSchema = z.object({
 	reminder_message: z.string(),
 	time: z.string(),
-});
+})
 
 function getFormData(interaction: ModalSubmitInteraction) {
-	const { fields } = interaction;
+	const { fields } = interaction
+	container.dbLogger.emit("debug", fields)
+	const result = {
+		reminder_message: fields.getField("reminder_message")?.value,
+		time: fields.getField("time")?.value,
+	}
 
-	const result = Object.keys(formDataSchema.shape).reduce(
-		(acc, curr) => {
-			acc[curr] = fields.getField(curr);
-			return acc;
-		},
-		{} as Record<string, any>
-	);
-	return formDataSchema.parse(result);
+	return formDataSchema.parse(result)
 }
 
 @ApplyOptions<InteractionHandler.Options>({
@@ -38,31 +36,31 @@ function getFormData(interaction: ModalSubmitInteraction) {
 })
 export class ModalHandler extends InteractionHandler {
 	public async run(interaction: ModalSubmitInteraction, reminderId: bigint) {
-		const data = getFormData(interaction);
-		const timezone = await this.container.prisma.discord_user.getUserTimezone(interaction.user);
+		const data = getFormData(interaction)
+		const timezone = await this.container.prisma.discord_user.getUserTimezone(interaction.user)
 		if (timezone.isErr()) {
 			// TODO: Handle user error
-			throw timezone;
+			throw timezone
 		}
 
-		const date = timeStringToDayjsObj(data.time, timezone.unwrap());
+		const date = timeStringToDayjsObj(data.time, timezone.unwrap())
 		await this.container.prisma.reminders.update({
 			where: {
 				id: reminderId,
 			},
-			data: { ...data, time: date.toDate() },
-		});
+			data: { reminder_message: data.reminder_message, time: date.toDate() },
+		})
 
 		await interaction.reply({
 			content: "Success!",
 			ephemeral: true,
-		});
+		})
 	}
 
 	public override parse(interaction: ModalSubmitInteraction) {
-		const parsed = reminderModalIdPipeline.safeParse(interaction.customId);
-		if (!parsed.success) return this.none();
+		const parsed = reminderModalIdPipeline.safeParse(interaction.customId)
+		if (!parsed.success) return this.none()
 
-		return this.some(parsed.data.reminderId);
+		return this.some(parsed.data.reminderId)
 	}
 }

@@ -1,16 +1,14 @@
-import { Collection } from "discord.js";
-import { ReminderPage } from "models/pagination/reminderComponentData";
-
-import { reminders } from "@prisma/client";
-import { paginateArrays } from "../../utils/paginateArrays";
+import { reminders } from "@prisma/client"
+import { paginateArrays } from "../../utils/paginateArrays"
+import { ReminderPage } from "../pagination/reminderComponentData"
 
 /**
  * This class paginates the reminder data and maps their index to data required for building the embeds and their page actions.
  *
  */
-export class ReminderPages extends Collection<number, ReminderPage> {
+export class ReminderPages extends Array<ReminderPage> {
 	private constructor() {
-		super();
+		super()
 	}
 
 	/**
@@ -20,11 +18,13 @@ export class ReminderPages extends Collection<number, ReminderPage> {
 	 * @returns The paginated reminder collection.
 	 */
 	public static fromReminders(reminders: reminders[], { pageSize = 5 }) {
-		const remindersPaginated = paginateArrays(reminders, pageSize);
-		const reminderData = new this();
-		remindersPaginated.forEach((reminders, pageIndex) => {
-			reminderData.set(pageIndex, ReminderPage.fromReminders(reminders));
-		});
-		return reminderData;
+		const remindersPaginated = paginateArrays(reminders, pageSize)
+		const reminderData = new this()
+		remindersPaginated.forEach((reminderPageArray, index) => {
+			const collection = ReminderPage.fromReminders(reminderPageArray, index)
+			reminderData.push(collection)
+		})
+
+		return reminderData
 	}
 }

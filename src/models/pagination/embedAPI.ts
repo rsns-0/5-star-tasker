@@ -1,4 +1,5 @@
-import { z } from "zod";
+import { EmbedBuilder } from "discord.js"
+import { z } from "zod"
 
 const APIEmbedFooterSchema = z
 	.object({
@@ -6,7 +7,7 @@ const APIEmbedFooterSchema = z
 		icon_url: z.string().url().optional(),
 		proxy_icon_url: z.string().url().optional(),
 	})
-	.passthrough();
+	.passthrough()
 
 const APIEmbedImageSchema = z
 	.object({
@@ -15,9 +16,9 @@ const APIEmbedImageSchema = z
 		height: z.number().optional(),
 		width: z.number().optional(),
 	})
-	.passthrough();
+	.passthrough()
 
-const APIEmbedThumbnailSchema = APIEmbedImageSchema;
+const APIEmbedThumbnailSchema = APIEmbedImageSchema
 
 const APIEmbedVideoSchema = z
 	.object({
@@ -25,14 +26,14 @@ const APIEmbedVideoSchema = z
 		height: z.number().optional(),
 		width: z.number().optional(),
 	})
-	.passthrough();
+	.passthrough()
 
 const APIEmbedProviderSchema = z
 	.object({
 		name: z.string().optional(),
 		url: z.string().url().optional(),
 	})
-	.passthrough();
+	.passthrough()
 
 const APIEmbedAuthorSchema = z
 	.object({
@@ -41,7 +42,7 @@ const APIEmbedAuthorSchema = z
 		icon_url: z.string().url().optional(),
 		proxy_icon_url: z.string().url().optional(),
 	})
-	.passthrough();
+	.passthrough()
 
 const APIEmbedFieldSchema = z
 	.object({
@@ -49,7 +50,7 @@ const APIEmbedFieldSchema = z
 		value: z.string(),
 		inline: z.boolean().optional(),
 	})
-	.passthrough();
+	.passthrough()
 
 const APIEmbedSchema = z
 	.object({
@@ -67,12 +68,29 @@ const APIEmbedSchema = z
 		author: APIEmbedAuthorSchema.optional(),
 		fields: z.array(APIEmbedFieldSchema).optional(),
 	})
-	.passthrough();
+	.passthrough()
 
 const reminderAPIEmbedSchema = APIEmbedSchema.required({
 	author: true,
 	fields: true,
-});
+}).passthrough()
+
+const reminderEmbedBuilderPipeline = z.instanceof(EmbedBuilder).transform((embed, ctx) => {
+	const result = reminderAPIEmbedSchema.safeParse(embed.data)
+	if (!result.success) {
+		for (const issue of result.error.issues) {
+			ctx.addIssue(issue)
+		}
+		return z.NEVER
+	}
+	return result
+})
+
+const pageSchema = z
+	.object({
+		embeds: reminderEmbedBuilderPipeline.array(),
+	})
+	.passthrough()
 
 export {
 	APIEmbedAuthorSchema,
@@ -83,5 +101,7 @@ export {
 	APIEmbedSchema,
 	APIEmbedThumbnailSchema,
 	APIEmbedVideoSchema,
+	pageSchema,
 	reminderAPIEmbedSchema,
-};
+}
+

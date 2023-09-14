@@ -1,24 +1,17 @@
-import * as z from "zod";
-import {
-	Completediscord_channels,
-	Completediscord_messages,
-	Completediscord_user,
-	relateddiscord_channelsSchema,
-	relateddiscord_messagesSchema,
-	relateddiscord_userSchema,
-} from "./index";
+import * as z from "zod"
+import { Completediscord_channels, relateddiscord_channelsSchema, Completediscord_user, relateddiscord_userSchema, Completediscord_messages, relateddiscord_messagesSchema } from "./index"
 
 export const discord_guildsSchema = z.object({
-	id: z.string(),
-	created_at: z.date(),
-	name: z.string(),
-	owner_id: z.string().nullish(),
-});
+  id: z.string(),
+  created_at: z.date(),
+  name: z.string(),
+  owner_id: z.string().nullish(),
+})
 
 export interface Completediscord_guilds extends z.infer<typeof discord_guildsSchema> {
-	discord_channels: Completediscord_channels[];
-	discord_user?: Completediscord_user | null;
-	discord_messages: Completediscord_messages[];
+  discord_channels: Completediscord_channels[]
+  discord_user?: Completediscord_user | null
+  discord_messages: Completediscord_messages[]
 }
 
 /**
@@ -26,10 +19,8 @@ export interface Completediscord_guilds extends z.infer<typeof discord_guildsSch
  *
  * NOTE: Lazy required in case of potential circular dependencies within schema
  */
-export const relateddiscord_guildsSchema: z.ZodSchema<Completediscord_guilds> = z.lazy(() =>
-	discord_guildsSchema.extend({
-		discord_channels: relateddiscord_channelsSchema.array(),
-		discord_user: relateddiscord_userSchema.nullish(),
-		discord_messages: relateddiscord_messagesSchema.array(),
-	})
-);
+export const relateddiscord_guildsSchema: z.ZodSchema<Completediscord_guilds> = z.lazy(() => discord_guildsSchema.extend({
+  discord_channels: relateddiscord_channelsSchema.array(),
+  discord_user: relateddiscord_userSchema.nullish(),
+  discord_messages: relateddiscord_messagesSchema.array(),
+}))

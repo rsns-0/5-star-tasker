@@ -1,10 +1,11 @@
-import { Prisma, webhooks } from "@prisma/client";
-import { Channel, User, time, userMention } from "discord.js";
-import { WebhookService, assertWebhookChannel } from "../../services/webhookService";
+import { Prisma, webhooks } from "@prisma/client"
+import { Channel, User, time, userMention } from "discord.js"
+import { WebhookService, assertWebhookChannel } from "../../services/webhookService"
 
-import { container } from "@sapphire/framework";
-import { Dayjs } from "dayjs";
-import extension from "prisma-paginate";
+import { container } from "@sapphire/framework"
+import { Dayjs } from "dayjs"
+import extension from "prisma-paginate"
+import { logger } from "../../logger/logger"
 
 /**
  * The above type represents the arguments required to create a reminder.
@@ -24,14 +25,14 @@ import extension from "prisma-paginate";
  *   groups.
  */
 type CreateReminderArgs = {
-	reminderMessage: string;
-	time: Dayjs;
-	user: User;
-	channel: Channel;
-};
-const webhookService = new WebhookService();
+	reminderMessage: string
+	time: Dayjs
+	user: User
+	channel: Channel
+}
+const webhookService = new WebhookService()
 export default Prisma.defineExtension((prisma) => {
-	const gPrisma = prisma.$extends(extension);
+	const gPrisma = prisma.$extends(extension)
 	return prisma.$extends({
 		name: "reminderExtension",
 		model: {
@@ -46,12 +47,12 @@ export default Prisma.defineExtension((prisma) => {
 				 * @returns The result of the `prisma.reminders.create` method.
 				 */
 				async createReminder({ reminderMessage, time, user, channel }: CreateReminderArgs) {
-					const userId = user.id;
-					const channelId = channel.id;
-					assertWebhookChannel(channel);
+					const userId = user.id
+					const channelId = channel.id
+					assertWebhookChannel(channel)
 
 					const webhook =
-						await webhookService.getOrCreateAnyOwnedWebhookInChannel(channel);
+						await webhookService.getOrCreateAnyOwnedWebhookInChannel(channel)
 
 					return prisma.reminders.create({
 						data: {
@@ -95,7 +96,7 @@ export default Prisma.defineExtension((prisma) => {
 								},
 							},
 						},
-					});
+					})
 				},
 				/**
 				 * Retrieves reminders of a specific user.
@@ -104,13 +105,17 @@ export default Prisma.defineExtension((prisma) => {
 				 * @returns A promise that resolves to an array of reminders.
 				 */
 				async getAllRemindersOfUser(user: User) {
+					logger.emit(
+						"info",
+						`Retrieving reminders for user:\nID: ${user.id}\nGlobal Name: ${user.globalName}`
+					)
 					return prisma.reminders.findMany({
 						where: {
 							discord_user: {
 								id: user.id,
 							},
 						},
-					});
+					})
 				},
 
 				async getUserRemindersPaginated(user: User) {
@@ -121,7 +126,7 @@ export default Prisma.defineExtension((prisma) => {
 							},
 						},
 						limit: 10,
-					});
+					})
 				},
 				/**
 				 * Retrieves expired reminders from the database.
@@ -130,11 +135,11 @@ export default Prisma.defineExtension((prisma) => {
 				 *   reminders.
 				 */
 				async getExpiredReminders() {
-					type _hook = webhooks & { token: string };
-					type _res = (typeof res)[0];
+					type _hook = webhooks & { token: string }
+					type _res = (typeof res)[0]
 					type _reminderWithWebhookWithoutNullToken = _res & {
-						webhook: _hook;
-					};
+						webhook: _hook
+					}
 					const res = await prisma.reminders.findMany({
 						where: {
 							time: {
@@ -149,9 +154,9 @@ export default Prisma.defineExtension((prisma) => {
 						include: {
 							webhook: true,
 						},
-					});
+					})
 
-					return res as _reminderWithWebhookWithoutNullToken[];
+					return res as _reminderWithWebhookWithoutNullToken[]
 				},
 				/**
 				 * Deletes a reminder by its ID.
@@ -164,7 +169,7 @@ export default Prisma.defineExtension((prisma) => {
 						where: {
 							id,
 						},
-					});
+					})
 				},
 
 				/**
@@ -175,10 +180,10 @@ export default Prisma.defineExtension((prisma) => {
 				 *   array of expired reminders.
 				 */
 				async getExpiredRemindersAndDelete() {
-					const res = await this.getExpiredReminders();
+					const res = await this.getExpiredReminders()
 
 					if (!res.length) {
-						return res;
+						return res
 					}
 					await prisma.reminders.deleteMany({
 						where: {
@@ -186,34 +191,34 @@ export default Prisma.defineExtension((prisma) => {
 								in: res.map((reminder) => reminder.id),
 							},
 						},
-					});
-					return res;
+					})
+					return res
 				},
 
 				async sendDueReminders() {
-					const reminders = await this.getExpiredRemindersAndDelete();
+					const reminders = await this.getExpiredRemindersAndDelete()
 					if (!reminders.length) {
-						return false;
+						return false
 					}
 					const promises = reminders.map(async (res) => {
-						const webhookClient = await container.client.fetchWebhook(res.webhook.id);
+						const webhookClient = await container.client.fetchWebhook(res.webhook.id)
 						const message = `
 						${userMention(res.user_id)}
 						TIME: ${time(res.time)}
 						REMINDER: ${res.reminder_message}
-						`;
-						return webhookClient.send(message);
-					});
-					return await Promise.all(promises);
+						`
+						return webhookClient.send(message)
+					})
+					return await Promise.all(promises)
 				},
 			},
 		},
-	});
-});
+	})
+})
 
 function resolveChannelName(channel: Channel): string {
 	if (!("name" in channel) || !channel.name) {
-		return "";
+		return ""
 	}
-	return channel.name;
+	return channel.name
 }

@@ -85,23 +85,23 @@ export class UserCommand extends Subcommand {
 	public override registerApplicationCommands(registry: Subcommand.Registry) {
 		// Register slash command
 
-		registry.registerChatInputCommand(reminderData);
+		registry.registerChatInputCommand(reminderData)
 	}
 
 	@RequiresClientPermissions([PermissionFlagsBits.EmbedLinks])
 	public help(interaction: ChatInputCommandInteraction) {
 		interaction.reply({
 			embeds: [reminderExplanationEmbed()],
-		});
+		})
 	}
 
 	@RequiresClientPermissions([PermissionFlagsBits.EmbedLinks])
 	public async set(interaction: ChatInputCommandInteraction) {
 		try {
-			await interaction.deferReply({ ephemeral: true });
+			await interaction.deferReply({ ephemeral: true })
 
 			// * Check db for user timezone data
-			const timeString = interaction.options.getString("time")!;
+			const timeString = interaction.options.getString("time")!
 			const result = await prisma.discord_user.findUnique({
 				where: {
 					id: interaction.user.id,
@@ -113,26 +113,26 @@ export class UserCommand extends Subcommand {
 						},
 					},
 				},
-			});
-			const userTimezone = result?.timezones?.value;
+			})
+			const userTimezone = result?.timezones?.value
 			//* If user doesn't exist or has no timezone data, prompt user and persist data.
 			if (userTimezone === undefined || userTimezone === null) {
 				const row1 = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
 					timezonesNegatives
-				);
+				)
 				const row2 = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
 					timezonesPositives
-				);
-				const embedToUpdate = reminderSelectTimezoneEmbed();
+				)
+				const embedToUpdate = reminderSelectTimezoneEmbed()
 				const response = await interaction.editReply({
 					embeds: [reminderSelectTimezoneEmbed()],
 					components: [row1.toJSON(), row2.toJSON()],
-				});
-				container.dbLogger.emit("info", "Waiting for user to select timezone.");
+				})
+				container.dbLogger.emit("info", "Waiting for user to select timezone.")
 				const confirmation = await response.awaitMessageComponent({
 					filter: (i): boolean => i.user.id === interaction.user.id,
 					time: 60000,
-				});
+				})
 				if (
 					confirmation.isStringSelectMenu() &&
 					(confirmation.customId === "positives" || confirmation.customId === "negatives")
@@ -142,23 +142,23 @@ export class UserCommand extends Subcommand {
 							embedToUpdate.setTitle("Saving your timezone...").setDescription(" "),
 						],
 						components: [],
-					});
+					})
 
 					container.dbLogger.emit(
 						"info",
 						`User ${interaction.user.id} ${interaction.user.globalName} selected timezone ${confirmation.values[0]}`
-					);
-					await prisma.discord_user.registerUser(interaction.user);
+					)
+					await prisma.discord_user.registerUser(interaction.user)
 
 					const tzinfo = await prisma.timezones.findFirst({
 						where: {
 							value: confirmation.values[0],
 						},
-					});
+					})
 					if (!tzinfo) {
 						throw new Error(
 							"Assertion error: Timezone not found. Check to make sure the form field options align with the database data."
-						);
+						)
 					}
 					await prisma.discord_user.update({
 						where: {
@@ -167,40 +167,40 @@ export class UserCommand extends Subcommand {
 						data: {
 							timezone_id: tzinfo?.id,
 						},
-					});
+					})
 					await interaction.followUp({
 						embeds: [reminderTimezoneRegisteredEmbed(tzinfo, timeString)],
 						ephemeral: true,
-					});
+					})
 				}
 			}
 			// * Else create reminder for user.
 			else {
-				const reminder = interaction.options.getString("message") ?? "Pong 🏓";
+				const reminder = interaction.options.getString("message") ?? "Pong 🏓"
 				if (!interaction.channel) {
-					throw new Error("Unexpected missing channel");
+					throw new Error("Unexpected missing channel")
 				}
 
-				const date = timeStringToDayjsObj(timeString, userTimezone);
+				const date = timeStringToDayjsObj(timeString, userTimezone)
 				await prisma.reminders.createReminder({
 					channel: interaction.channel,
 					user: interaction.user,
 					time: date,
 					reminderMessage: reminder,
-				});
+				})
 				await interaction.editReply({
 					embeds: [reminderFinishedEmbed(date, reminder)],
-				});
+				})
 			}
 		} catch (e) {
-			container.dbLogger.emit("error", e);
+			container.dbLogger.emit("error", e)
 			if (e instanceof DiscordAPIError) {
-				throw e;
+				throw e
 			} else {
 				await interaction.editReply({
 					embeds: [reminderSomethingWrongEmbed()],
-				});
-				throw e;
+				})
+				throw e
 			}
 		}
 	}
@@ -208,16 +208,18 @@ export class UserCommand extends Subcommand {
 	@RequiresClientPermissions([PermissionFlagsBits.EmbedLinks])
 	public async edit(interaction: ChatInputCommandInteraction) {
 		try {
-			const reminders = await prisma.reminders.getAllRemindersOfUser(interaction.user);
-			await ReminderPaginatedResponseBuilder.fromReminderData(reminders).run(interaction);
+			const reminders = await prisma.reminders.getAllRemindersOfUser(interaction.user)
+			await ReminderPaginatedResponseBuilder.fromReminderData(reminders)
+				.generatePages()
+				.run(interaction, interaction.user)
 		} catch (e) {
-			container.dbLogger.emit("error", e);
+			container.dbLogger.emit("error", e)
 			if (e instanceof DiscordAPIError) {
-				throw e;
+				throw e
 			} else {
 				await interaction.editReply({
 					embeds: [reminderSomethingWrongEmbed()],
-				});
+				})
 			}
 		}
 	}

@@ -1,13 +1,35 @@
-import { reminders } from "@prisma/client";
-import { PaginatedMessage } from "@sapphire/discord.js-utilities";
-import { EmbedBuilder } from "discord.js";
-import { ReminderPages } from "./ReminderPaginationDataCollection";
-import { reminderAPIEmbedSchema } from "./embedAPI";
-import { paginatedMessageMessageOptionsSchema } from "./paginatedPage";
+import { reminders } from "@prisma/client"
+import { container } from "@sapphire/framework"
+
+import {
+AnyInteractableInteraction,
+PaginatedMessage,
+PaginatedMessageInteractionUnion,
+PaginatedMessageStopReasons,
+SafeReplyToInteractionParameters,
+isAnyInteractableInteraction,
+isAnyInteraction,
+isMessageInstance,
+} from "@sapphire/discord.js-utilities"
+
+import {
+Collection,
+EmbedBuilder,
+GatewayIntentBits,
+IntentsBitField,
+Message,
+Partials,
+Snowflake,
+User,
+} from "discord.js"
+import serialize from "serialize-javascript"
+import { ReminderPages } from "./ReminderPaginationDataCollection"
+import { pageSchema,reminderAPIEmbedSchema } from "./embedAPI"
+
 
 const defaultEmbedBuilder = new EmbedBuilder()
 	.setColor("Blue")
-	.setAuthor({ name: "5StarTaskerPlaceholder" });
+	.setAuthor({ name: "5StarTaskerPlaceholder" })
 
 /**
  * @example
@@ -75,65 +97,238 @@ const defaultEmbedBuilder = new EmbedBuilder()
  * 	}
  */
 export class ReminderPaginatedResponseBuilder extends PaginatedMessage {
+	#thisMazeWasNotMeantForYouContent = {
+		content: "This maze wasn't meant for you...what did you do.",
+	}
+	public static fromReminderData(reminders: reminders[], pageSize = 5) {
+		return new this(ReminderPages.fromReminders(reminders, { pageSize }))
+	}
+
 	/**
 	 * Constructs a new instance of the PaginatedReminderResponseBuilder class.
 	 * @param reminderPageData Contains a map of page index to reminder data, which is another map of reminder ID to reminder data.
 	 */
-	public constructor(private readonly reminderPages: ReminderPages) {
+	public constructor(public readonly reminderPages: ReminderPages) {
 		super({
 			template: defaultEmbedBuilder,
-		});
-		this.addPageEmbed((embed) =>
-			embed.addFields(
-				{
-					name: "embed1Placeholder",
-					value: [
-						"val1Placeholder",
-						`val2Placeholder`,
-						`val3Placeholder`,
-						`val4Placeholder`,
-					].join("\n"),
-				},
-				{
-					name: "1",
-					value: "2",
-				}
-			)
-		);
+		})
 	}
 
 	public generatePages() {
-		// generate data needed to build a page, which has a set of actions mapped to the fields and one embed with 5 fields
-		// then dynamically use builder utils from that data
-		const pages = this.reminderPages.map((page) => {});
+		for (const page of this.reminderPages) {
+			const embed = page.toEmbedBuilder()
+			this.addPageEmbed(embed)
+			this.addPageActions(page.getActions(), page.index)
+		}
 
-		return this;
-	}
-
-	public static fromReminderData(reminders: reminders[], pageSize = 5) {
-		return new this(ReminderPages.fromReminders(reminders, { pageSize }));
+		return this
 	}
 
 	public getEmbedDataOfAllPages() {
-		const res = paginatedMessageMessageOptionsSchema
+		const res = pageSchema
 			.array()
 			.parse(this.pages)
 			.map((page) => {
-				return page.embeds;
-			});
+				return page.embeds
+			})
 
-		return reminderAPIEmbedSchema.array().parse(res);
+		return reminderAPIEmbedSchema.array().parse(res)
 	}
 
 	public getEmbedFieldsOfFirstPage() {
-		const res = paginatedMessageMessageOptionsSchema
+		const res = pageSchema
 			.array()
 			.parse(this.pages)
 			.flatMap((page) => {
-				const res2 = reminderAPIEmbedSchema.array().nonempty().parse(page.embeds);
-				return res2[0].fields;
-			});
+				return page.embeds[0].data.fields
+			})
 
-		return res;
+		return res
+	}
+
+	public override async run(
+		messageOrInteraction: Message | AnyInteractableInteraction,
+		target?: User
+	): Promise<this> {
+		// If there is no channel then exit early and potentially emit a warning
+		if (!messageOrInteraction.channel) {
+			const isInteraction = isAnyInteraction(messageOrInteraction)
+			let shouldEmitWarning = this.emitPartialDMChannelWarning
+
+			// If we are to emit a warning,
+			//   then check if a warning was already emitted,
+			//   in which case we don't want to emit a warning.
+			if (shouldEmitWarning && this.hasEmittedPartialDMChannelWarning) {
+				shouldEmitWarning = false
+			}
+
+			// If we are to emit a warning,
+			//   then check if the interaction is an interaction based command,
+			//   and check if the client has the Partials.Channel partial,
+			//   in which case we don't want to emit a warning.
+			if (
+				shouldEmitWarning &&
+				isInteraction &&
+				messageOrInteraction.client.options.partials?.includes(Partials.Channel)
+			) {
+				shouldEmitWarning = false
+			}
+
+			// IF we are to emit a warning,
+			//   then check if the interaction is a message based command,
+			//   and check if the client has the Partials.Channel partial,
+			//   and check if the client has the 'DIRECT_MESSAGE' intent',
+			//   in which case we don't want to emit a warning.
+			if (
+				shouldEmitWarning &&
+				!isInteraction &&
+				messageOrInteraction.client.options.partials?.includes(Partials.Channel) &&
+				new IntentsBitField(messageOrInteraction.client.options.intents).has(
+					GatewayIntentBits.DirectMessages
+				)
+			) {
+				shouldEmitWarning = false
+			}
+
+			// If we should emit a warning then do so.
+			if (shouldEmitWarning) {
+				process.emitWarning(
+					[
+						"PaginatedMessage was initiated in a DM channel without the client having the required partial configured.",
+						'If you want PaginatedMessage to work in DM channels then make sure you start your client with "CHANNEL" added to "client.options.partials".',
+						'Furthermore if you are using message based commands (as opposed to application commands) then you will also need to add the "DIRECT_MESSAGE" intent to "client.options.intents"',
+						'If you do not want to be alerted about this in the future then you can disable this warning by setting "PaginatedMessage.emitPartialDMChannelWarning" to "false", or use "setEmitPartialDMChannelWarning(false)" before calling "run".',
+					].join("\n"),
+					{
+						type: "PaginatedMessageRunsInNonpartialDMChannel",
+						code: "PAGINATED_MESSAGE_RUNS_IN_NON_PARTIAL_DM_CHANNEL",
+					}
+				)
+				this.hasEmittedPartialDMChannelWarning = true
+			}
+
+			await safelyReplyToInteraction({
+				messageOrInteraction,
+				interactionEditReplyContent: this.#thisMazeWasNotMeantForYouContent,
+				interactionReplyContent: {
+					...this.#thisMazeWasNotMeantForYouContent,
+					ephemeral: true,
+				},
+				componentUpdateContent: this.#thisMazeWasNotMeantForYouContent,
+				messageMethod: "reply",
+				messageMethodContent: this.#thisMazeWasNotMeantForYouContent,
+			})
+
+			return this
+		}
+
+		// Assign the target based on whether a Message or CommandInteraction was passed in
+		target ??= isAnyInteraction(messageOrInteraction)
+			? messageOrInteraction.user
+			: messageOrInteraction.author
+
+		// Try to get the previous PaginatedMessage for this user
+		const paginatedMessage = PaginatedMessage.handlers.get(target.id)
+		// If a PaginatedMessage was found then stop it
+		paginatedMessage?.collector?.stop()
+		container.logger.debug(`#####1 ${paginatedMessage}`)
+
+		// If the message was sent by a bot, then set the response as this one
+		if (isAnyInteraction(messageOrInteraction)) {
+			if (
+				messageOrInteraction.user.bot &&
+				messageOrInteraction.user.id === messageOrInteraction.client.user?.id
+			) {
+				this.response = messageOrInteraction
+			}
+		} else if (
+			messageOrInteraction.author.bot &&
+			messageOrInteraction.author.id === messageOrInteraction.client.user?.id
+		) {
+			this.response = messageOrInteraction
+		}
+		container.logger.debug(`#####2 ${paginatedMessage}`)
+		await this.resolvePagesOnRun(messageOrInteraction, target)
+		container.logger.debug(`#####2.5 ${paginatedMessage}`)
+		// Sanity checks to handle
+		if (!this.messages.length) throw new Error("There are no messages.")
+		if (!this.actions.size) throw new Error("There are no actions.")
+		container.logger.debug(`#####3 ${paginatedMessage}`)
+		await this.setUpMessage(messageOrInteraction)
+		container.logger.debug(`#####4 ${paginatedMessage}`)
+		this.setUpCollector(messageOrInteraction.channel, target)
+		container.logger.debug(`#####5 ${paginatedMessage}`)
+		const messageId = this.response!.id
+
+		if (this.collector) {
+			this.collector.once("end", () => {
+				PaginatedMessage.messages.delete(messageId)
+				PaginatedMessage.handlers.delete(target!.id)
+			})
+
+			PaginatedMessage.messages.set(messageId, this)
+			PaginatedMessage.handlers.set(target.id, this)
+		}
+
+		return this
+	}
+
+	protected override async handleEnd(
+		_: Collection<Snowflake, PaginatedMessageInteractionUnion>,
+		reason: PaginatedMessageStopReasons
+	): Promise<void> {
+		// Ensure no race condition can occur where interacting with the message when the paginated message closes would otherwise result in a DiscordAPIError
+		container.logger.debug(`========2 ${reason}`)
+		if (
+			(reason === "time" || reason === "idle") &&
+			this.response !== null &&
+			isAnyInteraction(this.response) &&
+			this.response.isMessageComponent()
+		) {
+			this.response.message = await this.response.fetchReply()
+		}
+
+		// Remove all listeners from the collector:
+		this.collector?.removeAllListeners()
+
+		// Do not remove components if the message, channel, or guild, was deleted:
+		if (this.response && !PaginatedMessage.deletionStopReasons.includes(reason)) {
+			void safelyReplyToInteraction({
+				messageOrInteraction: this.response,
+				interactionEditReplyContent: { components: [] },
+				interactionReplyContent: {
+					...this.#thisMazeWasNotMeantForYouContent,
+					ephemeral: true,
+				},
+				componentUpdateContent: { components: [] },
+				messageMethod: "edit",
+				messageMethodContent: { components: [] },
+			})
+		}
+	}
+}
+async function safelyReplyToInteraction<T extends "edit" | "reply">(
+	parameters: SafeReplyToInteractionParameters<T>
+) {
+	if (isAnyInteractableInteraction(parameters.messageOrInteraction)) {
+		container.dbLogger.debug("____1" + serialize(parameters, { space: 4 }))
+		if (parameters.messageOrInteraction.replied || parameters.messageOrInteraction.deferred) {
+			container.logger.debug("____2" + serialize(parameters, { space: 4 }))
+			await parameters.messageOrInteraction.editReply(parameters.interactionEditReplyContent)
+		} else if (parameters.messageOrInteraction.isMessageComponent()) {
+			container.logger.debug("____3" + serialize(parameters, { space: 4 }))
+			await parameters.messageOrInteraction.update(parameters.componentUpdateContent)
+		} else {
+			container.logger.debug("____4" + serialize(parameters, { space: 4 }))
+			await parameters.messageOrInteraction.reply(parameters.interactionReplyContent)
+		}
+	} else if (
+		parameters.messageMethodContent &&
+		parameters.messageMethod &&
+		isMessageInstance(parameters.messageOrInteraction)
+	) {
+		await parameters.messageOrInteraction[parameters.messageMethod](
+			parameters.messageMethodContent as any
+		)
 	}
 }

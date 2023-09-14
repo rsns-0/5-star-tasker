@@ -1,4 +1,5 @@
-import { ENTRY_1, ENTRY_1_VALUE, ENTRY_2, ENTRY_2_VALUE } from "./constants";
+import { ENTRY_1_NAME,ENTRY_1_VALUE,ENTRY_2_NAME,ENTRY_2_VALUE } from "./constants"
+
 
 export const firstPageEmbeds = [
 	{
@@ -6,13 +7,13 @@ export const firstPageEmbeds = [
 		description: "description 123",
 		fields: [
 			{
-				name: ENTRY_1,
+				name: ENTRY_1_NAME,
 				value: ENTRY_1_VALUE,
 			},
 			{
-				name: ENTRY_2,
+				name: ENTRY_2_NAME,
 				value: ENTRY_2_VALUE,
 			},
 		],
 	},
-];
+]
