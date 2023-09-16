@@ -6,4 +6,3 @@ export const ENTRY_2_NAME = "Entry 2: ID 96"
 export const ENTRY_2_VALUE = `Time: <t:${_02_01_2050_unix}>\nMessage: go to store`
 
 
-

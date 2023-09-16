@@ -1,8 +1,8 @@
 import { _01_01_2050_unix, _02_01_2050_unix } from "./constants";
 
-import { reminders } from "@prisma/client";
-import Decimal from "decimal.js";
-import { Collection } from "discord.js";
+import { Prisma, reminders } from "@prisma/client"
+import Decimal from "decimal.js"
+import { Collection } from "discord.js"
 
 export const sampleReminderTestData: reminders[] = [
 	{
@@ -17,7 +17,7 @@ export const sampleReminderTestData: reminders[] = [
 	{
 		id: BigInt(96),
 		created_at: new Date("2050-02-01T12:00:00Z"),
-		user_id: "22222",
+		user_id: "11111",
 		channel_id: "55555",
 		reminder_message: "go to store",
 		time: new Date(new Decimal(_02_01_2050_unix).toNumber() * 1000),
@@ -35,7 +35,7 @@ export const sampleReminderTestData: reminders[] = [
 	{
 		id: BigInt(2),
 		created_at: new Date("2050-01-02T12:00:00Z"),
-		user_id: "22222",
+		user_id: "11111",
 		channel_id: "55555",
 		reminder_message: "sde",
 		time: new Date(new Decimal(67890).toNumber() * 1000),
@@ -44,7 +44,7 @@ export const sampleReminderTestData: reminders[] = [
 	{
 		id: BigInt(3),
 		created_at: new Date("2050-01-03T14:00:00Z"),
-		user_id: "33333",
+		user_id: "22222",
 		channel_id: "66666",
 		reminder_message: "meeting at 2 PM",
 		time: new Date(new Decimal(98765).toNumber() * 1000),
@@ -53,7 +53,7 @@ export const sampleReminderTestData: reminders[] = [
 	{
 		id: BigInt(4),
 		created_at: new Date("2050-01-04T16:00:00Z"),
-		user_id: "44444",
+		user_id: "22222",
 		channel_id: "77777",
 		reminder_message: "submit report",
 		time: new Date(new Decimal(54321).toNumber() * 1000),
@@ -62,7 +62,7 @@ export const sampleReminderTestData: reminders[] = [
 	{
 		id: BigInt(5),
 		created_at: new Date("2050-01-05T18:00:00Z"),
-		user_id: "55555",
+		user_id: "22222",
 		channel_id: "88888",
 		reminder_message: "call mom",
 		time: new Date(new Decimal(13579).toNumber() * 1000),
@@ -113,14 +113,46 @@ export const sampleReminderTestData: reminders[] = [
 		time: new Date(new Decimal(33333).toNumber() * 1000),
 		webhook_id: "webhook10",
 	},
-];
+]
 
+export const user11111 = {
+	id: "11111",
+	username: "testUser_11111",
+}
+
+export const userData: Prisma.discord_userCreateManyInput[] = [
+	user11111,
+	{
+		id: "22222",
+		username: "testUser_22222",
+	},
+	{
+		id: "66666",
+		username: "testUser_66666",
+	},
+	{
+		id: "77777",
+		username: "testUser_77777",
+	},
+	{
+		id: "88888",
+		username: "testUser_88888",
+	},
+	{
+		id: "99999",
+		username: "testUser_99999",
+	},
+	{
+		id: "00000",
+		username: "testUser_00000",
+	},
+]
 function _initMappings() {
-	const _reminderDataMappings = new Collection<string, reminders>();
+	const _reminderDataMappings = new Collection<string, reminders>()
 
 	for (const entry of sampleReminderTestData) {
-		_reminderDataMappings.set(entry.id.toString(), entry);
+		_reminderDataMappings.set(entry.id.toString(), entry)
 	}
 }
 
-export const reminderDataMappings = _initMappings();
+export const reminderDataMappings = _initMappings()
