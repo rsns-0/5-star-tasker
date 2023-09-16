@@ -1,44 +1,17 @@
-import './lib/setup';
+import "./lib/setup";
 
-import { GatewayIntentBits, Partials } from 'discord.js';
-import { LogLevel, SapphireClient } from '@sapphire/framework';
+import { LogLevel, SapphireClient } from "@sapphire/framework"
+import { GatewayIntentBits, Partials } from "discord.js"
 
-import { ChannelService } from './services/channelService';
-import { CooldownService } from './features/cooldowns';
-import { GuildService } from './services/guildService';
-import { TranslationService } from './features/translation';
-import { WebhookService } from './services/webhookService';
-import { container } from '@sapphire/pieces';
-import { logger } from './logger/logger';
-import prisma from './db/prismaInstance';
 
-declare module '@sapphire/pieces' {
-	export interface Container {
-		translationService: TranslationService;
-		cooldownService: CooldownService;
-
-		prisma: typeof prisma;
-		webhookService: WebhookService;
-		dbLogger: typeof logger;
-		channelService: ChannelService;
-		guildService: GuildService;
-	}
-}
-
-container.translationService = new TranslationService();
-container.cooldownService = new CooldownService();
-
-container.prisma = prisma;
-container.webhookService = new WebhookService();
-container.dbLogger = logger;
 const client = new SapphireClient({
-	defaultPrefix: '!',
+	defaultPrefix: "!",
 	regexPrefix: /^(hey +)?bot[,! ]/i,
 	caseInsensitiveCommands: true,
 	logger: {
-		level: LogLevel.Debug
+		level: LogLevel.Debug,
 	},
-	shards: 'auto',
+	shards: "auto",
 	intents: [
 		GatewayIntentBits.DirectMessageReactions,
 		GatewayIntentBits.DirectMessages,
@@ -49,25 +22,29 @@ const client = new SapphireClient({
 		GatewayIntentBits.GuildMessages,
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.GuildVoiceStates,
-		GatewayIntentBits.MessageContent
+		GatewayIntentBits.MessageContent,
 	],
 	partials: [Partials.Channel],
 	loadMessageCommandListeners: true,
 	defaultCooldown: {
-		delay: 1_000
-	}
-});
+		delay: 1_000,
+	},
+})
 
 const main = async () => {
 	try {
-		client.logger.info('Logging in');
-		await client.login();
-		client.logger.info('logged in');
+		client.logger.info("Logging in")
+		await client.login()
+		client.logger.info("logged in")
 	} catch (error) {
-		client.logger.fatal(error);
-		client.destroy();
-		process.exit(1);
+		if (!client.isReady()) {
+			client.logger.fatal(error)
+			client.destroy()
+			process.exit(1)
+		} else {
+			client.logger.error(error)
+		}
 	}
-};
+}
 
 main();

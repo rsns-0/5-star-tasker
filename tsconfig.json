@@ -5,14 +5,28 @@
 		"outDir": "dist",
 		"baseUrl": "src",
 		"paths": {
-			"@/*": ["./src/*"],
 			"#lib/*": ["./lib/*"]
 		},
 		"tsBuildInfoFile": "dist/.tsbuildinfo",
 		"types": ["vitest/globals"],
 		"skipLibCheck": true,
+		"incremental": true,
 	},
 	
-	"include": ["src"],
-	"exclude":[".history", "internal_scripts"]
+	"include": [
+		"src",
+		"prisma/*.ts"
+	],
+	"exclude": [
+		".history",
+		"./history/",
+		"internal_scripts",
+		"node_modules",
+		"dist",
+		"tests",
+		"typings",
+		"scripts",
+		"docs",
+		"coverage"
+	]
 }

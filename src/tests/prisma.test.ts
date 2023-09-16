@@ -1,39 +1,39 @@
-import { PrismaClient } from '@prisma/client';
-import prisma from '../db/prismaInstance';
+import { PrismaClient } from "@prisma/client";
+import prisma from "../db/prismaInstance";
 
-describe('base functionality check', () => {
-	it('should have return 10 records with take set to 10', async () => {
+describe("base functionality check", () => {
+	it("should have return 10 records with take set to 10", async () => {
 		const prisma = new PrismaClient();
 
 		const res = await prisma.test_countries.findMany({
 			where: {
-				id: { lte: 20 }
+				id: { lte: 20 },
 			},
-			take: 10
+			take: 10,
 		});
 		expect(res.length).toBeGreaterThan(0);
 		expect(res.length).toEqual(10);
 	});
 });
 
-describe('logging', () => {
+describe("logging", () => {
 	const data = {
-		tags: ['testtag1', 'testtag2'],
+		tags: ["testtag1", "testtag2"],
 		level: 3,
-		message: 'test message',
+		message: "test message",
 		json: {
-			ob: new Date()
-		}
+			ob: new Date(),
+		},
 	};
-	it('should generate array text type properly', async () => {
+	it("should generate array text type properly", async () => {
 		const res = await prisma.logs.create({
-			data
+			data,
 		});
-		expect(res.tags.includes('testtag1')).toBe(true);
+		expect(res.tags.includes("testtag1")).toBe(true);
 	});
-	it('should successfully generate json object from error', async () => {
+	it("should successfully generate json object from error", async () => {
 		try {
-			throw new Error('test error', { cause: new Error('asd') });
+			throw new Error("test error", { cause: new Error("asd") });
 		} catch (err) {
 			if (!(err instanceof Error)) {
 				throw err;
@@ -44,3 +44,56 @@ describe('logging', () => {
 		}
 	});
 });
+
+type _TestPaginationData = {
+	id: number;
+	name: string;
+	value: number;
+	text: string;
+};
+
+function createTestPaginationData(amount: number) {
+	const results: _TestPaginationData[] = [];
+	for (let i = 0; i < amount; i++) {
+		const data: _TestPaginationData = {
+			id: i,
+			name: `name${i}`,
+			value: i,
+			text: `text${i}`,
+		};
+		results.push(data);
+	}
+	return results;
+}
+
+describe("pagination", () => {
+	beforeAll(async () => {
+		const data = createTestPaginationData(100)
+		const p1 = prisma.test_pagination.deleteMany()
+		const p2 = prisma.test_pagination.createMany({ data })
+		await prisma.$transaction([p1, p2])
+	})
+	it("pagination sanity check", async () => {
+		const page1 = await prisma.test_pagination.paginate({
+			limit: 40,
+			page: 1,
+		})
+		const page2 = await page1.nextPage()
+		const page3 = await page2.nextPage()
+		const page4 = await page3.nextPage()
+		const page5 = await page4.nextPage()
+		expect(page5.count).toEqual(100)
+		expect(page1.hasPrevPage).toEqual(false)
+		expect(page3.hasNextPage).toEqual(false)
+		expect(page2.hasNextPage).toEqual(true)
+		expect(page2.hasPrevPage).toEqual(true)
+
+		expect(page2.result[10].name).toEqual("name50")
+
+		expect(page1.result.length).toEqual(40)
+		expect(page2.result.length).toEqual(40)
+		expect(page3.result.length).toEqual(20)
+		expect(page4.result.length).toEqual(0)
+		expect(page5.result.length).toEqual(0)
+	})
+})

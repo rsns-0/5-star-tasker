@@ -1,15 +1,15 @@
-import { type MessageReaction, type User, userMention } from 'discord.js';
+import { userMention, type MessageReaction, type User } from "discord.js";
 
-import { logger } from '../../../logger/logger';
-import { Events, Listener } from '@sapphire/framework';
+import { Events, Listener } from "@sapphire/framework";
+import { logger } from "../../../logger/logger";
 
-import { ApplyOptions } from '@sapphire/decorators';
+import { ApplyOptions } from "@sapphire/decorators";
 
-import { TranslationServiceError } from '../../../features/translation/models/translationServiceError';
-import { createTranslationEmbed } from '../../../features/translation/commandComponents/createTranslationEmbed';
-import { cooldownServiceInstanceForDiscordJs } from '../../../utils/cooldownServiceInstance';
+import { createTranslationEmbed } from "../../../embeds/createTranslationEmbed";
+import { TranslationServiceError } from "../../../features/translation/models/translationServiceError";
+import { cooldownServiceInstanceForDiscordJs } from "../../../utils/cooldownServiceInstance";
 
-const name = 'reactTranslation';
+const name = "reactTranslation";
 cooldownServiceInstanceForDiscordJs.registerCommandCooldown(name, 5000);
 const DEFAULT_ACCENT_COLOR = 0x0099ff;
 
@@ -24,13 +24,14 @@ export class UserEvent extends Listener<typeof Events.MessageReactionAdd> {
 		const emojiName = reaction.emoji.name;
 
 		if (content === null) {
-			throw new Error('Unexpected null value in text to translate.');
+			throw new Error("Unexpected null value in text to translate.");
 		}
 		if (emojiName === null) {
-			throw new Error('Unexpected null value in emoji reaction ID.');
+			throw new Error("Unexpected null value in emoji reaction ID.");
 		}
 		this.container.prisma.languages;
-		const targetLanguage = await this.container.prisma.languages.isDiscordReactionSupportedByDeepL(emojiName);
+		const targetLanguage =
+			await this.container.prisma.languages.isDiscordReactionSupportedByDeepL(emojiName);
 		if (!targetLanguage) {
 			return; // no throwing since user can react with any emoji
 		}
@@ -40,12 +41,12 @@ export class UserEvent extends Listener<typeof Events.MessageReactionAdd> {
 		}
 		const result = await translation.translateText({
 			text: content,
-			targetLanguage
+			targetLanguage,
 		});
 		if (result instanceof TranslationServiceError) {
 			const { message } = result.autoResolve();
 			await channel.send({
-				content: `${userMention(user.id)}\n${message}`
+				content: `${userMention(user.id)}\n${message}`,
 			});
 			return;
 		}
@@ -58,11 +59,11 @@ export class UserEvent extends Listener<typeof Events.MessageReactionAdd> {
 			await channel.send({
 				content: userMention(user.id),
 				embeds: [embed],
-				allowedMentions: { parse: ['users'] }
+				allowedMentions: { parse: ["users"] },
 			});
 		} catch (e) {
 			logger.error(e);
-			await channel.send('An unknown server error occurred. Please try again later.');
+			await channel.send("An unknown server error occurred. Please try again later.");
 		}
 	}
 }

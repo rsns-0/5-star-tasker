@@ -1,14 +1,14 @@
-import { Channel, Webhook } from 'discord.js';
-import { WebhookService, assertWebhookChannel } from '../../services/webhookService';
+import { Channel, Webhook } from "discord.js";
+import { WebhookService, assertWebhookChannel } from "../../services/webhookService";
 
-import { Prisma } from '@prisma/client';
-import { container } from '@sapphire/framework';
+import { Prisma } from "@prisma/client";
+import { container } from "@sapphire/framework";
 
 const webhookService = new WebhookService();
 
 export default Prisma.defineExtension((prisma) => {
 	return prisma.$extends({
-		name: 'webhookExtension',
+		name: "webhookExtension",
 		model: {
 			webhooks: {
 				async createWebhookInDiscordAndDatabase(channel: Channel) {
@@ -24,23 +24,23 @@ export default Prisma.defineExtension((prisma) => {
 							discord_channels: {
 								connectOrCreate: {
 									where: {
-										id: channel.id
+										id: channel.id,
 									},
 									create: {
 										id: channel.id,
-										name: channel.name
-									}
-								}
-							}
-						}
+										name: channel.name,
+									},
+								},
+							},
+						},
 					});
 				},
 				async deleteWebhookInDiscordAndDatabase(webhookId: string) {
 					await webhookService.deleteWebhookById(webhookId);
 					return await container.prisma.webhooks.delete({
 						where: {
-							id: webhookId
-						}
+							id: webhookId,
+						},
 					});
 				},
 
@@ -55,18 +55,18 @@ export default Prisma.defineExtension((prisma) => {
 							discord_channels: {
 								connectOrCreate: {
 									where: {
-										id: webhook.channelId
+										id: webhook.channelId,
 									},
 									create: {
 										id: webhook.channelId,
-										name: webhook.channel?.name
-									}
-								}
-							}
-						}
+										name: webhook.channel?.name,
+									},
+								},
+							},
+						},
 					});
-				}
-			}
-		}
+				},
+			},
+		},
 	});
 });

@@ -3,6 +3,29 @@ generator client {
   previewFeatures = ["views"]
 }
 
+generator zod {
+  provider = "zod-prisma"
+  output   = "../src/models/prismaZod" // (default) the directory where generated zod schemas will be saved
+
+  relationModel = true // (default) Create and export both plain and related models.
+  // relationModel         = "default" // Do not export model without relations.
+  // relationModel         = false // Do not generate related model
+
+  // modelCase                = "PascalCase" // (default) Output models using pascal case (ex. UserModel, PostModel)
+  modelCase = "camelCase" // Output models using camel case (ex. userModel, postModel)
+
+  modelSuffix = "Schema" // (default) Suffix to apply to your prisma models when naming Zod schemas
+
+  // useDecimalJs          = false // (default) represent the prisma Decimal type using as a JS number
+  useDecimalJs = true // represent the prisma Decimal type using Decimal.js (as Prisma does)
+
+  // imports                  = null // (default) will import the referenced file in generated schemas to be used via imports.someExportedVariable
+
+  // https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-by-null-values
+  prismaJsonNullability = true // (default) uses prisma's scheme for JSON field nullability
+  // prismaJsonNullability = false // allows null assignment to optional JSON fields
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -39,7 +62,7 @@ model countries {
 }
 
 model discord_channels {
-  id               String             @id 
+  id               String             @id
   name             String             @default("")
   created_at       DateTime           @default(now()) @db.Timestamptz(6)
   discord_guild_id String?
@@ -48,13 +71,14 @@ model discord_channels {
   reminders        reminders[]
   webhooks         webhooks[]
 }
+
 model reminders {
   id               BigInt           @id @default(autoincrement())
   created_at       DateTime         @default(now()) @db.Timestamptz(6)
   user_id          String
   channel_id       String
   reminder_message String           @default("")
-  time             Decimal          @db.Decimal
+  time             DateTime           @db.Timestamptz(6)
   webhook_id       String
   discord_channels discord_channels @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   discord_user     discord_user     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -82,7 +106,6 @@ model discord_guilds {
   discord_messages discord_messages[]
 }
 
-
 model discord_messages {
   id                 String            @id
   created_at         DateTime          @default(now()) @db.Timestamptz(6)
@@ -94,6 +117,7 @@ model discord_messages {
   discord_guilds     discord_guilds?   @relation(fields: [discord_guild_id], references: [id], onUpdate: NoAction)
   discord_user       discord_user?     @relation(fields: [owner_id], references: [id], onUpdate: NoAction)
 }
+
 model languages {
   id                     BigInt                @id @default(autoincrement())
   created_at             DateTime              @default(now()) @db.Timestamptz(6)
@@ -135,10 +159,10 @@ model logs {
   created_at DateTime @default(now()) @db.Timestamptz(6)
   level      Int      @default(6) @db.SmallInt
   message    String   @default("")
+  unsafe_json Json?
   json       Json?
   tags       String[] @default([])
 }
-
 
 model countries_old {
   id          BigInt   @id(map: "countries_pkey1") @default(autoincrement())
@@ -202,4 +226,12 @@ enum continents {
   Oceania
   North_America @map("North America")
   South_America @map("South America")
+}
+
+model test_pagination {
+  id         BigInt   @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  name       String?  @default("")
+  value      BigInt?  @default(0)
+  text       String?  @default("")
 }

@@ -7,7 +7,7 @@ export class TransactionException<const TData> extends Error {
 		if ((data as any).message) {
 			this.message = (data as any).message;
 		}
-		if (typeof data === 'string') {
+		if (typeof data === "string") {
 			this.message = data;
 		}
 	}

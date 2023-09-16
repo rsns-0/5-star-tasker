@@ -1,7 +1,7 @@
-import { Channel, Collection, Guild, GuildBasedChannel } from 'discord.js';
+import { Channel, Collection, Guild, GuildBasedChannel } from "discord.js";
 
-import { container } from '@sapphire/framework';
-import { isGuildBasedChannel } from '@sapphire/discord.js-utilities';
+import { isGuildBasedChannel } from "@sapphire/discord.js-utilities";
+import { container } from "@sapphire/framework";
 
 export class ChannelService {
 	async getChannelById(id: string) {
@@ -19,6 +19,9 @@ export class ChannelService {
 	}
 
 	getGuildBasedChannels() {
-		return container.client.channels.cache.filter(isGuildBasedChannel) as Collection<string, GuildBasedChannel>;
+		return container.client.channels.cache.filter(isGuildBasedChannel) as Collection<
+			string,
+			GuildBasedChannel
+		>;
 	}
 }

@@ -45,14 +45,21 @@ export type Car = {
 	side: Side;
 };
 
-export type Side = 'left' | 'right';
+export type Side = "left" | "right";
 
 export type CoatOfArms = {
 	png?: string;
 	svg?: string;
 };
 
-export type Continent = 'Asia' | 'Oceania' | 'Europe' | 'Africa' | 'North America' | 'Antarctica' | 'South America';
+export type Continent =
+	| "Asia"
+	| "Oceania"
+	| "Europe"
+	| "Africa"
+	| "North America"
+	| "Antarctica"
+	| "South America";
 
 export type Currencies = {
 	NPR?: Aed;
@@ -270,8 +277,8 @@ export type PostalCode = {
 	regex?: string;
 };
 
-export type Region = 'Asia' | 'Oceania' | 'Europe' | 'Africa' | 'Americas' | 'Antarctic';
+export type Region = "Asia" | "Oceania" | "Europe" | "Africa" | "Americas" | "Antarctic";
 
-export type StartOfWeek = 'sunday' | 'monday' | 'saturday';
+export type StartOfWeek = "sunday" | "monday" | "saturday";
 
-export type Status = 'officially-assigned' | 'user-assigned';
+export type Status = "officially-assigned" | "user-assigned";

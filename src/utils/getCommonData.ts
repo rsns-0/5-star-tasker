@@ -1,4 +1,4 @@
-import { container } from '@sapphire/framework';
+import { container } from "@sapphire/framework";
 
 export async function getCommonData() {
 	await container.client.guilds.fetch();
