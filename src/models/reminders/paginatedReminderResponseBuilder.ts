@@ -1,5 +1,5 @@
 import { reminders } from "@prisma/client"
-import { container } from "@sapphire/framework"
+
 
 import {
 	AnyInteractableInteraction,
@@ -22,7 +22,7 @@ import {
 	Snowflake,
 	User,
 } from "discord.js"
-import serialize from "serialize-javascript"
+
 import { ReminderPages } from "./ReminderPaginationDataCollection"
 import { pageSchema, reminderAPIEmbedSchema } from "../pagination/embedAPI"
 
@@ -225,7 +225,6 @@ export class ReminderPaginatedResponseBuilder extends PaginatedMessage {
 		const paginatedMessage = PaginatedMessage.handlers.get(target.id)
 		// If a PaginatedMessage was found then stop it
 		paginatedMessage?.collector?.stop()
-		container.logger.debug(`#####1 ${paginatedMessage}`)
 
 		// If the message was sent by a bot, then set the response as this one
 		if (isAnyInteraction(messageOrInteraction)) {
@@ -241,17 +240,17 @@ export class ReminderPaginatedResponseBuilder extends PaginatedMessage {
 		) {
 			this.response = messageOrInteraction
 		}
-		container.logger.debug(`#####2 ${paginatedMessage}`)
+
 		await this.resolvePagesOnRun(messageOrInteraction, target)
-		container.logger.debug(`#####2.5 ${paginatedMessage}`)
+
 		// Sanity checks to handle
 		if (!this.messages.length) throw new Error("There are no messages.")
 		if (!this.actions.size) throw new Error("There are no actions.")
-		container.logger.debug(`#####3 ${paginatedMessage}`)
+
 		await this.setUpMessage(messageOrInteraction)
-		container.logger.debug(`#####4 ${paginatedMessage}`)
+
 		this.setUpCollector(messageOrInteraction.channel, target)
-		container.logger.debug(`#####5 ${paginatedMessage}`)
+
 		const messageId = this.response!.id
 
 		if (this.collector) {
@@ -272,7 +271,7 @@ export class ReminderPaginatedResponseBuilder extends PaginatedMessage {
 		reason: PaginatedMessageStopReasons
 	): Promise<void> {
 		// Ensure no race condition can occur where interacting with the message when the paginated message closes would otherwise result in a DiscordAPIError
-		container.logger.debug(`========2 ${reason}`)
+
 		if (
 			(reason === "time" || reason === "idle") &&
 			this.response !== null &&
@@ -305,15 +304,11 @@ async function safelyReplyToInteraction<T extends "edit" | "reply">(
 	parameters: SafeReplyToInteractionParameters<T>
 ) {
 	if (isAnyInteractableInteraction(parameters.messageOrInteraction)) {
-		container.dbLogger.debug("____1" + serialize(parameters, { space: 4 }))
 		if (parameters.messageOrInteraction.replied || parameters.messageOrInteraction.deferred) {
-			container.logger.debug("____2" + serialize(parameters, { space: 4 }))
 			await parameters.messageOrInteraction.editReply(parameters.interactionEditReplyContent)
 		} else if (parameters.messageOrInteraction.isMessageComponent()) {
-			container.logger.debug("____3" + serialize(parameters, { space: 4 }))
 			await parameters.messageOrInteraction.update(parameters.componentUpdateContent)
 		} else {
-			container.logger.debug("____4" + serialize(parameters, { space: 4 }))
 			await parameters.messageOrInteraction.reply(parameters.interactionReplyContent)
 		}
 	} else if (
