@@ -43,7 +43,6 @@ logger.on("info", async (info) => {
 
 logger.on("debug", async (debug) => {
 	logger.debug(debug)
-	logger.debug(debug.message)
 	await prisma.logs.dump(debug)
 })
 

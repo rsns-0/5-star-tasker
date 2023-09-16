@@ -207,10 +207,13 @@ export class UserCommand extends Subcommand {
 	@RequiresClientPermissions([PermissionFlagsBits.EmbedLinks])
 	public async edit(interaction: ChatInputCommandInteraction) {
 		try {
+			
+			await interaction.deferReply({ ephemeral: true })
 			const reminders = await prisma.reminders.getAllRemindersOfUser(interaction.user)
-			await ReminderPaginatedResponseBuilder.fromReminderData(reminders)
-				.generatePages()
-				.run(interaction, interaction.user)
+			await ReminderPaginatedResponseBuilder.fromReminderData(reminders).run(
+				interaction,
+				interaction.user
+			)
 		} catch (e) {
 			container.dbLogger.emit("error", e)
 			if (e instanceof DiscordAPIError) {

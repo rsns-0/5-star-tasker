@@ -66,34 +66,34 @@ function createTestPaginationData(amount: number) {
 	return results;
 }
 
-describe.only("pagination", () => {
+describe("pagination", () => {
 	beforeAll(async () => {
-		const data = createTestPaginationData(100);
-		const p1 = prisma.test_pagination.deleteMany();
-		const p2 = prisma.test_pagination.createMany({ data });
-		await prisma.$transaction([p1, p2]);
-	});
+		const data = createTestPaginationData(100)
+		const p1 = prisma.test_pagination.deleteMany()
+		const p2 = prisma.test_pagination.createMany({ data })
+		await prisma.$transaction([p1, p2])
+	})
 	it("pagination sanity check", async () => {
 		const page1 = await prisma.test_pagination.paginate({
 			limit: 40,
 			page: 1,
-		});
-		const page2 = await page1.nextPage();
-		const page3 = await page2.nextPage();
-		const page4 = await page3.nextPage();
-		const page5 = await page4.nextPage();
-		expect(page5.count).toEqual(100);
-		expect(page1.hasPrevPage).toEqual(false);
-		expect(page3.hasNextPage).toEqual(false);
-		expect(page2.hasNextPage).toEqual(true);
-		expect(page2.hasPrevPage).toEqual(true);
+		})
+		const page2 = await page1.nextPage()
+		const page3 = await page2.nextPage()
+		const page4 = await page3.nextPage()
+		const page5 = await page4.nextPage()
+		expect(page5.count).toEqual(100)
+		expect(page1.hasPrevPage).toEqual(false)
+		expect(page3.hasNextPage).toEqual(false)
+		expect(page2.hasNextPage).toEqual(true)
+		expect(page2.hasPrevPage).toEqual(true)
 
-		expect(page2.result[10].name).toEqual("name50");
+		expect(page2.result[10].name).toEqual("name50")
 
-		expect(page1.result.length).toEqual(40);
-		expect(page2.result.length).toEqual(40);
-		expect(page3.result.length).toEqual(20);
-		expect(page4.result.length).toEqual(0);
-		expect(page5.result.length).toEqual(0);
-	});
-});
+		expect(page1.result.length).toEqual(40)
+		expect(page2.result.length).toEqual(40)
+		expect(page3.result.length).toEqual(20)
+		expect(page4.result.length).toEqual(0)
+		expect(page5.result.length).toEqual(0)
+	})
+})

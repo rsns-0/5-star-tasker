@@ -6,48 +6,15 @@ ENTRY_2_VALUE,
 } from "./testResources/reminderPaginationModelResources/constants"
 
 import { ReminderPaginatedResponseBuilder } from "../models/reminders/paginatedReminderResponseBuilder"
-import { premadePageData } from "./testResources/reminderPaginationModelResources/premadePageData"
 import { sampleReminderTestData } from "./testResources/reminderPaginationModelResources/sampleReminderTestData"
 
-
 describe("page data generation", () => {
-	const msgWithoutReminderData = () => {
-		const msg = ReminderPaginatedResponseBuilder.fromReminderData([])
-		msg.addPages(premadePageData)
-		return msg
-	}
 	const msgWithReminderData = () => {
 		const msg = ReminderPaginatedResponseBuilder.fromReminderData(sampleReminderTestData)
-		msg.generatePages()
 		return msg
 	}
-	it("getPageOptions should return a non empty result", async () => {
-		const msg = msgWithoutReminderData()
 
-		const options = await msg.getPageOptions(0)
-		const res = options?.embeds?.map((embed) => {
-			return (embed as any).fields
-		})
-		expect(res?.length).toBeTruthy()
-	})
-
-	it("getEmbedFieldsOfFirstPage retrieves object containing embed result", async () => {
-		const msg = msgWithoutReminderData()
-
-		const res = msg.getEmbedFieldsOfFirstPage()
-		// The array contains an object that has the "name" key at an arbitrary depth and the value for it includes "Entry".
-		const matcher = expect.arrayContaining([
-			expect.objectContaining({
-				name: expect.stringContaining("Entry"),
-			}),
-		])
-
-		expect(res).toEqual(matcher)
-		expect(res.length).toBeTruthy()
-		expect(res.every((field) => field.name.includes("Entry"))).toBeTruthy()
-	})
-
-	it.only(`
+	it(`
 	When the reminder model is initialized with the sample reminder test data, it should successfully perform the transformations
 	of reminder data required for the base PaginatedMessage class to produce a successful embed message in the correct order.
 	This can be checked by accessing the pages of the model and viewing their embed data.`, async () => {

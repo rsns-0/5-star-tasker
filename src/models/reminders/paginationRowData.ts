@@ -15,5 +15,6 @@ export function createReminderRowComponents(descriptionValue: string) {
 
 	const row = new ActionRowBuilder<TextInputBuilder>().addComponents(reminderMessageInput)
 	const row2 = new ActionRowBuilder<TextInputBuilder>().addComponents(reminderDateTime)
+
 	return [row, row2]
 }

@@ -19,7 +19,7 @@ describe("localizedParseTimeInput", () => {
 	})
 })
 
-describe("Possible inputs for timeStringToDayjsObj", () => {
+describe("time conversion logic", () => {
 	it("correctly converts timezones", () => {
 		const timeDifferential = "1h"
 		const expected = dayjs().tz("America/New_York").add(1, "hour")
@@ -35,6 +35,9 @@ describe("Possible inputs for timeStringToDayjsObj", () => {
 
 		expect(result.utc().hour()).toBe(expected.utc().hour())
 	})
+})
+
+describe("Defaulting to a valid time object in the event of invalid input", () => {
 	it("Should return a valid dayjs object", () => {
 		const timeString = "0"
 		const timezone = "America/New_York"

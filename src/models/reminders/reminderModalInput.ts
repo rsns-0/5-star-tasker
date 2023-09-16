@@ -8,7 +8,17 @@ export const reminderForm = z.object({
 
 export const reminderModalIdPipeline = z
 	.string()
-	.transform((res) => JSON.parse(res))
+	.transform((res, ctx) => {
+		try {
+			return JSON.parse(res)
+		} catch (e) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: "Invalid JSON",
+			})
+			return z.NEVER
+		}
+	})
 	.pipe(
 		z.object({
 			type: z.literal("reminder"),
