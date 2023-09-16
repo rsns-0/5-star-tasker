@@ -19,12 +19,7 @@ export const reminderModalIdPipeline = z
 			return z.NEVER
 		}
 	})
-	.pipe(
-		z.object({
-			type: z.literal("reminder"),
-			reminderId: stringToBigIntPipeline,
-		})
-	)
+	.pipe(reminderForm)
 
 export const formDataSchema = z.object({
 	reminder_message: z.string(),
