@@ -200,9 +200,7 @@ export default Prisma.defineExtension((prisma) => {
 					const promises = reminders.map(async (res) => {
 						const webhookClient = await container.client.fetchWebhook(res.webhook.id)
 						const message = `
-						${userMention(res.user_id)}
-						TIME: ${time(res.time)}
-						REMINDER: ${res.reminder_message}
+						${userMention(res.user_id)}\nTIME: ${time(res.time)}\nREMINDER: ${res.reminder_message}
 						`
 						return webhookClient.send(message)
 					})
