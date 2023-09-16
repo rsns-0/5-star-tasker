@@ -12,11 +12,12 @@ import {
 	ModalBuilder,
 	time,
 } from "discord.js"
-import { CustomId } from "./CustomId"
+import { CustomId } from "../pagination/CustomId"
 import { createReminderRowComponents } from "./paginationRowData"
 
 /**
- * This class is a flattened data structure with all the data required to produce one embed entry and one associated page action.
+ * This class is a flattened data structure with all the data required to produce one embed entry
+ * and one associated page action.
  */
 export class ReminderComponentData {
 	public index: number
@@ -46,8 +47,8 @@ export class ReminderComponentData {
 	}
 
 	/**
-	 *
-	 * Retrieves the entries that are relevant for creating an embed, but leaves the original data types intact.
+	 * Retrieves the entries that are relevant for creating an embed, but leaves the original data
+	 * types intact.
 	 */
 	public getFieldData() {
 		const { id, message, time } = this
@@ -60,6 +61,7 @@ export class ReminderComponentData {
 
 	/**
 	 * Converts the reminder component data into a pair of embed field and button.
+	 *
 	 * @param entryIndex - The index of the entry.
 	 * @returns A tuple containing the embed field and button.
 	 */
@@ -67,9 +69,6 @@ export class ReminderComponentData {
 		const embedField = this.toEmbedField()
 		return [embedField, this.button] as const
 	}
-	/**
-	 *
-	 */
 	public toEmbedField() {
 		const embedField = {
 			name: `Entry ${this.index + 1}: ID ${this.id}`,
@@ -95,17 +94,12 @@ export class ReminderComponentData {
 	// }
 }
 
-/**
- * A collection of reminder component data. Maps reminder ID to the component data.
- */
+/** A collection of reminder component data. Maps reminder ID to the component data. */
 export class ReminderPage extends Collection<bigint, ReminderComponentData> {
 	private constructor(public readonly index: number) {
 		super()
 	}
-	/**
-	 *
-	 * Retrieves the button actions only.
-	 */
+	/** Retrieves the button actions only. */
 	public getActions() {
 		return this.map((component) => {
 			return component.button
@@ -134,6 +128,7 @@ export class ReminderPage extends Collection<bigint, ReminderComponentData> {
 
 /**
  * Converts a reminder object to a ReminderPaginationData object.
+ *
  * @param reminder - The reminder object to convert.
  * @param entryIndex - The index of the entry.
  * @returns The converted ReminderPaginationData object.

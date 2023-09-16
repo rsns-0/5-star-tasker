@@ -5,7 +5,7 @@ ENTRY_2_NAME,
 ENTRY_2_VALUE,
 } from "./testResources/reminderPaginationModelResources/constants"
 
-import { ReminderPaginatedResponseBuilder } from "../models/pagination/paginatedReminderResponseBuilder"
+import { ReminderPaginatedResponseBuilder } from "../models/reminders/paginatedReminderResponseBuilder"
 import { premadePageData } from "./testResources/reminderPaginationModelResources/premadePageData"
 import { sampleReminderTestData } from "./testResources/reminderPaginationModelResources/sampleReminderTestData"
 

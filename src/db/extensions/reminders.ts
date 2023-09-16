@@ -38,12 +38,11 @@ export default Prisma.defineExtension((prisma) => {
 		model: {
 			reminders: {
 				/**
-				 * The function creates a reminder by connecting or creating a
-				 * user and channel in the database and saving the reminder
-				 * message and time.
+				 * The function creates a reminder by connecting or creating a user and channel in
+				 * the database and saving the reminder message and time.
 				 *
-				 * @param {CreateReminderArgs} - - `reminderMessage`: The
-				 *   message content of the reminder.
+				 * @param {CreateReminderArgs} - - `reminderMessage`: The message content of the
+				 *   reminder.
 				 * @returns The result of the `prisma.reminders.create` method.
 				 */
 				async createReminder({ reminderMessage, time, user, channel }: CreateReminderArgs) {
@@ -131,8 +130,7 @@ export default Prisma.defineExtension((prisma) => {
 				/**
 				 * Retrieves expired reminders from the database.
 				 *
-				 * @returns A promise that resolves to an array of expired
-				 *   reminders.
+				 * @returns A promise that resolves to an array of expired reminders.
 				 */
 				async getExpiredReminders() {
 					type _hook = webhooks & { token: string }
@@ -173,11 +171,10 @@ export default Prisma.defineExtension((prisma) => {
 				},
 
 				/**
-				 * Retrieves expired reminders from the database and deletes
-				 * them.
+				 * Retrieves expired reminders from the database and deletes them.
 				 *
-				 * @returns {Promise<Reminder[]>} A promise that resolves to an
-				 *   array of expired reminders.
+				 * @returns {Promise<Reminder[]>} A promise that resolves to an array of expired
+				 *   reminders.
 				 */
 				async getExpiredRemindersAndDelete() {
 					const res = await this.getExpiredReminders()

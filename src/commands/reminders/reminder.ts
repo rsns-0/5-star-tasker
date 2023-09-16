@@ -24,11 +24,10 @@ timezonesPositives,
 import { Subcommand } from "@sapphire/plugin-subcommands";
 
 import prisma from "../../db/prismaInstance";
-import { timeStringToDayjsObj } from "../../features/reminders/services/stringToDayjsObj";
+import { timeStringToDayjsObj } from "../../services/timezoneService"
 
-
-import { container } from "@sapphire/framework";
-import { ReminderPaginatedResponseBuilder } from "../../models/pagination/paginatedReminderResponseBuilder";
+import { container } from "@sapphire/framework"
+import { ReminderPaginatedResponseBuilder } from "../../models/reminders/paginatedReminderResponseBuilder"
 
 const reminderData = new SlashCommandBuilder()
 	.setName("reminder")

@@ -1,6 +1,5 @@
-import z from "zod";
-import { reminderAPIEmbedSchema } from "./embedAPI";
-
+import z from "zod"
+import { reminderAPIEmbedSchema } from "../pagination/embedAPI"
 
 export const paginatedMessageActionSchema = z
 	.object({
@@ -17,4 +16,3 @@ export const paginatedMessageMessageOptionsSchema = z
 		embeds: reminderAPIEmbedSchema.passthrough().array().optional(),
 	})
 	.passthrough()
-

@@ -1,10 +1,10 @@
 import { reminders } from "@prisma/client"
 import { paginateArrays } from "../../utils/paginateArrays"
-import { ReminderPage } from "../pagination/reminderComponentData"
+import { ReminderPage } from "./reminderComponentData"
 
 /**
- * This class paginates the reminder data and maps their index to data required for building the embeds and their page actions.
- *
+ * This class paginates the reminder data and maps their index to data required for building the
+ * embeds and their page actions.
  */
 export class ReminderPages extends Array<ReminderPage> {
 	private constructor() {
@@ -13,6 +13,7 @@ export class ReminderPages extends Array<ReminderPage> {
 
 	/**
 	 * Creates a paginated reminder collection from an array of reminders.
+	 *
 	 * @param reminders - The array of reminders.
 	 * @param options - The options for pagination.
 	 * @returns The paginated reminder collection.

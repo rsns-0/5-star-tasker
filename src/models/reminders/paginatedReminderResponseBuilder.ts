@@ -2,30 +2,29 @@ import { reminders } from "@prisma/client"
 import { container } from "@sapphire/framework"
 
 import {
-AnyInteractableInteraction,
-PaginatedMessage,
-PaginatedMessageInteractionUnion,
-PaginatedMessageStopReasons,
-SafeReplyToInteractionParameters,
-isAnyInteractableInteraction,
-isAnyInteraction,
-isMessageInstance,
+	AnyInteractableInteraction,
+	PaginatedMessage,
+	PaginatedMessageInteractionUnion,
+	PaginatedMessageStopReasons,
+	SafeReplyToInteractionParameters,
+	isAnyInteractableInteraction,
+	isAnyInteraction,
+	isMessageInstance,
 } from "@sapphire/discord.js-utilities"
 
 import {
-Collection,
-EmbedBuilder,
-GatewayIntentBits,
-IntentsBitField,
-Message,
-Partials,
-Snowflake,
-User,
+	Collection,
+	EmbedBuilder,
+	GatewayIntentBits,
+	IntentsBitField,
+	Message,
+	Partials,
+	Snowflake,
+	User,
 } from "discord.js"
 import serialize from "serialize-javascript"
 import { ReminderPages } from "./ReminderPaginationDataCollection"
-import { pageSchema,reminderAPIEmbedSchema } from "./embedAPI"
-
+import { pageSchema, reminderAPIEmbedSchema } from "../pagination/embedAPI"
 
 const defaultEmbedBuilder = new EmbedBuilder()
 	.setColor("Blue")
@@ -33,22 +32,15 @@ const defaultEmbedBuilder = new EmbedBuilder()
 
 /**
  * @example
- * 	function example(
- * 		arg1: string = "5-star-tasker-placeholder",
- * 		arg2 = "Blue" as const
- * 	) {
- * 		const reminderNamePlaceholder = "reminderNamePlaceholder";
- * 		const reminderValuePlaceholder = "reminderValuePlaceholder";
+ * 	function example(arg1: string = "5-star-tasker-placeholder", arg2 = "Blue" as const) {
+ * 		const reminderNamePlaceholder = "reminderNamePlaceholder"
+ * 		const reminderValuePlaceholder = "reminderValuePlaceholder"
  *
  * 		const message = new PaginatedMessage({
- * 			template: new EmbedBuilder()
- * 				.setColor(arg2)
- * 				.setAuthor({ name: arg1 }),
+ * 			template: new EmbedBuilder().setColor(arg2).setAuthor({ name: arg1 }),
  * 		})
  * 			.setSelectMenuOptions((pageIndex) => ({
- * 				label: ["embed1Placeholder", "embed2Placeholder"][
- * 					pageIndex - 1
- * 				],
+ * 				label: ["embed1Placeholder", "embed2Placeholder"][pageIndex - 1],
  * 			}))
  * 			.addPageEmbed((embed) =>
  * 				embed.addFields(
@@ -90,10 +82,10 @@ const defaultEmbedBuilder = new EmbedBuilder()
  * 				emoji: "⏹️",
  * 				type: 2,
  * 				run: ({ collector }) => {
- * 					console.log(collector.eventNames());
+ * 					console.log(collector.eventNames())
  * 				},
- * 			});
- * 		return message;
+ * 			})
+ * 		return message
  * 	}
  */
 export class ReminderPaginatedResponseBuilder extends PaginatedMessage {
@@ -106,7 +98,9 @@ export class ReminderPaginatedResponseBuilder extends PaginatedMessage {
 
 	/**
 	 * Constructs a new instance of the PaginatedReminderResponseBuilder class.
-	 * @param reminderPageData Contains a map of page index to reminder data, which is another map of reminder ID to reminder data.
+	 *
+	 * @param reminderPageData Contains a map of page index to reminder data, which is another map
+	 *   of reminder ID to reminder data.
 	 */
 	public constructor(public readonly reminderPages: ReminderPages) {
 		super({

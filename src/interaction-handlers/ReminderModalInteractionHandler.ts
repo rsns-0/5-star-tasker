@@ -1,28 +1,13 @@
 import { ApplyOptions } from "@sapphire/decorators";
 import type { ModalSubmitInteraction } from "discord.js"
-import z from "zod"
-import { stringToBigIntPipeline } from "../transforms/timeUtils/bigIntHelpers"
-import { InteractionHandler, InteractionHandlerTypes, container } from "@sapphire/framework"
-import { timeStringToDayjsObj } from "../features/reminders/services/stringToDayjsObj"
 
-const reminderModalIdPipeline = z
-	.string()
-	.transform((res) => JSON.parse(res))
-	.pipe(
-		z.object({
-			type: z.literal("reminder"),
-			reminderId: stringToBigIntPipeline,
-		})
-	)
-
-const formDataSchema = z.object({
-	reminder_message: z.string(),
-	time: z.string(),
-})
+import { InteractionHandler, InteractionHandlerTypes, ok } from "@sapphire/framework"
+import { localizedParseTimeInput } from "../services/timezoneService"
+import { formDataSchema, reminderModalIdPipeline } from "../models/reminders/reminderModalInput"
 
 function getFormData(interaction: ModalSubmitInteraction) {
 	const { fields } = interaction
-	container.dbLogger.emit("debug", fields)
+
 	const result = {
 		reminder_message: fields.getField("reminder_message")?.value,
 		time: fields.getField("time")?.value,
@@ -36,24 +21,33 @@ function getFormData(interaction: ModalSubmitInteraction) {
 })
 export class ModalHandler extends InteractionHandler {
 	public async run(interaction: ModalSubmitInteraction, reminderId: bigint) {
-		const data = getFormData(interaction)
-		const timezone = await this.container.prisma.discord_user.getUserTimezone(interaction.user)
-		if (timezone.isErr()) {
-			// TODO: Handle user error
-			throw timezone
+		const result = await ModalHandler.createReminderDataFromInteraction(interaction)
+		if (result.isErr()) {
+			throw result
 		}
 
-		const date = timeStringToDayjsObj(data.time, timezone.unwrap())
 		await this.container.prisma.reminders.update({
 			where: {
 				id: reminderId,
 			},
-			data: { reminder_message: data.reminder_message, time: date.toDate() },
+			data: result.unwrap(),
 		})
 
 		await interaction.reply({
 			content: "Success!",
 			ephemeral: true,
+		})
+	}
+
+	public static async createReminderDataFromInteraction(interaction: ModalSubmitInteraction) {
+		const data = getFormData(interaction)
+		const date = await localizedParseTimeInput(data.time, interaction.user.id)
+		if (date.isErr()) {
+			return date
+		}
+		return ok({
+			reminder_message: data.reminder_message,
+			time: date.unwrap().toDate(),
 		})
 	}
 
