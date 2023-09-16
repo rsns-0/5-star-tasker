@@ -10,7 +10,6 @@ export function createReminderRowComponents(descriptionValue: string) {
 		.setCustomId(`time`)
 		.setLabel("Reminder Time")
 		.setStyle(TextInputStyle.Short)
-		.setMinLength(2)
 		.setPlaceholder("Enter any date format.")
 
 	const row = new ActionRowBuilder<TextInputBuilder>().addComponents(reminderMessageInput)

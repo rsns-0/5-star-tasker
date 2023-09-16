@@ -146,6 +146,7 @@ function convertReminder(reminder: reminders, entryIndex: number): ReminderCompo
 
 function createButton(entryIndex: number, reminder: reminders): PaginatedMessageAction {
 	const rows = createReminderRowComponents(reminder.reminder_message)
+
 	return {
 		style: ButtonStyle.Primary,
 		type: ComponentType.Button,
