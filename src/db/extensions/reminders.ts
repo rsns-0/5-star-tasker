@@ -90,7 +90,17 @@ export default Prisma.defineExtension((prisma) => {
 										created_at: webhook.createdAt,
 										token: webhook.token,
 										url: webhook.url,
-										discord_channel_id: channelId,
+										discord_channels: {
+											connectOrCreate: {
+												where: {
+													id: channelId,
+												},
+												create: {
+													id: channelId,
+													name: resolveChannelName(channel),
+												},
+											},
+										},
 									},
 								},
 							},
