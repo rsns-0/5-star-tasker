@@ -209,6 +209,13 @@ export class UserCommand extends Subcommand {
 		try {
 			await interaction.deferReply({ ephemeral: true })
 			const reminders = await prisma.reminders.getAllRemindersOfUser(interaction.user)
+			if (!reminders.length) {
+				await interaction.editReply({
+					message: "You have no reminders set.",
+				})
+				return
+			}
+
 			await ReminderPaginatedResponseBuilder.fromReminderData(reminders).run(
 				interaction,
 				interaction.user
