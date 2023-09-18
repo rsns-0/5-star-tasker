@@ -26,6 +26,7 @@ jobs:
         with:
           debug: false
           review_simple_changes: false
+          disable_review: true
           review_comment_lgtm: false
           summarize: |
             Provide your final response in markdown with the following content:
