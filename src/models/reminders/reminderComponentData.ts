@@ -109,9 +109,7 @@ export class ReminderPage extends Collection<bigint, ReminderComponentData> {
 	public toEmbedBuilder() {
 		const fields = this.map((component) => component.toEmbedField())
 		const embedBuilder = new EmbedBuilder()
-			.setAuthor({
-				name: "Reminder List",
-			})
+			.setTitle("Reminder List")
 			.setDescription("Edit your reminders.")
 			.setFields(fields)
 		return embedBuilder
@@ -146,12 +144,10 @@ function convertReminder(reminder: reminders, entryIndex: number): ReminderCompo
 
 function createButton(entryIndex: number, reminder: reminders): PaginatedMessageAction {
 	const rows = createReminderRowComponents(reminder.reminder_message)
-
 	return {
 		style: ButtonStyle.Primary,
 		type: ComponentType.Button,
 		label: `Option ${entryIndex + 1}`,
-
 		customId: `reminder-${reminder.id}`,
 		run(context: PaginatedMessageActionContext) {
 			const modal = new ModalBuilder()
@@ -166,7 +162,6 @@ function createButton(entryIndex: number, reminder: reminders): PaginatedMessage
 			context.interaction.showModal(modal)
 			context.interaction.replied = true
 			context.collector.stop("stopped")
-
 			return this
 		},
 	}

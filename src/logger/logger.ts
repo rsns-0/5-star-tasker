@@ -1,6 +1,7 @@
 import { createLogger, format, transports } from "winston"
 
 import prisma from "../db/prismaInstance"
+import serializeJavascript from "serialize-javascript"
 
 const dirname = "testLogs"
 
@@ -42,7 +43,7 @@ logger.on("info", async (info) => {
 })
 
 logger.on("debug", async (debug) => {
-	logger.debug(debug)
+	logger.debug(serializeJavascript(debug, { space: 4 }))
 	await prisma.logs.dump(debug)
 })
 

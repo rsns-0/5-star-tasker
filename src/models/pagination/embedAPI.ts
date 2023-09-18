@@ -70,13 +70,10 @@ const APIEmbedSchema = z
 	})
 	.passthrough()
 
-const reminderAPIEmbedSchema = APIEmbedSchema.required({
-	author: true,
-	fields: true,
-}).passthrough()
+
 
 const reminderEmbedBuilderPipeline = z.instanceof(EmbedBuilder).transform((embed, ctx) => {
-	const result = reminderAPIEmbedSchema.safeParse(embed.data)
+	const result = APIEmbedSchema.safeParse(embed.data)
 	if (!result.success) {
 		for (const issue of result.error.issues) {
 			ctx.addIssue(issue)
@@ -102,6 +99,5 @@ export {
 	APIEmbedThumbnailSchema,
 	APIEmbedVideoSchema,
 	pageSchema,
-	reminderAPIEmbedSchema,
 }
 

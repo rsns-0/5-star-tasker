@@ -1,15 +1,8 @@
 import { reminders } from "@prisma/client"
 
-
-
 import { ReminderPages } from "./ReminderPaginationDataCollection"
-import { pageSchema, reminderAPIEmbedSchema } from "../pagination/embedAPI"
+import { pageSchema } from "../pagination/embedAPI"
 import { PaginatedMessage } from "@sapphire/discord.js-utilities"
-import { EmbedBuilder } from "discord.js"
-
-const defaultEmbedBuilder = new EmbedBuilder()
-	.setColor("Blue")
-	.setAuthor({ name: "5StarTaskerPlaceholder" })
 
 /**
  * @example
@@ -70,9 +63,14 @@ const defaultEmbedBuilder = new EmbedBuilder()
  * 	}
  */
 export class ReminderPaginatedResponseBuilder extends PaginatedMessage {
+	public isExceeded = false
 	public static fromReminderData(reminders: reminders[], pageSize = 5) {
+		if (reminders.length >= 100) {
+			reminders = reminders.slice(0, 100)
+		}
 		const _pre = new this(ReminderPages.fromReminders(reminders, { pageSize }))
-		return this.generatePages(_pre)
+		_pre.isExceeded = true
+		return this.generatePages(_pre).addEndingMessages()
 	}
 
 	/**
@@ -82,9 +80,21 @@ export class ReminderPaginatedResponseBuilder extends PaginatedMessage {
 	 *   of reminder ID to reminder data.
 	 */
 	public constructor(public readonly reminderPages: ReminderPages) {
-		super({
-			template: defaultEmbedBuilder,
-		})
+		super()
+	}
+
+	public addEndingMessages() {
+		if (this.pages.length === 1) {
+			this.addPageEmbed((embed) => embed.setDescription("No further reminders to load."))
+		} else if (this.isExceeded) {
+			//TODO add website link
+			this.addPageEmbed((embed) =>
+				embed.setDescription(
+					"Max reminder display reached. Please use the website to view all of your reminders."
+				)
+			)
+		}
+		return this
 	}
 
 	private static generatePages(_pre: ReminderPaginatedResponseBuilder) {
@@ -105,7 +115,7 @@ export class ReminderPaginatedResponseBuilder extends PaginatedMessage {
 				return page.embeds
 			})
 
-		return reminderAPIEmbedSchema.array().parse(res)
+		return res
 	}
 
 	public getEmbedFieldsOfFirstPage() {

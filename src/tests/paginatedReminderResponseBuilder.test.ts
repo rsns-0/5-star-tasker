@@ -31,7 +31,11 @@ describe("page data generation", () => {
 		const msg = msgWithReminderData()
 		expect(msg.reminderPages.length).toBeTruthy()
 
-		const embedData = msg.getEmbedFieldsOfFirstPage()
+		const embedData = msg
+			.getEmbedFieldsOfFirstPage()
+			.filter(
+				(field): field is NonNullable<typeof field> => field !== null && field !== undefined
+			)
 		console.log(embedData[0])
 		console.log(embedData[1])
 		console.log(expected[0])
