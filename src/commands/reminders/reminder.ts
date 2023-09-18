@@ -1,29 +1,28 @@
-import { ApplyOptions,RequiresClientPermissions } from "@sapphire/decorators";
-
+import { ApplyOptions, RequiresClientPermissions } from "@sapphire/decorators"
 
 import {
-ActionRowBuilder,
-ChatInputCommandInteraction,
-DiscordAPIError,
-PermissionFlagsBits,
-SlashCommandBuilder,
-StringSelectMenuBuilder,
-} from "discord.js";
+	ActionRowBuilder,
+	ChatInputCommandInteraction,
+	DiscordAPIError,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+	StringSelectMenuBuilder,
+} from "discord.js"
 import {
-reminderExplanationEmbed,
-reminderFinishedEmbed,
-reminderSelectTimezoneEmbed,
-reminderSomethingWrongEmbed,
-reminderTimezoneRegisteredEmbed,
-} from "../../embeds/createReminderExplanationEmbed";
+	reminderExplanationEmbed,
+	reminderFinishedEmbed,
+	reminderSelectTimezoneEmbed,
+	reminderSomethingWrongEmbed,
+	reminderTimezoneRegisteredEmbed,
+} from "../../embeds/createReminderExplanationEmbed"
 import {
-timezonesNegatives,
-timezonesPositives,
-} from "../../features/reminders/selectBoxForTimezones";
+	timezonesNegatives,
+	timezonesPositives,
+} from "../../features/reminders/selectBoxForTimezones"
 
-import { Subcommand } from "@sapphire/plugin-subcommands";
+import { Subcommand } from "@sapphire/plugin-subcommands"
 
-import prisma from "../../db/prismaInstance";
+import prisma from "../../db/prismaInstance"
 import { timeStringToDayjsObj } from "../../services/timezoneService"
 
 import { container } from "@sapphire/framework"
@@ -59,7 +58,7 @@ const reminderData = new SlashCommandBuilder()
 	)
 	.addSubcommand((subcommand) =>
 		subcommand.setName("help").setDescription("Explanation of how to use /reminder")
-	);
+	)
 
 @ApplyOptions<Subcommand.Options>({
 	name: "reminder",
@@ -187,6 +186,7 @@ export class UserCommand extends Subcommand {
 					time: date,
 					reminderMessage: reminder,
 				})
+
 				await interaction.editReply({
 					embeds: [reminderFinishedEmbed(date, reminder)],
 				})
@@ -207,7 +207,6 @@ export class UserCommand extends Subcommand {
 	@RequiresClientPermissions([PermissionFlagsBits.EmbedLinks])
 	public async edit(interaction: ChatInputCommandInteraction) {
 		try {
-			
 			await interaction.deferReply({ ephemeral: true })
 			const reminders = await prisma.reminders.getAllRemindersOfUser(interaction.user)
 			await ReminderPaginatedResponseBuilder.fromReminderData(reminders).run(

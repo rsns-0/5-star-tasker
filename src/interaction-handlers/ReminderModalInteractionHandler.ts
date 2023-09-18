@@ -1,4 +1,4 @@
-import { ApplyOptions } from "@sapphire/decorators";
+import { ApplyOptions } from "@sapphire/decorators"
 import type { ModalSubmitInteraction } from "discord.js"
 
 import { InteractionHandler, InteractionHandlerTypes, ok } from "@sapphire/framework"
@@ -22,18 +22,29 @@ function getFormData(interaction: ModalSubmitInteraction) {
 export class ModalHandler extends InteractionHandler {
 	public async run(interaction: ModalSubmitInteraction, reminderId: bigint) {
 		const result = await ModalHandler.createReminderDataFromInteraction(interaction)
+
 		if (result.isErr()) {
-			
-			ModalHandler.rejectResponse(interaction, "You have not yet registered your timezone. Please set your timezone first." as const)
+			ModalHandler.rejectResponse(
+				interaction,
+				"You have not yet registered your timezone. Please set your timezone first." as const
+			)
 			return
 		}
-
-		await this.container.prisma.reminders.update({
-			where: {
-				id: reminderId,
-			},
-			data: result.unwrap(),
-		})
+		const userInput = getFormData(interaction)
+		if (userInput.time !== "0") {
+			await this.container.prisma.reminders.update({
+				where: {
+					id: reminderId,
+				},
+				data: result.unwrap(),
+			})
+		} else {
+			await this.container.prisma.reminders.delete({
+				where: {
+					id: reminderId,
+				},
+			})
+		}
 
 		await interaction.reply({
 			content: "Success!",
@@ -54,7 +65,6 @@ export class ModalHandler extends InteractionHandler {
 	}
 
 	public static async rejectResponse(interaction: ModalSubmitInteraction, message: string) {
-
 		return await interaction.reply({
 			content: message,
 			ephemeral: true,

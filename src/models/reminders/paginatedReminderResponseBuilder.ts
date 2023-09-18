@@ -1,7 +1,5 @@
 import { reminders } from "@prisma/client"
 
-
-
 import { ReminderPages } from "./ReminderPaginationDataCollection"
 import { pageSchema, reminderAPIEmbedSchema } from "../pagination/embedAPI"
 import { PaginatedMessage } from "@sapphire/discord.js-utilities"
