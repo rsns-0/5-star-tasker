@@ -18,7 +18,7 @@ export class ReminderPages extends Array<ReminderPage> {
 	 * @param options - The options for pagination.
 	 * @returns The paginated reminder collection.
 	 */
-	public static fromReminders(reminders: reminders[], { pageSize = 5 }) {
+	public static fromReminders(reminders: reminders[], { pageSize = 5 } = {}) {
 		const remindersPaginated = paginateArrays(reminders, pageSize)
 		const reminderData = new this()
 		remindersPaginated.forEach((reminderPageArray, index) => {
