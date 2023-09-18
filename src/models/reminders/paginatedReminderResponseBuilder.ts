@@ -1,7 +1,7 @@
 import { reminders } from "@prisma/client"
 
 import { ReminderPages } from "./ReminderPaginationDataCollection"
-import { pageSchema, reminderAPIEmbedSchema } from "../pagination/embedAPI"
+import { pageSchema } from "../pagination/embedAPI"
 import { PaginatedMessage } from "@sapphire/discord.js-utilities"
 
 /**
@@ -115,7 +115,7 @@ export class ReminderPaginatedResponseBuilder extends PaginatedMessage {
 				return page.embeds
 			})
 
-		return reminderAPIEmbedSchema.array().parse(res)
+		return res
 	}
 
 	public getEmbedFieldsOfFirstPage() {
