@@ -180,11 +180,13 @@ export class UserCommand extends Subcommand {
 				}
 
 				const date = timeStringToDayjsObj(timeString, userTimezone)
-				await prisma.reminders.createReminder({
-					channel: interaction.channel,
-					user: interaction.user,
-					time: date,
-					reminderMessage: reminder,
+				await prisma.reminders.createReminder((factory) => {
+					return factory.fromDiscord({
+						channel: interaction.channel!,
+						user: interaction.user,
+						time: date.toDate(),
+						reminderMessage: reminder,
+					})
 				})
 
 				await interaction.editReply({

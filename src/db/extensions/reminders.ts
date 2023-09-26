@@ -1,111 +1,23 @@
+import { CreateReminderFactoryFn } from "./../../types/types"
 import { Prisma, webhooks } from "@prisma/client"
 import { Channel, User, time, userMention } from "discord.js"
-import { WebhookService, assertWebhookChannel } from "../../services/webhookService"
 
 import { container } from "@sapphire/framework"
-import { Dayjs } from "dayjs"
+
 import extension from "prisma-paginate"
 import { logger } from "../../logger/logger"
+import { CreateReminderDTOFactory } from "../../models/reminders/create-reminder-dto"
 
-/**
- * The above type represents the arguments required to create a reminder.
- *
- * @property {string} reminderMessage - A string representing the message or
- *   content of the reminder.
- * @property {Dayjs} time - The `time` property represents the date and time at
- *   which the reminder should be triggered. It is of type `Dayjs`, which is a
- *   popular JavaScript library for manipulating and formatting dates and
- *   times.
- * @property {User} user - The user property represents the user for whom the
- *   reminder is being created. It could be an object containing information
- *   about the user, such as their username, ID, or any other relevant details.
- * @property {Channel} channel - The `channel` property represents a guild-based
- *   channel in a messaging platform. It could be a text channel in a Discord
- *   server or a channel in any other messaging platform that supports guilds or
- *   groups.
- */
-type CreateReminderArgs = {
-	reminderMessage: string
-	time: Dayjs
-	user: User
-	channel: Channel
-}
-const webhookService = new WebhookService()
 export default Prisma.defineExtension((prisma) => {
-	const gPrisma = prisma.$extends(extension)
+	const paginatePrisma = prisma.$extends(extension)
 	return prisma.$extends({
 		name: "reminderExtension",
 		model: {
 			reminders: {
-				/**
-				 * The function creates a reminder by connecting or creating a user and channel in
-				 * the database and saving the reminder message and time.
-				 *
-				 * @param {CreateReminderArgs} - - `reminderMessage`: The message content of the
-				 *   reminder.
-				 * @returns The result of the `prisma.reminders.create` method.
-				 */
-				async createReminder({ reminderMessage, time, user, channel }: CreateReminderArgs) {
-					const userId = user.id
-					const channelId = channel.id
-					assertWebhookChannel(channel)
+				async createReminder(props: CreateReminderFactoryFn) {
+					const dto = await props(new CreateReminderDTOFactory())
 
-					const webhook =
-						await webhookService.getOrCreateAnyOwnedWebhookInChannel(channel)
-
-					return prisma.reminders.create({
-						data: {
-							reminder_message: reminderMessage,
-							discord_user: {
-								connectOrCreate: {
-									where: {
-										id: userId,
-									},
-									create: {
-										id: userId,
-										username: user.username,
-									},
-								},
-							},
-							time: time.toDate(),
-							discord_channels: {
-								connectOrCreate: {
-									where: {
-										id: channelId,
-									},
-									create: {
-										id: channelId,
-										name: resolveChannelName(channel),
-									},
-								},
-							},
-							webhook: {
-								connectOrCreate: {
-									where: {
-										id: webhook.id,
-									},
-									create: {
-										id: webhook.id,
-										name: webhook.name,
-										created_at: webhook.createdAt,
-										token: webhook.token,
-										url: webhook.url,
-										discord_channels: {
-											connectOrCreate: {
-												where: {
-													id: channelId,
-												},
-												create: {
-													id: channelId,
-													name: resolveChannelName(channel),
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					})
+					return prisma.reminders.create(dto.generateCreateReminderInput())
 				},
 				/**
 				 * Retrieves reminders of a specific user.
@@ -128,7 +40,7 @@ export default Prisma.defineExtension((prisma) => {
 				},
 
 				async getUserRemindersPaginated(user: User) {
-					return gPrisma.reminders.paginate({
+					return paginatePrisma.reminders.paginate({
 						where: {
 							discord_user: {
 								id: user.id,
@@ -221,7 +133,7 @@ export default Prisma.defineExtension((prisma) => {
 	})
 })
 
-function resolveChannelName(channel: Channel): string {
+export function resolveChannelName(channel: Channel): string {
 	if (!("name" in channel) || !channel.name) {
 		return ""
 	}
