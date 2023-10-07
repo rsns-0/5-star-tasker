@@ -20,7 +20,7 @@ function getFormData(interaction: ModalSubmitInteraction) {
 	interactionHandlerType: InteractionHandlerTypes.ModalSubmit,
 })
 export class ModalHandler extends InteractionHandler {
-	public async run(interaction: ModalSubmitInteraction, reminderId: bigint) {
+	public async run(interaction: ModalSubmitInteraction, reminderId: number) {
 		const result = await ModalHandler.createReminderDataFromInteraction(interaction)
 
 		if (result.isErr()) {

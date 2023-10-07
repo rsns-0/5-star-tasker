@@ -55,6 +55,8 @@ __metadata:
     prisma: ^5.2.0
     prisma-paginate: ^5.1.1
     reflect-metadata: ^0.1.13
+    samp1: "workspace:^"
+    samp2: "workspace:^"
     serialize-javascript: ^6.0.1
     stacktrace-parser: ^0.1.10
     ts-node: ^10.9.1
@@ -5132,6 +5134,18 @@ __metadata:
   checksum: cab8f25ae6f1434abee8d80023d7e72b598cf1327164ddab31003c51215526801e40b66c5e65d658a0af1e9d6478cadcb4c745f4bd6751f97d8644786c0978b0
   languageName: node
   linkType: hard
+
+"samp1@workspace:^, samp1@workspace:packages/samp1":
+  version: 0.0.0-use.local
+  resolution: "samp1@workspace:packages/samp1"
+  languageName: unknown
+  linkType: soft
+
+"samp2@workspace:^, samp2@workspace:packages/samp2":
+  version: 0.0.0-use.local
+  resolution: "samp2@workspace:packages/samp2"
+  languageName: unknown
+  linkType: soft
 
 "semver-regex@npm:^4.0.5":
   version: 4.0.5

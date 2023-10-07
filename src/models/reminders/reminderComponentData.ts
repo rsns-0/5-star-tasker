@@ -21,7 +21,7 @@ import { createReminderRowComponents } from "./paginationRowData"
  */
 export class ReminderComponentData {
 	public index: number
-	public id: bigint
+	public id: number
 	public message: string
 	public time: Date
 	public button: PaginatedMessageAction
@@ -34,7 +34,7 @@ export class ReminderComponentData {
 		button,
 	}: {
 		index: number
-		id: bigint
+		id: number
 		message: string
 		time: Date
 		button: PaginatedMessageAction
@@ -77,25 +77,10 @@ export class ReminderComponentData {
 		} as const satisfies EmbedField
 		return embedField
 	}
-
-	// will review later to see if this format is better
-	// public convertReminderMessageToEmbedField(index: number) {
-	// 	const messageField = {
-	// 		name: "Reminder message",
-	// 		value: this.message,
-	// 		inline: false,
-	// 	} as const satisfies EmbedField;
-	// 	const timeField = {
-	// 		name: "Reminder Time",
-	// 		value: time(this.time),
-	// 		inline: false,
-	// 	} as const satisfies EmbedField;
-	// 	return [messageField, timeField] as const;
-	// }
 }
 
 /** A collection of reminder component data. Maps reminder ID to the component data. */
-export class ReminderPage extends Collection<bigint, ReminderComponentData> {
+export class ReminderPage extends Collection<number, ReminderComponentData> {
 	private constructor(public readonly index: number) {
 		super()
 	}

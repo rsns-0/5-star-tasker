@@ -69,11 +69,10 @@ const expected = {
 export const testCreateReminderDTOFactory = describe.skipIf(!process.env.RUN_BOT_TESTS)(
 	"fromGeneral",
 	() => {
-		let c: typeof container
+		
 		let factory: CreateReminderDTOFactory
 
 		beforeAll(() => {
-			c = container
 			const spy1 = vi.spyOn(container.client.channels, "fetch")
 			spy1.mockImplementation(async () => {
 				return {
