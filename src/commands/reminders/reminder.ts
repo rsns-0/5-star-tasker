@@ -103,6 +103,9 @@ export class UserCommand extends Subcommand {
 			const result = await prisma.discord_user.findUnique({
 				where: {
 					id: interaction.user.id,
+					timezones: {
+						isNot: null,
+					},
 				},
 				include: {
 					timezones: {
@@ -146,7 +149,6 @@ export class UserCommand extends Subcommand {
 						"info",
 						`User ${interaction.user.id} ${interaction.user.globalName} selected timezone ${confirmation.values[0]}`
 					)
-					await prisma.discord_user.registerUser(interaction.user)
 
 					const tzinfo = await prisma.timezones.findFirst({
 						where: {
@@ -158,14 +160,8 @@ export class UserCommand extends Subcommand {
 							"Assertion error: Timezone not found. Check to make sure the form field options align with the database data."
 						)
 					}
-					await prisma.discord_user.update({
-						where: {
-							id: interaction.user.id,
-						},
-						data: {
-							timezone_id: tzinfo?.id,
-						},
-					})
+					await prisma.discord_user.registerUserWithTimezone(interaction.user, tzinfo.id)
+
 					await interaction.followUp({
 						embeds: [reminderTimezoneRegisteredEmbed(tzinfo, timeString)],
 						ephemeral: true,

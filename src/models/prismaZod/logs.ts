@@ -11,7 +11,7 @@ export const logsSchema = z.object({
   created_at: z.date(),
   level: z.number().int(),
   message: z.string(),
-  unsafe_json: jsonSchema,
   json: jsonSchema,
   tags: z.string().array(),
+  unsafe_json: jsonSchema,
 })

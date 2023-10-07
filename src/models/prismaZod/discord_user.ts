@@ -13,6 +13,7 @@ export interface Completediscord_user extends z.infer<typeof discord_userSchema>
   discord_messages: Completediscord_messages[]
   timezones?: Completetimezones | null
   reminders: Completereminders[]
+  discord_guilds_joined: Completediscord_guilds[]
 }
 
 /**
@@ -25,4 +26,5 @@ export const relateddiscord_userSchema: z.ZodSchema<Completediscord_user> = z.la
   discord_messages: relateddiscord_messagesSchema.array(),
   timezones: relatedtimezonesSchema.nullish(),
   reminders: relatedremindersSchema.array(),
+  discord_guilds_joined: relateddiscord_guildsSchema.array(),
 }))

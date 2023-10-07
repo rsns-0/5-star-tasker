@@ -84,7 +84,7 @@ export default Prisma.defineExtension((prisma) => {
 				 * @param id - The ID of the reminder to delete.
 				 * @returns A promise that resolves to the deleted reminder.
 				 */
-				async deleteReminderById(id: number | bigint) {
+				async deleteReminderById(id: number) {
 					return prisma.reminders.delete({
 						where: {
 							id,

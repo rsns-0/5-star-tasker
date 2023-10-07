@@ -1,20 +1,21 @@
 import { container } from "@sapphire/framework";
-import { Channel, Guild } from "discord.js"
+import { Channel } from "discord.js"
 
 export class GuildService {
-	async getBotGuildById(id: string) {
+	getBotGuildById(id: string) {
 		return container.client.guilds.cache.get(id)
 	}
 
-	async getBotGuilds(filter: (guild: Guild) => boolean) {
-		return container.client.guilds.cache.filter(filter)
+	getBotGuilds() {
+		return container.client.guilds.cache
 	}
 
-	async findChannelInGuilds(channelId: string): Promise<Channel | null> {
-		const guilds = await this.getBotGuilds((guild) => {
+	findChannelInGuilds(channelId: string) {
+		const guilds = this.getBotGuilds().filter((guild) => {
 			const channel = guild.channels.cache.get(channelId)
 			return channel !== undefined
 		})
+
 		let channel: Channel | null = null
 		for (const guild of guilds.values()) {
 			const maybeChannel = guild.channels.cache.get(channelId)
