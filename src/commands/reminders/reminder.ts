@@ -181,6 +181,7 @@ export class UserCommand extends Subcommand {
 						channel: interaction.channel!,
 						user: interaction.user,
 						time: date.toDate(),
+						guild: interaction.guild!,
 						reminderMessage: reminder,
 					})
 				})

@@ -2,7 +2,8 @@ import { container } from "@sapphire/framework"
 
 import { CreateReminderDTOFactory } from "../../models/reminders/create-reminder-dto"
 import { WebhookService } from "../../services/webhookService"
-import { Channel } from "discord.js"
+
+import { Prisma } from "@prisma/client"
 
 const reminderMessage = "testremindermessage"
 const userId = "userid123"
@@ -10,12 +11,17 @@ const channelId = "channelid123"
 const webhookId = "webhookid123"
 const webhookName = "webhookname"
 const date = new Date("December 17, 2000 03:24:00")
+const guild = {
+	id: "guildid123",
+	name: "guildname",
+}
 
 const dummyChannelInfo = {
 	channelId: channelId,
 	reminder_message: reminderMessage,
 	time: date,
 	userId,
+	guild,
 }
 
 const expected = {
@@ -39,6 +45,17 @@ const expected = {
 				},
 				create: {
 					id: channelId,
+					discord_guilds: {
+						connectOrCreate: {
+							where: {
+								id: guild.id,
+							},
+							create: {
+								id: guild.id,
+								name: guild.name,
+							},
+						},
+					},
 				},
 			},
 		},
@@ -50,6 +67,7 @@ const expected = {
 				create: {
 					id: webhookId,
 					name: webhookName,
+					url: expect.any(String),
 					discord_channels: {
 						connectOrCreate: {
 							where: {
@@ -57,6 +75,17 @@ const expected = {
 							},
 							create: {
 								id: channelId,
+								discord_guilds: {
+									connectOrCreate: {
+										where: {
+											id: guild.id,
+										},
+										create: {
+											id: guild.id,
+											name: guild.name,
+										},
+									},
+								},
 							},
 						},
 					},
@@ -64,12 +93,11 @@ const expected = {
 			},
 		},
 	},
-}
+} satisfies Prisma.remindersCreateArgs
 
 export const testCreateReminderDTOFactory = describe.skipIf(!process.env.RUN_BOT_TESTS)(
 	"fromGeneral",
 	() => {
-		
 		let factory: CreateReminderDTOFactory
 
 		beforeAll(() => {
@@ -86,7 +114,11 @@ export const testCreateReminderDTOFactory = describe.skipIf(!process.env.RUN_BOT
 					isThread() {
 						return false
 					},
-				} as any satisfies Channel
+					guild: {
+						id: guild.id,
+						name: guild.name,
+					},
+				} as any
 			})
 			const mockService = new WebhookService()
 			mockService.getOrCreateAnyOwnedWebhookInChannel = vi.fn().mockResolvedValue({

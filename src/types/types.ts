@@ -1,4 +1,4 @@
-import { User, TextBasedChannel } from "discord.js"
+import { User, TextBasedChannel, Guild } from "discord.js"
 import { type DateTime } from "luxon"
 import {
 	CreateReminderDTO,
@@ -20,6 +20,10 @@ export type CreateReminderDTOConstructor = {
 		id: string
 		name: string
 	}
+	guild: {
+		id: string
+		name: string
+	}
 	user: {
 		id: string
 	}
@@ -36,6 +40,7 @@ export type CreateReminderArgsDiscord = {
 	time: Date
 	user: User
 	channel: TextBasedChannel
+	guild: Guild
 
 	type?: "discord"
 }

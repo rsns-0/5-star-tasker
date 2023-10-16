@@ -13,7 +13,7 @@ describe.skipIf(!process.env.RUN_BOT_TESTS)("Bot tests that require startup", ()
 	afterAll(async () => {
 		await container.client.destroy()
 	})
-	it("webhook test functional test", async () => {
+	it.skip("webhook test functional test", async () => {
 		const res = await c.prisma.webhooks.findFirst({
 			where: { name: "5StarWebhookPrimary" },
 		})

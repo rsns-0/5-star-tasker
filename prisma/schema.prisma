@@ -6,11 +6,11 @@ generator client {
 generator zod {
   provider              = "zod-prisma"
   output                = "../src/models/prismaZod"
-  prismaJsonNullability = "true"
   relationModel         = "true"
   useDecimalJs          = "true"
-  modelSuffix           = "Schema"
   modelCase             = "camelCase"
+  prismaJsonNullability = "true"
+  modelSuffix           = "Schema"
 }
 
 datasource db {
@@ -28,14 +28,15 @@ model unstructured_storage {
 }
 
 model webhooks {
-  id                 String           @id
-  created_at         DateTime         @default(now()) @db.Timestamptz(6)
-  name               String           @default("")
-  url                String           @unique
-  discord_channel_id String
-  token              String?          @unique
-  reminders          reminders[]
-  discord_channels   discord_channels @relation(fields: [discord_channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                  String                @id
+  created_at          DateTime              @default(now()) @db.Timestamptz(6)
+  name                String                @default("")
+  url                 String                @unique
+  discord_channel_id  String
+  token               String?               @unique
+  reminders           reminders[]
+  reminders_duplicate reminders_duplicate[]
+  discord_channels    discord_channels      @relation(fields: [discord_channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model countries {
@@ -49,14 +50,15 @@ model countries {
 }
 
 model discord_channels {
-  id               String             @id
-  name             String             @default("")
-  created_at       DateTime           @default(now()) @db.Timestamptz(6)
-  discord_guild_id String?
-  discord_guilds   discord_guilds?    @relation(fields: [discord_guild_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  discord_messages discord_messages[]
-  reminders        reminders[]
-  webhooks         webhooks[]
+  id                  String                @id
+  name                String                @default("")
+  created_at          DateTime              @default(now()) @db.Timestamptz(6)
+  discord_guild_id    String
+  discord_guilds      discord_guilds        @relation(fields: [discord_guild_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  discord_messages    discord_messages[]
+  reminders           reminders[]
+  reminders_duplicate reminders_duplicate[]
+  webhooks            webhooks[]
 }
 
 model reminders {
@@ -73,27 +75,29 @@ model reminders {
 }
 
 model discord_user {
-  id                    String             @id @unique
-  created_at            DateTime           @default(now()) @db.Timestamptz(6)
-  username              String?            @default("")
+  id                    String                @id @unique
+  created_at            DateTime              @default(now()) @db.Timestamptz(6)
+  username              String?               @default("")
   timezone_id           BigInt?
   discord_guilds        discord_guilds[]
   discord_messages      discord_messages[]
-  timezones             timezones?         @relation(fields: [timezone_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  timezones             timezones?            @relation(fields: [timezone_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   reminders             reminders[]
-  discord_guilds_joined discord_guilds[]   @relation("discord_guilds_members")
+  reminders_duplicate   reminders_duplicate[]
+  discord_guilds_joined discord_guilds[]      @relation("discord_guilds_members")
 }
 
 model discord_guilds {
-  id               String             @id
-  created_at       DateTime           @default(now()) @db.Timestamptz(6)
-  name             String             @default("")
-  owner_id         String?
-  iconURL          String?
-  discord_channels discord_channels[]
-  discord_user     discord_user?      @relation(fields: [owner_id], references: [id])
-  discord_messages discord_messages[]
-  members          discord_user[]     @relation("discord_guilds_members")
+  id                         String                       @id
+  created_at                 DateTime                     @default(now()) @db.Timestamptz(6)
+  name                       String                       @default("")
+  owner_id                   String?
+  iconURL                    String?
+  discord_channels           discord_channels[]
+  discord_channels_duplicate discord_channels_duplicate[]
+  discord_user               discord_user?                @relation(fields: [owner_id], references: [id])
+  discord_messages           discord_messages[]
+  members                    discord_user[]               @relation("discord_guilds_members")
 }
 
 model discord_messages {
@@ -135,13 +139,14 @@ model test_table {
 }
 
 model timezones {
-  id           BigInt         @id @unique @default(autoincrement())
-  created_at   DateTime       @default(now()) @db.Timestamptz(6)
-  label        String
-  description  String
-  emoji        String
-  value        String
-  discord_user discord_user[]
+  id                     BigInt                   @id @unique @default(autoincrement())
+  created_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  label                  String
+  description            String
+  emoji                  String
+  value                  String
+  discord_user           discord_user[]
+  discord_user_duplicate discord_user_duplicate[]
 }
 
 model logs {
@@ -258,6 +263,36 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model discord_channels_duplicate {
+  id               String         @id
+  name             String         @default("")
+  created_at       DateTime       @default(now()) @db.Timestamptz(6)
+  discord_guild_id String
+  discord_guilds   discord_guilds @relation(fields: [discord_guild_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model discord_user_duplicate {
+  id          String     @id @unique(map: "discord_user_duplicate_id_idx")
+  created_at  DateTime   @default(now()) @db.Timestamptz(6)
+  username    String?    @default("")
+  timezone_id BigInt?
+  timezones   timezones? @relation(fields: [timezone_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model reminders_duplicate {
+  created_at       DateTime         @default(now()) @db.Timestamptz(6)
+  user_id          String
+  channel_id       String
+  reminder_message String           @default("")
+  webhook_id       String
+  id               Int              @id @default(autoincrement())
+  time             DateTime         @db.Timestamptz(6)
+  discord_channels discord_channels @relation(fields: [channel_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  discord_user     discord_user     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  webhooks         webhooks         @relation(fields: [webhook_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 enum continents {

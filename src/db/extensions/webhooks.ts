@@ -29,11 +29,22 @@ export default Prisma.defineExtension((prisma) => {
 									create: {
 										id: channel.id,
 										name: channel.name,
+										discord_guilds: {
+											connectOrCreate: {
+												where: {
+													id: channel.guild.id,
+												},
+												create: {
+													id: channel.guild.id,
+													name: channel.guild.name,
+												},
+											},
+										},
 									},
 								},
 							},
 						},
-					});
+					})
 				},
 				async deleteWebhookInDiscordAndDatabase(webhookId: string) {
 					await webhookService.deleteWebhookById(webhookId);
@@ -60,6 +71,17 @@ export default Prisma.defineExtension((prisma) => {
 									create: {
 										id: webhook.channelId,
 										name: webhook.channel?.name,
+										discord_guilds:{
+											connectOrCreate: {
+												where: {
+													id: webhook.guildId,
+												},
+												create: {
+													id: webhook.guildId,
+													name: webhook.sourceGuild?.name,
+												},
+											},
+										}
 									},
 								},
 							},

@@ -27,6 +27,10 @@ export class CreateReminderDTOFactory {
 				id: props.channel.id,
 				name: resolveChannelName(props.channel),
 			},
+			guild: {
+				id: props.guild.id,
+				name: props.guild.name,
+			},
 			user: {
 				id: props.user.id,
 			},
@@ -51,6 +55,10 @@ export class CreateReminderDTOFactory {
 			channel: {
 				id: props.channelId,
 				name: channel.name,
+			},
+			guild: {
+				id: channel.guild.id,
+				name: channel.guild.name,
 			},
 			user: {
 				id: props.userId,
@@ -89,6 +97,17 @@ export class CreateReminderDTO {
 					create: {
 						id: this.data.channel.id,
 						name: this.data.channel.name,
+						discord_guilds: {
+							connectOrCreate: {
+								where: {
+									id: this.data.guild.id,
+								},
+								create: {
+									id: this.data.guild.id,
+									name: this.data.guild.name,
+								},
+							},
+						},
 					},
 				},
 			} satisfies Prisma.remindersCreateArgs["data"]["discord_channels"],
@@ -128,6 +147,17 @@ export class CreateReminderDTO {
 								create: {
 									id: this.data.channel.id,
 									name: this.data.channel.name,
+									discord_guilds: {
+										connectOrCreate: {
+											where: {
+												id: this.data.guild.id,
+											},
+											create: {
+												id: this.data.guild.id,
+												name: this.data.guild.name,
+											},
+										},
+									},
 								},
 							},
 						},
