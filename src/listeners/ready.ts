@@ -3,31 +3,33 @@ import { ApplyOptions } from "@sapphire/decorators";
 import { Listener, Store } from "@sapphire/framework";
 
 import { blue, gray, green, magenta, magentaBright, white, yellow } from "colorette";
+import { GuildAndChannelService } from "../services/guild-and-channel-service"
 
-const dev = process.env.NODE_ENV !== "production";
+const dev = process.env.NODE_ENV !== "production"
 
 @ApplyOptions<Listener.Options>({ once: true })
 export class UserEvent extends Listener {
-	private readonly style = dev ? yellow : blue;
+	private guildAndChannelService = new GuildAndChannelService()
+	private readonly style = dev ? yellow : blue
 
 	public override run() {
-		this.printBanner();
-		this.printStoreDebugInformation();
-		this.runStartupTasks();
+		this.printBanner()
+		this.printStoreDebugInformation()
+		this.runStartupTasks()
 	}
 
 	private printBanner() {
-		const success = green("+");
+		const success = green("+")
 
-		const llc = dev ? magentaBright : white;
-		const blc = dev ? magenta : blue;
+		const llc = dev ? magentaBright : white
+		const blc = dev ? magenta : blue
 
-		const line01 = llc("");
-		const line02 = llc("");
-		const line03 = llc("");
+		const line01 = llc("")
+		const line02 = llc("")
+		const line03 = llc("")
 
 		// Offset Pad
-		const pad = " ".repeat(7);
+		const pad = " ".repeat(7)
 
 		console.log(
 			String.raw`
@@ -35,16 +37,16 @@ ${line01} ${pad}${blc("1.0.0")}
 ${line02} ${pad}[${success}] Gateway
 ${line03}${dev ? ` ${pad}${blc("<")}${llc("/")}${blc(">")} ${llc("DEVELOPMENT MODE")}` : ""}
 		`.trim()
-		);
+		)
 	}
 
 	private printStoreDebugInformation() {
-		const { client, logger } = this.container;
-		const stores = [...client.stores.values()];
-		const last = stores.pop()!;
+		const { client, logger } = this.container
+		const stores = [...client.stores.values()]
+		const last = stores.pop()!
 
-		for (const store of stores) logger.info(this.styleStore(store, false));
-		logger.info(this.styleStore(last, true));
+		for (const store of stores) logger.info(this.styleStore(store, false))
+		logger.info(this.styleStore(last, true))
 	}
 
 	private styleStore(store: Store<any>, last: boolean) {
@@ -52,11 +54,16 @@ ${line03}${dev ? ` ${pad}${blc("<")}${llc("/")}${blc(">")} ${llc("DEVELOPMENT MO
 			`${last ? "└─" : "├─"} Loaded ${this.style(store.size.toString().padEnd(3, " "))} ${
 				store.name
 			}.`
-		);
+		)
 	}
 
 	private async runStartupTasks() {
-		const c = this.container;
-		setInterval(() => c.prisma.reminders.sendDueReminders(), 1000 * 60); // every minute, exact interval will deviate gradually in a long running server but since precision is not important this is fine
+		const c = this.container
+		c.dbLogger.info("Starting startup tasks...")
+
+		setInterval(() => this.guildAndChannelService.updateDb(), 1000 * 60 * 10) // every 10 minutes
+		setInterval(() => c.prisma.reminders.sendDueReminders(), 1000 * 60) // every minute, exact interval will deviate gradually in a long running server but since precision is not important this is fine
+		await this.guildAndChannelService.updateDb()
+		c.dbLogger.info("Finished startup tasks.")
 	}
 }

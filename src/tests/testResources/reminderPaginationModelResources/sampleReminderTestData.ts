@@ -2,11 +2,11 @@ import { _01_01_2050_unix, _02_01_2050_unix } from "./constants";
 
 import { Prisma, reminders } from "@prisma/client"
 import Decimal from "decimal.js"
-import { Collection } from "discord.js"
+
 
 export const sampleReminderTestData: reminders[] = [
 	{
-		id: BigInt(94),
+		id: 94,
 		created_at: new Date("2050-01-01T10:00:00Z"),
 		user_id: "11111",
 		channel_id: "44444",
@@ -15,7 +15,7 @@ export const sampleReminderTestData: reminders[] = [
 		webhook_id: "webhook1",
 	},
 	{
-		id: BigInt(96),
+		id: 96,
 		created_at: new Date("2050-02-01T12:00:00Z"),
 		user_id: "11111",
 		channel_id: "55555",
@@ -24,7 +24,7 @@ export const sampleReminderTestData: reminders[] = [
 		webhook_id: "webhook2",
 	},
 	{
-		id: BigInt(1),
+		id: 1,
 		created_at: new Date("2050-01-01T10:00:00Z"),
 		user_id: "11111",
 		channel_id: "44444",
@@ -33,7 +33,7 @@ export const sampleReminderTestData: reminders[] = [
 		webhook_id: "webhook1",
 	},
 	{
-		id: BigInt(2),
+		id: 2,
 		created_at: new Date("2050-01-02T12:00:00Z"),
 		user_id: "11111",
 		channel_id: "55555",
@@ -42,7 +42,7 @@ export const sampleReminderTestData: reminders[] = [
 		webhook_id: "webhook2",
 	},
 	{
-		id: BigInt(3),
+		id: 3,
 		created_at: new Date("2050-01-03T14:00:00Z"),
 		user_id: "22222",
 		channel_id: "66666",
@@ -51,7 +51,7 @@ export const sampleReminderTestData: reminders[] = [
 		webhook_id: "webhook3",
 	},
 	{
-		id: BigInt(4),
+		id: 4,
 		created_at: new Date("2050-01-04T16:00:00Z"),
 		user_id: "22222",
 		channel_id: "77777",
@@ -60,7 +60,7 @@ export const sampleReminderTestData: reminders[] = [
 		webhook_id: "webhook4",
 	},
 	{
-		id: BigInt(5),
+		id: 5,
 		created_at: new Date("2050-01-05T18:00:00Z"),
 		user_id: "22222",
 		channel_id: "88888",
@@ -69,7 +69,7 @@ export const sampleReminderTestData: reminders[] = [
 		webhook_id: "webhook5",
 	},
 	{
-		id: BigInt(6),
+		id: 6,
 		created_at: new Date("2050-01-06T20:00:00Z"),
 		user_id: "66666",
 		channel_id: "99999",
@@ -78,7 +78,7 @@ export const sampleReminderTestData: reminders[] = [
 		webhook_id: "webhook6",
 	},
 	{
-		id: BigInt(7),
+		id: 7,
 		created_at: new Date("2050-01-07T22:00:00Z"),
 		user_id: "77777",
 		channel_id: "15432",
@@ -87,7 +87,7 @@ export const sampleReminderTestData: reminders[] = [
 		webhook_id: "webhook7",
 	},
 	{
-		id: BigInt(8),
+		id: 8,
 		created_at: new Date("2050-01-08T00:00:00Z"),
 		user_id: "88888",
 		channel_id: "11111",
@@ -96,7 +96,7 @@ export const sampleReminderTestData: reminders[] = [
 		webhook_id: "webhook8",
 	},
 	{
-		id: BigInt(9),
+		id: 9,
 		created_at: new Date("2050-01-09T02:00:00Z"),
 		user_id: "99999",
 		channel_id: "22222",
@@ -105,7 +105,7 @@ export const sampleReminderTestData: reminders[] = [
 		webhook_id: "webhook9",
 	},
 	{
-		id: BigInt(10),
+		id: 10,
 		created_at: new Date("2050-01-10T04:00:00Z"),
 		user_id: "00000",
 		channel_id: "33333",
@@ -113,7 +113,224 @@ export const sampleReminderTestData: reminders[] = [
 		time: new Date(new Decimal(33333).toNumber() * 1000),
 		webhook_id: "webhook10",
 	},
+	{
+		id: 94,
+		created_at: new Date("2050-01-01T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "44444",
+		reminder_message: "hello world",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook1",
+	},
+	{
+		id: 95,
+		created_at: new Date("2050-01-02T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141063348729930000",
+		reminder_message: "test reminder 1",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook2",
+	},
+	{
+		id: 96,
+		created_at: new Date("2050-01-03T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141069949981430000",
+		reminder_message: "test reminder 2",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook3",
+	},
+	{
+		id: 97,
+		created_at: new Date("2050-01-04T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141072086945760000",
+		reminder_message: "test reminder 3",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook4",
+	},
+	{
+		id: 98,
+		created_at: new Date("2050-01-05T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141073414271010000",
+		reminder_message: "test reminder 4",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook5",
+	},
+	{
+		id: 99,
+		created_at: new Date("2050-01-06T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141074519721770000",
+		reminder_message: "test reminder 5",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook6",
+	},
+	{
+		id: 100,
+		created_at: new Date("2050-01-07T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141074539472740000",
+		reminder_message: "test reminder 6",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook7",
+	},
+	{
+		id: 101,
+		created_at: new Date("2050-01-08T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141074549954330000",
+		reminder_message: "test reminder 7",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook8",
+	},
+	{
+		id: 102,
+		created_at: new Date("2050-01-09T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141074560758850000",
+		reminder_message: "test reminder 8",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook9",
+	},
+	{
+		id: 103,
+		created_at: new Date("2050-01-10T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141074625678270000",
+		reminder_message: "test reminder 9",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook10",
+	},
+	{
+		id: 104,
+		created_at: new Date("2050-01-11T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141075159768360000",
+		reminder_message: "test reminder 10",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook11",
+	},
+	{
+		id: 105,
+		created_at: new Date("2050-01-12T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141075563541430000",
+		reminder_message: "test reminder 11",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook12",
+	},
+	{
+		id: 106,
+		created_at: new Date("2050-01-13T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141076227399100000",
+		reminder_message: "test reminder 12",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook13",
+	},
+	{
+		id: 107,
+		created_at: new Date("2050-01-14T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141078592680370000",
+		reminder_message: "test reminder 13",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook14",
+	},
+	{
+		id: 108,
+		created_at: new Date("2050-01-15T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141080138918920000",
+		reminder_message: "test reminder 14",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook15",
+	},
+	{
+		id: 109,
+		created_at: new Date("2050-01-16T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141080236268730000",
+		reminder_message: "test reminder 15",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook16",
+	},
+	{
+		id: 110,
+		created_at: new Date("2050-01-17T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141110604766130000",
+		reminder_message: "test reminder 16",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook17",
+	},
+	{
+		id: 111,
+		created_at: new Date("2050-01-18T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141613606279060000",
+		reminder_message: "test reminder 17",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook18",
+	},
+	{
+		id: 112,
+		created_at: new Date("2050-01-19T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1153526434254560000",
+		reminder_message: "test reminder 18",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook19",
+	},
+	{
+		id: 113,
+		created_at: new Date("2050-01-20T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141062843467320000",
+		reminder_message: "test reminder 19",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook20",
+	},
+	{
+		id: 114,
+		created_at: new Date("2050-01-21T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141063045792150000",
+		reminder_message: "test reminder 20",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook21",
+	},
+	{
+		id: 115,
+		created_at: new Date("2050-01-22T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141063185143690000",
+		reminder_message: "test reminder 21",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook22",
+	},
+	{
+		id: 116,
+		created_at: new Date("2050-01-23T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141073083793400000",
+		reminder_message: "test reminder 22",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook23",
+	},
+	{
+		id: 117,
+		created_at: new Date("2050-01-24T10:00:00Z"),
+		user_id: "11111",
+		channel_id: "1141063217716660000",
+		reminder_message: "test reminder 23",
+		time: new Date(new Decimal(_01_01_2050_unix).toNumber() * 1000),
+		webhook_id: "webhook24",
+	},
 ]
+
 
 export const user11111 = {
 	id: "11111",
@@ -147,12 +364,3 @@ export const userData: Prisma.discord_userCreateManyInput[] = [
 		username: "testUser_00000",
 	},
 ]
-function _initMappings() {
-	const _reminderDataMappings = new Collection<string, reminders>()
-
-	for (const entry of sampleReminderTestData) {
-		_reminderDataMappings.set(entry.id.toString(), entry)
-	}
-}
-
-export const reminderDataMappings = _initMappings()

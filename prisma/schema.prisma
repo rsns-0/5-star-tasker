@@ -6,11 +6,11 @@ generator client {
 generator zod {
   provider              = "zod-prisma"
   output                = "../src/models/prismaZod"
-  useDecimalJs          = "true"
-  relationModel         = "true"
-  modelCase             = "camelCase"
   prismaJsonNullability = "true"
+  relationModel         = "true"
+  useDecimalJs          = "true"
   modelSuffix           = "Schema"
+  modelCase             = "camelCase"
 }
 
 datasource db {
@@ -65,7 +65,7 @@ model reminders {
   channel_id       String
   reminder_message String           @default("")
   webhook_id       String
-  id               BigInt           @id @default(autoincrement())
+  id               Int              @id @default(autoincrement())
   time             DateTime         @db.Timestamptz(6)
   discord_channels discord_channels @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   discord_user     discord_user     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -73,14 +73,15 @@ model reminders {
 }
 
 model discord_user {
-  id               String             @id @unique
-  created_at       DateTime           @default(now()) @db.Timestamptz(6)
-  username         String?            @default("")
-  timezone_id      BigInt?
-  discord_guilds   discord_guilds[]
-  discord_messages discord_messages[]
-  timezones        timezones?         @relation(fields: [timezone_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  reminders        reminders[]
+  id                    String             @id @unique
+  created_at            DateTime           @default(now()) @db.Timestamptz(6)
+  username              String?            @default("")
+  timezone_id           BigInt?
+  discord_guilds        discord_guilds[]
+  discord_messages      discord_messages[]
+  timezones             timezones?         @relation(fields: [timezone_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reminders             reminders[]
+  discord_guilds_joined discord_guilds[]   @relation("discord_guilds_members")
 }
 
 model discord_guilds {
@@ -88,9 +89,11 @@ model discord_guilds {
   created_at       DateTime           @default(now()) @db.Timestamptz(6)
   name             String             @default("")
   owner_id         String?
+  iconURL          String?
   discord_channels discord_channels[]
-  discord_user     discord_user?      @relation(fields: [owner_id], references: [id], onUpdate: NoAction)
+  discord_user     discord_user?      @relation(fields: [owner_id], references: [id])
   discord_messages discord_messages[]
+  members          discord_user[]     @relation("discord_guilds_members")
 }
 
 model discord_messages {
@@ -211,6 +214,50 @@ model test_pagination {
   name       String?  @default("")
   value      BigInt?  @default(0)
   text       String?  @default("")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  providerAccountId String
+  access_token      String?
+  expires_at        Int?
+  id_token          String?
+  provider          String
+  refresh_token     String?
+  scope             String?
+  session_state     String?
+  token_type        String?
+  type              String
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  expires      DateTime
+  sessionToken String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 enum continents {

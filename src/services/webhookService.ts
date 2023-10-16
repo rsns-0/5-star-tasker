@@ -304,3 +304,13 @@ export function assertWebhookChannel(channel: Channel): asserts channel is Webho
 		);
 	}
 }
+
+export function createWebhookEntry(webhook: OwnedWebhook) {
+	return {
+		id: webhook.id,
+		name: webhook.name,
+		created_at: webhook.createdAt,
+		token: webhook.token,
+		url: webhook.url,
+	}
+}

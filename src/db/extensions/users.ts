@@ -1,21 +1,42 @@
 import { err, ok } from "@sapphire/framework";
 
 import { Prisma } from "@prisma/client";
-import { User } from "discord.js";
+import { GuildMember, User } from "discord.js"
 
 export default Prisma.defineExtension((prisma) => {
 	return prisma.$extends({
 		name: "userExtension",
 		model: {
 			discord_user: {
-				async registerUser(user: User) {
-					return prisma.discord_user.create({
-						data: {
+				async registerUserWithTimezone(user: User, timezoneId: number | bigint | string) {
+					if (typeof timezoneId === "string") {
+						timezoneId = BigInt(timezoneId)
+					}
+
+					return prisma.discord_user.upsert({
+						where: {
+							id: user.id,
+						},
+						update: {
+							timezones: {
+								connect: {
+									id: timezoneId,
+								},
+							},
+						},
+						create: {
 							id: user.id,
 							username: user.username,
+
+							timezones: {
+								connect: {
+									id: timezoneId,
+								},
+							},
 						},
 					})
 				},
+
 				async getUserTimezone(user: User) {
 					const result = await prisma.discord_user.findUnique({
 						where: {
@@ -59,7 +80,31 @@ export default Prisma.defineExtension((prisma) => {
 					}
 					return ok(result.timezones.value)
 				},
+
+				unsafeRegister(member: GuildMember) {
+					return prisma.discord_user.upsert({
+						select: { id: true },
+						where: { id: member.id },
+						create: {
+							id: member.id,
+							username: member.user.username,
+							discord_guilds_joined: {
+								connect: {
+									id: member.guild.id,
+								},
+							},
+						},
+						update: {
+							username: member.user.username,
+							discord_guilds_joined: {
+								connect: {
+									id: member.guild.id,
+								},
+							},
+						},
+					})
+				},
 			},
 		},
 	})
-});
+})

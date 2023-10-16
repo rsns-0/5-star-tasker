@@ -5,7 +5,12 @@
 		"outDir": "dist",
 		"baseUrl": "src",
 		"paths": {
-			"#lib/*": ["./lib/*"]
+			"#lib/*": [
+				"./lib/*"
+			],
+			"#packages/*": [
+				"./packages/*"
+			],
 		},
 		"tsBuildInfoFile": "dist/.tsbuildinfo",
 		"types": ["vitest/globals"],

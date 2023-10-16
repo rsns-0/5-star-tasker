@@ -2,13 +2,13 @@ import * as z from "zod"
 import { Completediscord_channels, relateddiscord_channelsSchema, Completediscord_user, relateddiscord_userSchema, Completewebhooks, relatedwebhooksSchema } from "./index"
 
 export const remindersSchema = z.object({
-  id: z.bigint(),
   created_at: z.date(),
   user_id: z.string(),
   channel_id: z.string(),
   reminder_message: z.string(),
-  time: z.date(),
   webhook_id: z.string(),
+  id: z.number().int(),
+  time: z.date(),
 })
 
 export interface Completereminders extends z.infer<typeof remindersSchema> {
