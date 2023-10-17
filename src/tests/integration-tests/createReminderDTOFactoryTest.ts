@@ -5,6 +5,7 @@ import { WebhookService } from "../../services/webhookService"
 
 import { Prisma } from "@prisma/client"
 
+
 const reminderMessage = "testremindermessage"
 const userId = "userid123"
 const channelId = "channelid123"
@@ -15,6 +16,8 @@ const guild = {
 	id: "guildid123",
 	name: "guildname",
 }
+const token = "token123"
+const url = "asd"
 
 const dummyChannelInfo = {
 	channelId: channelId,
@@ -67,7 +70,9 @@ const expected = {
 				create: {
 					id: webhookId,
 					name: webhookName,
-					url: expect.any(String),
+					token,
+
+					url,
 					discord_channels: {
 						connectOrCreate: {
 							where: {
@@ -124,6 +129,8 @@ export const testCreateReminderDTOFactory = describe.skipIf(!process.env.RUN_BOT
 			mockService.getOrCreateAnyOwnedWebhookInChannel = vi.fn().mockResolvedValue({
 				id: webhookId,
 				name: webhookName,
+				token,
+				url,
 			})
 
 			factory = new CreateReminderDTOFactory(mockService)

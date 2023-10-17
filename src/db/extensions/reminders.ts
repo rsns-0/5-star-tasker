@@ -16,6 +16,7 @@ export default Prisma.defineExtension((prisma) => {
 			reminders: {
 				async createReminder(props: CreateReminderFactoryFn) {
 					const dto = await props(new CreateReminderDTOFactory())
+					console.log(JSON.stringify(dto.generateCreateReminderInput(), null, 4))
 
 					return prisma.reminders.create(dto.generateCreateReminderInput())
 				},
