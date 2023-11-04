@@ -3,13 +3,6 @@ generator client {
   previewFeatures = ["views"]
 }
 
-// generator kysely {
-//   provider     = "prisma-kysely"
-//   output       = "../src/db"
-//   fileName     = "types.ts"
-//   enumFileName = "enums.ts"
-// }
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -609,37 +602,31 @@ view rest_countries_calculations_aggregated {
   @@ignore
 }
 
-
 view rest_countries_to_cia_calculation_data_with_score_policy {
-  id                     Int @unique
+  id                     Int  @unique
+  cia_country_id         Int
   ratio                  Int
   token_set_ratio        Int
-  cia_country_id         Int
   rest_countries_name_id Int
-
-  
+  maximum_score          Int?
 }
 
-
 view rest_countries_to_wiki_calculation_data_with_score_policy {
-  id                     Int @unique
+  id                     Int  @unique
   wiki_country_id        Int
   ratio                  Int
   token_set_ratio        Int
   rest_countries_name_id Int
-
-  
+  maximum_score          Int?
 }
 
-
 view cia_to_wiki_calculation_data_with_score_policy {
-  id              Int @unique
+  id              Int  @unique
   cia_country_id  Int
   wiki_country_id Int
   ratio           Int
   token_set_ratio Int
-
-  
+  maximum_score   Int?
 }
 
 enum roles {
