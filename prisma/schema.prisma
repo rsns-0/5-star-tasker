@@ -3,12 +3,12 @@ generator client {
   previewFeatures = ["views"]
 }
 
-generator kysely {
-  provider     = "prisma-kysely"
-  output       = "../src/db"
-  fileName     = "types.ts"
-  enumFileName = "enums.ts"
-}
+// generator kysely {
+//   provider     = "prisma-kysely"
+//   output       = "../src/db"
+//   fileName     = "types.ts"
+//   enumFileName = "enums.ts"
+// }
 
 datasource db {
   provider = "postgresql"
