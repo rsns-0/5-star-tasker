@@ -1,10 +1,9 @@
 import { container } from "@sapphire/framework"
 
-import { CreateReminderDTOFactory } from "../../models/reminders/create-reminder-dto"
+import { CreateReminderDTOBuilderFactory } from "../../models/reminders/create-reminder-dto"
 import { WebhookService } from "../../services/webhookService"
 
 import { Prisma } from "@prisma/client"
-
 
 const reminderMessage = "testremindermessage"
 const userId = "userid123"
@@ -103,7 +102,7 @@ const expected = {
 export const testCreateReminderDTOFactory = describe.skipIf(!process.env.RUN_BOT_TESTS)(
 	"fromGeneral",
 	() => {
-		let factory: CreateReminderDTOFactory
+		let factory: CreateReminderDTOBuilderFactory
 
 		beforeAll(() => {
 			const spy1 = vi.spyOn(container.client.channels, "fetch")
@@ -133,7 +132,7 @@ export const testCreateReminderDTOFactory = describe.skipIf(!process.env.RUN_BOT
 				url,
 			})
 
-			factory = new CreateReminderDTOFactory(mockService)
+			factory = new CreateReminderDTOBuilderFactory(mockService)
 		})
 
 		afterAll(() => {

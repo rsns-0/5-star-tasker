@@ -3,14 +3,11 @@ generator client {
   previewFeatures = ["views"]
 }
 
-generator zod {
-  provider              = "zod-prisma"
-  output                = "../src/models/prismaZod"
-  relationModel         = "true"
-  useDecimalJs          = "true"
-  modelCase             = "camelCase"
-  prismaJsonNullability = "true"
-  modelSuffix           = "Schema"
+generator kysely {
+  provider     = "prisma-kysely"
+  output       = "../src/db"
+  fileName     = "types.ts"
+  enumFileName = "enums.ts"
 }
 
 datasource db {
@@ -41,9 +38,9 @@ model webhooks {
 
 model countries {
   id         BigInt      @id(map: "countries_pkey2") @default(autoincrement())
-  name       String?
-  iso2       String
-  iso3       String?
+  name       String
+  iso2       String      @unique
+  iso3       String      @unique
   local_name String?
   continent  continents?
   flag       String?
@@ -112,16 +109,6 @@ model discord_messages {
   discord_user       discord_user?     @relation(fields: [owner_id], references: [id], onUpdate: NoAction)
 }
 
-model languages {
-  id                     BigInt                @id @default(autoincrement())
-  created_at             DateTime              @default(now()) @db.Timestamptz(6)
-  name                   String                @unique
-  iso_639_1              String                @unique
-  iso_639_2              String                @unique
-  is_supported_by_deep_l Boolean?              @default(false)
-  discord_flag_emojis    discord_flag_emojis[]
-}
-
 model test_countries {
   id         BigInt  @id(map: "countries_pkey") @default(autoincrement())
   name       String?
@@ -167,50 +154,55 @@ model countries_old {
   language_id BigInt?
 }
 
-model rest_countries_api_data {
-  id           Int      @id(map: "RestCountriesAPIData_pkey") @default(autoincrement())
-  cca2         String
-  ccn3         String?
-  cca3         String
-  cioc         String?
-  independent  Boolean?
-  unMember     Boolean
-  capital      String[]
-  altSpellings String[]
-  subregion    String?
-  languages    Json?
-  translations Json
-  latlng       Float[]
-  landlocked   Boolean
-  borders      String[]
-  area         Float
-  flag         String
-  population   Int
-  gini         Json?
-  fifa         String?
-  timezones    String[]
-  capitalInfo  Json
-  car          Json
-  coatOfArms   Json
-  flags        Json
-  idd          Json
-  maps         Json
-  name         Json
-  postalCode   Json?
-  status       String
-  region       Json
-  continents   Json[]
-  startOfWeek  Json
-  currencies   Json?
-  demonyms     Json?
+model rest_countries_api_new_data {
+  id                               Int                                 @id @default(autoincrement())
+  cca2                             String
+  ccn3                             String?
+  cca3                             String
+  cioc                             String?
+  independent                      Boolean?
+  unMember                         Boolean
+  capital                          String[]
+  altSpellings                     String[]
+  subregion                        String?
+  translations                     Json
+  latlng                           Float[]
+  landlocked                       Boolean
+  borders                          String[]
+  area                             Float
+  flag                             String
+  population                       Int
+  gini                             Json?
+  fifa                             String?
+  timezones                        String[]
+  capitalInfo                      Json
+  car                              Json
+  coatOfArms                       Json
+  flags                            Json
+  idd                              Json
+  maps                             Json
+  name                             String
+  postalCode                       Json?
+  status                           String
+  region                           String
+  continents                       String[]
+  startOfWeek                      Json
+  currencies                       Json?
+  demonyms                         Json?
+  rest_countries_api_data_names_id Int                                 @unique
+  rest_countries_api_data_names    rest_countries_api_data_names       @relation(fields: [rest_countries_api_data_names_id], references: [id])
+  languages                        rest_countries_api_data_languages[] @relation("rest_countries_api_data_languagesTorest_countries_api_new_data")
 }
 
-model discord_flag_emojis {
-  id          BigInt     @id @default(autoincrement())
-  created_at  DateTime   @default(now()) @db.Timestamptz(6)
-  value       String     @unique
-  languagesId BigInt?
-  language    languages? @relation(fields: [languagesId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+model rest_countries_api_data_names {
+  id                                      Int                                       @id @default(autoincrement())
+  common                                  String                                    @unique
+  official                                String                                    @unique
+  nativeName                              Json
+  ProcessedLangData                       ProcessedLangData?
+  rest_countries_api_new_data             rest_countries_api_new_data?
+  rest_countries_to_cia_calculation_data  rest_countries_to_cia_calculation_data[]
+  rest_countries_to_wiki_calculation_data rest_countries_to_wiki_calculation_data[]
 }
 
 model test_pagination {
@@ -253,6 +245,7 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  role          roles     @default(user)
   accounts      Account[]
   sessions      Session[]
 }
@@ -293,6 +286,365 @@ model reminders_duplicate {
   discord_channels discord_channels @relation(fields: [channel_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   discord_user     discord_user     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   webhooks         webhooks         @relation(fields: [webhook_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model rest_countries_api_data_languages {
+  id                          Int                           @id @default(autoincrement())
+  name                        String                        @unique
+  abbreviation                String                        @unique
+  rest_countries_api_new_data rest_countries_api_new_data[] @relation("rest_countries_api_data_languagesTorest_countries_api_new_data")
+}
+
+model deep_l_supported_languages {
+  id           Int    @id @default(autoincrement())
+  name         String
+  abbreviation String @unique
+}
+
+model discord_flag_emojis {
+  id          BigInt     @id @default(autoincrement())
+  created_at  DateTime   @default(now()) @db.Timestamptz(6)
+  value       String     @unique
+  languagesId BigInt?
+  language    languages? @relation(fields: [languagesId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+}
+
+model languages {
+  id                     BigInt                @id @default(autoincrement())
+  created_at             DateTime              @default(now()) @db.Timestamptz(6)
+  name                   String                @unique
+  iso_639_1              String                @unique
+  iso_639_2              String                @unique
+  is_supported_by_deep_l Boolean?              @default(false)
+  discord_flag_emojis    discord_flag_emojis[]
+
+  @@map("languages")
+}
+
+model Command {
+  name            String            @unique
+  description     String
+  id              Int               @id @default(autoincrement())
+  CommandArgument CommandArgument[]
+
+  @@map("commands")
+}
+
+model CommandArgument {
+  name        String
+  description String  @default("")
+  id          Int     @id @default(autoincrement())
+  commandId   Int     @map("command_id")
+  command     Command @relation(fields: [commandId], references: [id])
+
+  @@map("command_arguments")
+}
+
+model ProcessedLangData {
+  id                                                          Int                           @id
+  rest_countries_common                                       String                        @unique(map: "processed_lang_data_common_key")
+  rest_countries_official                                     String                        @unique(map: "processed_lang_data_official_key")
+  rest_countries_nativename                                   Json
+  rest_countries_to_cia_fuzzy_official_top_country            String
+  rest_countries_to_cia_fuzzy_official_top_country_similarity Int
+  rest_countries_to_cia_fuzzy_common_top_country              String
+  rest_countries_to_cia_fuzzy_common_top_country_similarity   Int
+  rest_countries_to_cia_max_score_between_common_and_official Int
+  cia_country                                                 String
+  cia_primary_language                                        String
+  cia_to_wiki_fuzzy_top_country_or_region                     String
+  cia_to_wiki_fuzzy_top_country_or_region_similarity          Int
+  wiki_widely_spoken                                          String
+  wiki_country_or_region                                      String
+  wiki_minority_language                                      String
+  wiki_national_language                                      String
+  wiki_official_language                                      String
+  wiki_regional_language                                      String
+  wiki_primary_language_wiki                                  String
+  rest_countries_api_data_names_id                            Int                           @unique
+  rest_countries_api_data_names                               rest_countries_api_data_names @relation(fields: [rest_countries_api_data_names_id], references: [id])
+
+  @@map("processed_lang_data")
+}
+
+model WikiData {
+  id                                      Int                                       @id @default(autoincrement())
+  widely_spoken                           String
+  country_or_region                       String                                    @unique
+  minority_language                       String
+  national_language                       String
+  official_language                       String
+  regional_language                       String
+  primary_language                        String
+  cia_to_wiki_calculation_data            cia_to_wiki_calculation_data[]
+  rest_countries_to_wiki_calculation_data rest_countries_to_wiki_calculation_data[]
+
+  @@map("wiki_data")
+}
+
+model NewCiaLanguageData {
+  id                                     Int                                      @id @default(autoincrement())
+  country                                String
+  primary_language                       String
+  cia_to_wiki_calculation_data           cia_to_wiki_calculation_data[]
+  rest_countries_to_cia_calculation_data rest_countries_to_cia_calculation_data[]
+
+  @@map("new_cia_language_data")
+}
+
+model OldCiaLanguageData {
+  id            Int    @id @default(autoincrement())
+  heading       String
+  language_info String
+}
+
+model Calculation {
+  id                             Int    @id @default(autoincrement())
+  left_country_table             String
+  left_country_table_field_name  String
+  left_country_id                Int
+  left_country_name              String
+  right_country_table            String
+  right_country_table_field_name String
+  right_country_id               Int
+  right_country_name             String
+  ratio                          Int
+  token_set_ratio                Int
+
+  @@map("calculations")
+}
+
+model related_calculation_data {
+  id                             Int    @id @default(autoincrement())
+  self_country_table             String
+  self_country_table_field_name  String
+  self_country_id                Int
+  self_country_name              String
+  other_country_table            String
+  other_country_table_field_name String
+  other_country_id               Int
+  other_country_name             String
+  ratio                          Int
+  token_set_ratio                Int
+  maximum_score                  Int
+}
+
+model rest_countries_to_cia_calculation_data {
+  id                     Int                           @id @default(autoincrement())
+  cia_country_id         Int
+  ratio                  Int
+  token_set_ratio        Int
+  rest_countries_name_id Int
+  cia_country            NewCiaLanguageData            @relation(fields: [cia_country_id], references: [id])
+  rest_country_name      rest_countries_api_data_names @relation(fields: [rest_countries_name_id], references: [id])
+}
+
+model rest_countries_to_wiki_calculation_data {
+  id                     Int                           @id @default(autoincrement())
+  wiki_country_id        Int
+  ratio                  Int
+  token_set_ratio        Int
+  rest_countries_name_id Int
+  rest_country_name      rest_countries_api_data_names @relation(fields: [rest_countries_name_id], references: [id])
+  wiki_country           WikiData                      @relation(fields: [wiki_country_id], references: [id])
+}
+
+model cia_to_wiki_calculation_data {
+  id              Int                @id @default(autoincrement())
+  cia_country_id  Int
+  wiki_country_id Int
+  ratio           Int
+  token_set_ratio Int
+  cia_country     NewCiaLanguageData @relation(fields: [cia_country_id], references: [id])
+  wiki_country    WikiData           @relation(fields: [wiki_country_id], references: [id])
+}
+
+view processed_lang_data_v1 {
+  id                                             Int    @unique
+  common                                         String
+  official                                       String
+  nativeName                                     Json
+  fuzzy_official_top_country                     String
+  fuzzy_official_top_country_similarity          Int
+  fuzzy_common_top_country                       String
+  fuzzy_common_top_country_similarity            Int
+  max_official_score_between_common_and_official Int
+  country                                        String
+  primary_language                               String
+  fuzzy_top_country_or_region                    String
+  fuzzy_top_country_or_region_similarity         Int
+  widely_spoken                                  String
+  country_or_region                              String
+  minority_language                              String
+  national_language                              String
+  official_language                              String
+  regional_language                              String
+  primary_language_wiki                          String
+  rest_countries_api_data_names_id               Int
+}
+
+view joined_processed_lang_data_v1 {
+  id                                             Int    @unique
+  common                                         String
+  official                                       String
+  nativeName                                     Json
+  fuzzy_official_top_country                     String
+  fuzzy_official_top_country_similarity          Int
+  fuzzy_common_top_country                       String
+  fuzzy_common_top_country_similarity            Int
+  max_official_score_between_common_and_official Int
+  country                                        String
+  primary_language                               String
+  fuzzy_top_country_or_region                    String
+  fuzzy_top_country_or_region_similarity         Int
+  widely_spoken                                  String
+  country_or_region                              String
+  minority_language                              String
+  national_language                              String
+  official_language                              String
+  regional_language                              String
+  primary_language_wiki                          String
+  rest_countries_api_data_names_id               Int
+  rest_countries_primary_language                String
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view processed_language_data_similarity_scores_base {
+  id                      Int?
+  cia_language            String?
+  wiki_language           String?
+  rest_language           String?
+  cia_to_wiki_similarity  Float?  @db.Real
+  cia_to_rest_similarity  Float?  @db.Real
+  wiki_to_rest_similarity Float?  @db.Real
+  sum                     Float?  @db.Real
+
+  @@ignore
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view processed_language_data_with_conflicts {
+  id                      Int?
+  cia_language            String?
+  wiki_language           String?
+  rest_language           String?
+  cia_to_wiki_similarity  Float?  @db.Real
+  cia_to_rest_similarity  Float?  @db.Real
+  wiki_to_rest_similarity Float?  @db.Real
+  sum                     Float?  @db.Real
+
+  @@ignore
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view processed_language_data_with_no_false_positives {
+  id                      Int?
+  cia_language            String?
+  wiki_language           String?
+  rest_language           String?
+  cia_to_wiki_similarity  Float?  @db.Real
+  cia_to_rest_similarity  Float?  @db.Real
+  wiki_to_rest_similarity Float?  @db.Real
+  sum                     Float?  @db.Real
+
+  @@ignore
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view calculations_with_max_scores {
+  id                             Int?
+  left_country_table             String?
+  left_country_table_field_name  String?
+  left_country_id                Int?
+  left_country_name              String?
+  right_country_table            String?
+  right_country_table_field_name String?
+  right_country_id               Int?
+  right_country_name             String?
+  ratio                          Int?
+  token_set_ratio                Int?
+  maximum_score                  Int?
+
+  @@ignore
+}
+
+view calculations_with_max_scores_v2 {
+  id                             Int    @id
+  left_country_table             String
+  left_country_table_field_name  String
+  left_country_id                Int
+  left_country_name              String
+  right_country_table            String
+  right_country_table_field_name String
+  right_country_id               Int
+  right_country_name             String
+  ratio                          Int
+  token_set_ratio                Int
+  maximum_score                  Int
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view country_names_cleaned {
+  original_value String?
+  new_value      String?
+
+  @@ignore
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view rest_countries_calculations_aggregated {
+  id                             Int?
+  left_country_table             String?
+  left_country_table_field_name  String?
+  left_country_id                Int?
+  left_country_name              String?
+  right_country_table            String?
+  right_country_table_field_name String?
+  right_country_id               Int?
+  right_country_name             String?
+  ratio                          Int?
+  token_set_ratio                Int?
+  maximum_score                  Int?
+
+  @@ignore
+}
+
+
+view rest_countries_to_cia_calculation_data_with_score_policy {
+  id                     Int @unique
+  ratio                  Int
+  token_set_ratio        Int
+  cia_country_id         Int
+  rest_countries_name_id Int
+
+  
+}
+
+
+view rest_countries_to_wiki_calculation_data_with_score_policy {
+  id                     Int @unique
+  wiki_country_id        Int
+  ratio                  Int
+  token_set_ratio        Int
+  rest_countries_name_id Int
+
+  
+}
+
+
+view cia_to_wiki_calculation_data_with_score_policy {
+  id              Int @unique
+  cia_country_id  Int
+  wiki_country_id Int
+  ratio           Int
+  token_set_ratio Int
+
+  
+}
+
+enum roles {
+  developer
+  user
 }
 
 enum continents {

@@ -6,7 +6,7 @@ import { container } from "@sapphire/framework"
 
 import extension from "prisma-paginate"
 import { logger } from "../../logger/logger"
-import { CreateReminderDTOFactory } from "../../models/reminders/create-reminder-dto"
+import { CreateReminderDTOBuilderFactory } from "../../models/reminders/create-reminder-dto"
 
 export default Prisma.defineExtension((prisma) => {
 	const paginatePrisma = prisma.$extends(extension)
@@ -14,11 +14,11 @@ export default Prisma.defineExtension((prisma) => {
 		name: "reminderExtension",
 		model: {
 			reminders: {
-				async createReminder(props: CreateReminderFactoryFn) {
-					const dto = await props(new CreateReminderDTOFactory())
-					console.log(JSON.stringify(dto.generateCreateReminderInput(), null, 4))
+				async createReminder(fn: CreateReminderFactoryFn) {
+					const builder =
+						await CreateReminderDTOBuilderFactory.createBuilderFromFunction(fn)
 
-					return prisma.reminders.create(dto.generateCreateReminderInput())
+					return prisma.reminders.create(builder.generateCreateReminderInput())
 				},
 				/**
 				 * Retrieves reminders of a specific user.

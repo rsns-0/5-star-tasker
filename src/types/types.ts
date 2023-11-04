@@ -1,8 +1,8 @@
 import { User, TextBasedChannel, Guild } from "discord.js"
 import { type DateTime } from "luxon"
 import {
-	CreateReminderDTO,
-	CreateReminderDTOFactory,
+	CreateReminderDTOBuilder,
+	CreateReminderDTOBuilderFactory,
 } from "../models/reminders/create-reminder-dto"
 
 export type SupportedDateTypes = Date | DateTime
@@ -52,5 +52,5 @@ export type GeneralCreateReminderArgs = {
 }
 
 export type CreateReminderFactoryFn = (
-	factory: CreateReminderDTOFactory
-) => Promise<CreateReminderDTO>
+	factory: CreateReminderDTOBuilderFactory
+) => Promise<CreateReminderDTOBuilder>

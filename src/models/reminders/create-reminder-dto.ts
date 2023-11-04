@@ -1,6 +1,6 @@
 import { container } from "@sapphire/framework"
 import { resolveChannelName } from "../../db/extensions/reminders"
-import { dateConverter } from "../../services/dateService"
+
 import {
 	WebhookService,
 	assertWebhookChannel,
@@ -10,11 +10,16 @@ import {
 	CreateReminderDTOConstructor,
 	CreateReminderArgsDiscord,
 	GeneralCreateReminderArgs,
+	CreateReminderFactoryFn,
 } from "../../types/types"
 import { Prisma } from "@prisma/client"
 
-export class CreateReminderDTOFactory {
+export class CreateReminderDTOBuilderFactory {
 	constructor(public webhookService = new WebhookService()) {}
+
+	static createBuilderFromFunction(fn: CreateReminderFactoryFn) {
+		return fn(new CreateReminderDTOBuilderFactory())
+	}
 
 	async fromDiscord(props: CreateReminderArgsDiscord) {
 		assertWebhookChannel(props.channel)
@@ -36,7 +41,7 @@ export class CreateReminderDTOFactory {
 			},
 			webhook: createWebhookEntry(webhook),
 		}
-		return new CreateReminderDTO(data)
+		return new CreateReminderDTOBuilder(data)
 	}
 
 	async fromGeneral(props: GeneralCreateReminderArgs) {
@@ -51,7 +56,7 @@ export class CreateReminderDTOFactory {
 		const webhook = await this.webhookService.getOrCreateAnyOwnedWebhookInChannel(channel)
 		const data: CreateReminderDTOConstructor = {
 			reminder_message: props.reminder_message,
-			time: dateConverter.resolveDateType(props.time, "js"),
+			time: props.time,
 			channel: {
 				id: props.channelId,
 				name: channel.name,
@@ -65,24 +70,23 @@ export class CreateReminderDTOFactory {
 			},
 			webhook: createWebhookEntry(webhook),
 		}
-		return new CreateReminderDTO(data)
+		return new CreateReminderDTOBuilder(data)
 	}
 }
 
-export class CreateReminderDTO {
+export class CreateReminderDTOBuilder {
 	constructor(public data: CreateReminderDTOConstructor) {}
 
 	public generateCreateReminderInput() {
 		const { reminder_message, time } = this.data
-		const dto = this
 		return {
 			data: {
 				reminder_message,
 				time,
 
-				...dto.connectOrCreateUser(),
-				...dto.connectOrCreateChannel(),
-				...dto.connectOrCreateWebhook(),
+				...this.connectOrCreateUser(),
+				...this.connectOrCreateChannel(),
+				...this.connectOrCreateWebhook(),
 			},
 		} satisfies Prisma.remindersCreateArgs
 	}
