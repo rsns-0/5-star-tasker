@@ -1,17 +1,24 @@
 import { ApplyOptions, RequiresClientPermissions } from "@sapphire/decorators"
 
 import {
+	ActionRowBuilder,
 	ChatInputCommandInteraction,
 	DiscordAPIError,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
+	StringSelectMenuBuilder,
 } from "discord.js"
 import {
-	givingBackUserInputEmbed,
 	reminderExplanationEmbed,
 	reminderFinishedEmbed,
+	reminderSelectTimezoneEmbed,
 	reminderSomethingWrongEmbed,
+	reminderTimezoneRegisteredEmbed,
 } from "../../embeds/createReminderExplanationEmbed"
+import {
+	timezonesNegatives,
+	timezonesPositives,
+} from "../../features/reminders/selectBoxForTimezones"
 
 import { Subcommand } from "@sapphire/plugin-subcommands"
 
@@ -20,7 +27,6 @@ import { timeStringToDayjsObj } from "../../services/timezoneService"
 
 import { container } from "@sapphire/framework"
 import { ReminderPaginatedResponseBuilder } from "../../models/reminders/paginatedReminderResponseBuilder"
-import { timezoneSelection } from "models/reminders/timezoneSelectionFunction"
 
 const reminderData = new SlashCommandBuilder()
 	.setName("reminder")
@@ -53,9 +59,6 @@ const reminderData = new SlashCommandBuilder()
 	.addSubcommand((subcommand) =>
 		subcommand.setName("help").setDescription("Explanation of how to use /reminder")
 	)
-	.addSubcommand((subcommand) =>
-		subcommand.setName("timezone").setDescription("Define or change your timezone")
-	)
 
 @ApplyOptions<Subcommand.Options>({
 	name: "reminder",
@@ -73,10 +76,6 @@ const reminderData = new SlashCommandBuilder()
 		{
 			name: "edit",
 			chatInputRun: "edit",
-		},
-		{
-			name: "timezone",
-			chatInputRun: "timezone",
 		},
 	],
 })
@@ -100,6 +99,7 @@ export class UserCommand extends Subcommand {
 			await interaction.deferReply({ ephemeral: true })
 
 			// * Check db for user timezone data
+			const timeString = interaction.options.getString("time")!
 			const result = await prisma.discord_user.findUnique({
 				where: {
 					id: interaction.user.id,
@@ -115,15 +115,58 @@ export class UserCommand extends Subcommand {
 					},
 				},
 			})
-			const timeString = interaction.options.getString("time")!
 			const userTimezone = result?.timezones?.value
 			//* If user doesn't exist or has no timezone data, prompt user and persist data.
 			if (userTimezone === undefined || userTimezone === null) {
-				timezoneSelection(interaction)
-				await interaction.followUp({
-					embeds: [givingBackUserInputEmbed(timeString)],
-					ephemeral: true,
+				const row1 = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+					timezonesNegatives
+				)
+				const row2 = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+					timezonesPositives
+				)
+				const embedToUpdate = reminderSelectTimezoneEmbed()
+				const response = await interaction.editReply({
+					embeds: [reminderSelectTimezoneEmbed()],
+					components: [row1.toJSON(), row2.toJSON()],
 				})
+				container.dbLogger.emit("info", "Waiting for user to select timezone.")
+				const confirmation = await response.awaitMessageComponent({
+					filter: (i): boolean => i.user.id === interaction.user.id,
+					time: 60000,
+				})
+				if (
+					confirmation.isStringSelectMenu() &&
+					(confirmation.customId === "positives" || confirmation.customId === "negatives")
+				) {
+					await confirmation.update({
+						embeds: [
+							embedToUpdate.setTitle("Saving your timezone...").setDescription(" "),
+						],
+						components: [],
+					})
+
+					container.dbLogger.emit(
+						"info",
+						`User ${interaction.user.id} ${interaction.user.globalName} selected timezone ${confirmation.values[0]}`
+					)
+
+					const tzinfo = await prisma.timezones.findFirst({
+						where: {
+							value: confirmation.values[0],
+						},
+					})
+					if (!tzinfo) {
+						throw new Error(
+							"Assertion error: Timezone not found. Check to make sure the form field options align with the database data."
+						)
+					}
+					await prisma.discord_user.registerUserWithTimezone(interaction.user, tzinfo.id)
+
+					await interaction.followUp({
+						embeds: [reminderTimezoneRegisteredEmbed(tzinfo, timeString)],
+						ephemeral: true,
+					})
+				}
 			}
 			// * Else create reminder for user.
 			else {
@@ -176,23 +219,6 @@ export class UserCommand extends Subcommand {
 				interaction,
 				interaction.user
 			)
-		} catch (e) {
-			container.dbLogger.emit("error", e)
-			if (e instanceof DiscordAPIError) {
-				throw e
-			} else {
-				await interaction.editReply({
-					embeds: [reminderSomethingWrongEmbed()],
-				})
-			}
-		}
-	}
-
-	@RequiresClientPermissions([PermissionFlagsBits.EmbedLinks])
-	public async timezone(interaction: ChatInputCommandInteraction) {
-		try {
-			await interaction.deferReply({ ephemeral: true })
-			timezoneSelection(interaction)
 		} catch (e) {
 			container.dbLogger.emit("error", e)
 			if (e instanceof DiscordAPIError) {

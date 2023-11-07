@@ -1,16 +1,18 @@
-import { Prisma } from "@prisma/client"
-import { Dayjs } from "dayjs"
-import { EmbedBuilder } from "discord.js"
+import { Prisma } from "@prisma/client";
+import { Dayjs } from "dayjs";
+import { EmbedBuilder } from "discord.js";
 
-const DEFAULT_IDLE_COLOR = 0x0099ff
-const DEFAULT_CONFIRMED_COLOR = 0x00ff62
-const DEFAULT_NEGATIVE_COLOR = 0x00ff62
+const DEFAULT_IDLE_COLOR = 0x0099ff;
+const DEFAULT_CONFIRMED_COLOR = 0x00ff62;
+const DEFAULT_NEGATIVE_COLOR = 0x00ff62;
 
 export const reminderExplanationEmbed = (): EmbedBuilder => {
 	const embed = new EmbedBuilder()
 		.setColor(DEFAULT_IDLE_COLOR)
 		.setTitle("EXPLANATION")
-		.setDescription("Please, check out the documentation for better explanation")
+		.setDescription(
+			"[any-date-parser](https://www.npmjs.com/package/any-date-parser) might be added in the future"
+		)
 		.addFields({
 			name: "⏲RELATIVE TIME:",
 			value:
@@ -32,21 +34,26 @@ export const reminderExplanationEmbed = (): EmbedBuilder => {
 			inline: false,
 		})
 		.setThumbnail("https://i.imgur.com/cHfyNQu.png")
-		.setImage("https://i.imgur.com/LGzUbus.png")
+		.setImage("https://i.imgur.com/LGzUbus.png");
 
-	return embed
-}
+	return embed;
+};
 
 export const reminderSelectTimezoneEmbed = (): EmbedBuilder => {
 	const embed = new EmbedBuilder()
 		.setColor(DEFAULT_IDLE_COLOR)
 		.setTitle("SELECT YOUR TIMEZONE")
-		.setDescription("To provide accurate information, please specify your timezone.")
-	return embed
-}
+		.setDescription(
+			"Since it's your first time doing this command, " +
+				"I need to know your timezone, to return a more" +
+				" precise date specially for you"
+		);
+	return embed;
+};
 
 export const reminderTimezoneRegisteredEmbed = (
-	tzinfo: Prisma.timezonesGetPayload<true>
+	tzinfo: Prisma.timezonesGetPayload<true>,
+	timeString: string
 ): EmbedBuilder => {
 	const embed = new EmbedBuilder()
 		.setColor(DEFAULT_CONFIRMED_COLOR)
@@ -54,11 +61,16 @@ export const reminderTimezoneRegisteredEmbed = (
 		.setDescription(
 			"Your timezone is now set to " +
 				`${tzinfo?.emoji} **${tzinfo?.label}** (${tzinfo?.description})` +
-				"\n\nuse `/timezone` to change it" +
-				"\n\nYou can now use the `/reminder set` command"
+				"\n\nuse `/implementCommand` to change it" +
+				"\n\nYou can now use the `/reminder` command, here's your string so you can copy:"
 		)
-	return embed
-}
+		.addFields({
+			name: timeString,
+			value: "*For mobile: Tap and hold to copy your time above*",
+			inline: false,
+		});
+	return embed;
+};
 
 export const reminderFinishedEmbed = (date: Dayjs, reminder: string): EmbedBuilder => {
 	const embed = new EmbedBuilder()
@@ -69,17 +81,19 @@ export const reminderFinishedEmbed = (date: Dayjs, reminder: string): EmbedBuild
 				`<t:${date.unix()}:F>` +
 				" and you'll be pinged with " +
 				`\`${reminder}\``
-		)
-	return embed
-}
+		);
+	return embed;
+};
 
 export const reminderSomethingWrongEmbed = (): EmbedBuilder => {
 	const embed = new EmbedBuilder()
 		.setColor(DEFAULT_NEGATIVE_COLOR)
 		.setTitle("ERROR")
-		.setDescription("Something went wrong while creating the reminder. Please try again later.")
-	return embed
-}
+		.setDescription(
+			"Something went wrong while creating the reminder. Please try again later."
+		);
+	return embed;
+};
 
 export const reminderEditEmbed = (reminder: string, date: Dayjs, id: number): EmbedBuilder => {
 	const embed = new EmbedBuilder()
@@ -102,21 +116,6 @@ export const reminderEditEmbed = (reminder: string, date: Dayjs, id: number): Em
 				value: `<t:${date.unix()}:F>`,
 				inline: false,
 			}
-		)
-	return embed
-}
-
-export const givingBackUserInputEmbed = (timeString: string): EmbedBuilder => {
-	const embed = new EmbedBuilder()
-		.setColor(DEFAULT_IDLE_COLOR)
-		.setTitle(timeString)
-		.setDescription(
-			"Since it's the first time you're using `/reminder set` command " +
-				"we need to know your timezone so we can provide accurate information" +
-				"\nYou can change it anytime using `/reminder timezone` command"
-		)
-		.setFooter({
-			text: "For Mobile users: hold on the tittle to copy your input",
-		})
-	return embed
-}
+		);
+	return embed;
+};
