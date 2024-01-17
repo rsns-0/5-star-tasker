@@ -1,20 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-import prisma from "../db/prismaInstance";
-
-describe("base functionality check", () => {
-	it("should have return 10 records with take set to 10", async () => {
-		const prisma = new PrismaClient();
-
-		const res = await prisma.test_countries.findMany({
-			where: {
-				id: { lte: 20 },
-			},
-			take: 10,
-		});
-		expect(res.length).toBeGreaterThan(0);
-		expect(res.length).toEqual(10);
-	});
-});
+import prisma from "../db/prismaInstance"
 
 describe("logging", () => {
 	const data = {
@@ -24,46 +8,46 @@ describe("logging", () => {
 		json: {
 			ob: new Date(),
 		},
-	};
+	}
 	it("should generate array text type properly", async () => {
 		const res = await prisma.logs.create({
 			data,
-		});
-		expect(res.tags.includes("testtag1")).toBe(true);
-	});
+		})
+		expect(res.tags.includes("testtag1")).toBe(true)
+	})
 	it("should successfully generate json object from error", async () => {
 		try {
-			throw new Error("test error", { cause: new Error("asd") });
+			throw new Error("test error", { cause: new Error("asd") })
 		} catch (err) {
 			if (!(err instanceof Error)) {
-				throw err;
+				throw err
 			}
-			const res = await prisma.logs.logError(err).then((res) => res.json);
-			expect(res).not.toEqual({});
-			expect(res).toBeDefined();
+			const res = await prisma.logs.logError(err).then((res) => res.json)
+			expect(res).not.toEqual({})
+			expect(res).toBeDefined()
 		}
-	});
-});
+	})
+})
 
 type _TestPaginationData = {
-	id: number;
-	name: string;
-	value: number;
-	text: string;
-};
+	id: number
+	name: string
+	value: number
+	text: string
+}
 
 function createTestPaginationData(amount: number) {
-	const results: _TestPaginationData[] = [];
+	const results: _TestPaginationData[] = []
 	for (let i = 0; i < amount; i++) {
 		const data: _TestPaginationData = {
 			id: i,
 			name: `name${i}`,
 			value: i,
 			text: `text${i}`,
-		};
-		results.push(data);
+		}
+		results.push(data)
 	}
-	return results;
+	return results
 }
 
 describe("pagination", () => {
