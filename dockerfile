@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1
 
 # Adjust NODE_VERSION as desired
-ARG NODE_VERSION=18.13.0
+ARG NODE_VERSION=20.6.1
 FROM node:${NODE_VERSION}-slim as base
 
 LABEL fly_launch_runtime="Node.js/Prisma"
@@ -11,11 +11,11 @@ WORKDIR /app
 
 # Set production environment
 ENV NODE_ENV="production"
-ARG YARN_VERSION=3.6.3
+ARG YARN_VERSION=3.6.4
 
 # Install Yarn 3
 RUN corepack enable && \
-    yarn set version 1.22.19
+    yarn set version ${YARN_VERSION}
 
 
 # Throw-away build stage to reduce size of final image
@@ -23,11 +23,12 @@ FROM base as build
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
-    apt-get install -y build-essential openssl pkg-config python-is-python3
+    apt-get install --no-install-recommends -y build-essential node-gyp openssl pkg-config python-is-python3
 
 # Install node modules
-COPY --link package.json yarn.lock ./
-RUN yarn install --immutable --production=false
+COPY --link .yarn .yarn
+COPY --link .yarnrc .yarnrc.yml package.json yarn.lock ./
+RUN yarn install --immutable
 
 # Generate Prisma Client
 COPY --link prisma .
@@ -40,7 +41,7 @@ COPY --link . .
 RUN yarn run build
 
 # Remove development dependencies
-RUN yarn install --production=true
+RUN yarn install
 
 
 # Final stage for app image

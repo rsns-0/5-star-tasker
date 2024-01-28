@@ -1,6 +1,6 @@
 import { container } from "@sapphire/framework"
 import { ReminderUserMessage } from "../models/reminders/reminderMessage"
-import { retry } from "utils/utils"
+import { retry } from "../utils/utils"
 
 export class UserService {
 	async sendReminder(reminder: ReminderUserMessage) {

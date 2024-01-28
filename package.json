@@ -1,5 +1,5 @@
 {
-	"name": "5-star-backend",
+	"name": "5-stars",
 	"version": "1.0.0",
 	"main": "dist/index.js",
 	"author": "@sapphire",
@@ -34,7 +34,6 @@
 		"kysely": "^0.27.2",
 		"luxon": "^3.4.3",
 		"pg": "^8.11.3",
-		"prisma": "^5.2.0",
 		"prisma-paginate": "^5.1.1",
 		"reflect-metadata": "^0.1.13",
 		"remeda": "^1.37.0",
@@ -48,6 +47,7 @@
 	},
 	"devDependencies": {
 		"@faker-js/faker": "^8.0.2",
+		"@flydotio/dockerfile": "latest",
 		"@sapphire/cli": "^1.6.1",
 		"@sapphire/prettier-config": "^2.0.0",
 		"@sapphire/ts-config": "^5.0.0",
@@ -66,6 +66,7 @@
 		"prettier-plugin-jsdoc": "^1.0.2",
 		"prettier-plugin-organize-imports": "^3.2.3",
 		"prettier-plugin-tailwindcss": "^0.5.4",
+		"prisma": "^5.2.0",
 		"prisma-kysely": "^1.7.1",
 		"ts-node": "^10.9.1",
 		"ts-toolbelt": "^9.6.0",
