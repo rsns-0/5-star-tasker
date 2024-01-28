@@ -1,10 +1,11 @@
-import { Guild, GuildBasedChannel } from "discord.js";
+import { Guild, GuildBasedChannel } from "discord.js"
 
-import { Prisma } from "@prisma/client";
-import { createDiscordChannelArg } from "../argUtils/discordChannels";
+import { Prisma } from "@prisma/client"
+import { createDiscordChannelArg } from "../argUtils/discordChannels"
+import { db2 } from "../kyselyInstance"
 
-export default Prisma.defineExtension((prisma) => {
-	return prisma.$extends({
+export default Prisma.defineExtension((db) => {
+	return db.$extends({
 		name: "channelGuildExtension",
 		model: {
 			discord_channels: {
@@ -15,11 +16,13 @@ export default Prisma.defineExtension((prisma) => {
 				 * @returns A promise that resolves to the registered channel.
 				 */
 				async register(channel: GuildBasedChannel) {
-					return prisma.discord_channels.upsert({
+					const channelArg = createDiscordChannelArg(channel)
+
+					return db.discord_channels.upsert({
 						where: {
 							id: channel.id,
 						},
-						create: createDiscordChannelArg(channel),
+						create: channelArg,
 						update: {
 							name: channel.name,
 							discord_guilds: {
@@ -27,7 +30,7 @@ export default Prisma.defineExtension((prisma) => {
 									where: {
 										id: channel.guild.id,
 									},
-									create: createDiscordChannelArg(channel),
+									create: channelArg,
 								},
 							},
 						},
@@ -35,7 +38,7 @@ export default Prisma.defineExtension((prisma) => {
 				},
 
 				unsafeRegister(channel: GuildBasedChannel) {
-					return prisma.discord_channels.upsert({
+					return db.discord_channels.upsert({
 						where: {
 							id: channel.id,
 						},
@@ -54,8 +57,28 @@ export default Prisma.defineExtension((prisma) => {
 					})
 				},
 
+				unsafeUpsertMany(channels: GuildBasedChannel[]) {
+					return db2
+						.insertInto("discord_channels")
+						.values(
+							channels.map((s) => ({
+								id: s.id,
+								name: s.name,
+								discord_guild_id: s.guildId,
+							}))
+						)
+						.onConflict((s) =>
+							s.column("id").doUpdateSet((s) => ({
+								discord_guild_id: s.ref("excluded.discord_guild_id"),
+								name: s.ref("excluded.name"),
+							}))
+						)
+						.returning("id")
+						.execute()
+				},
+
 				upsertFromDiscord(channel: GuildBasedChannel) {
-					return prisma.discord_channels.upsert({
+					return db.discord_channels.upsert({
 						select: {
 							id: true,
 						},
@@ -100,39 +123,65 @@ export default Prisma.defineExtension((prisma) => {
 			},
 
 			discord_guilds: {
-				/**
-				 * Registers a guild in the database.
-				 *
-				 * @param guild The guild to register.
-				 * @returns A promise that resolves to the registered guild.
-				 */
-				async registerGuild(guild: Guild) {
-					const createArgs = await createGuild(guild)
-					return prisma.discord_guilds.upsert({
+				async discordGuildToDbGuild(guild: Guild) {
+					const channels = guild.channels.cache.map(
+						channelTodiscord_channelsCreateOrConnectWithoutDiscord_guildsInput
+					)
+					const owner = await guild.fetchOwner()
+					const ownerInfo = {
+						id: owner.id,
+						username: owner.user.username,
+					} as const satisfies Prisma.discord_userCreateInput
+
+					return {
+						id: guild.id,
+						iconURL: guild.iconURL(),
+						name: guild.name,
+						discord_channels: {
+							connectOrCreate: channels,
+						},
+						discord_user: {
+							connectOrCreate: {
+								where: {
+									id: ownerInfo.id,
+								},
+								create: ownerInfo,
+							},
+						},
+					} as const satisfies Prisma.discord_guildsCreateInput
+				},
+
+				unsafeUpsertMany(guilds: Guild[]) {
+					return db2
+						.insertInto("discord_guilds")
+						.values(
+							guilds.map((s) => ({ id: s.id, name: s.name, owner_id: s.ownerId }))
+						)
+						.onConflict((s) =>
+							s.column("id").doUpdateSet((s) => ({
+								name: s.ref("excluded.name"),
+								owner_id: s.ref("excluded.owner_id"),
+							}))
+						)
+						.returning("id")
+						.execute()
+				},
+
+				registerGuild(guild: Prisma.discord_guildsCreateInput) {
+					return db.discord_guilds.upsert({
 						where: {
 							id: guild.id,
 						},
-						create: createArgs,
-						update: createArgs,
+						create: guild,
+						update: guild,
 						select: {
 							id: true,
 						},
 					})
 				},
 
-				async createRegisterGuildArgs(guild: Guild) {
-					const createArgs = await createGuild(guild)
-					return {
-						where: {
-							id: guild.id,
-						},
-						create: createArgs,
-						update: createArgs,
-					}
-				},
-
 				async getGuildsAndTextBasedChannelsOfUser(userId: string) {
-					return await prisma.discord_guilds.findMany({
+					return await db.discord_guilds.findMany({
 						where: {
 							members: {
 								some: {
@@ -162,43 +211,17 @@ export default Prisma.defineExtension((prisma) => {
 	})
 })
 
-async function createGuild(guild: Guild) {
-	const channels = guild.channels.cache.map(createChannel)
-	const owner = await guild.fetchOwner()
-
-	const ownerInfo = {
-		id: owner.id,
-		username: owner.user.username,
-	}
-
-	return {
-		id: guild.id,
-		iconURL: guild.iconURL(),
-
-		name: guild.name,
-		discord_channels: {
-			connectOrCreate: channels,
-		},
-		discord_user: {
-			connectOrCreate: {
-				where: {
-					id: ownerInfo.id,
-				},
-				create: ownerInfo,
-			},
-		},
-	}
-}
-
-function createChannel(channel: GuildBasedChannel) {
-	const id = channel.id
+function channelTodiscord_channelsCreateOrConnectWithoutDiscord_guildsInput({
+	id,
+	name,
+}: GuildBasedChannel) {
 	const res: Prisma.discord_channelsCreateOrConnectWithoutDiscord_guildsInput = {
 		where: {
 			id,
 		},
 		create: {
 			id,
-			name: channel.name,
+			name,
 		},
 	}
 	return res

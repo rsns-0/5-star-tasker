@@ -1,40 +1,42 @@
-import { AxiosError } from "axios";
-import { ZodError } from "zod";
+import { AxiosError } from "axios"
+import { ZodError } from "zod"
+import { match, P } from "ts-pattern"
+import { AuthorizationError, ConnectionError, DeepLError } from "deepl-node"
 
-export class TranslationServiceErrorFactory {
-	static fromError(error: unknown) {
-		if (error instanceof TranslationServiceError) {
-			return error;
-		}
-		if (error instanceof ZodError) {
-			return new TranslationValidationError(error);
-		}
-		if (error instanceof AxiosError) {
-			return new TranslationNetworkError(error);
-		}
-		if (error instanceof Error) {
-			return new TranslationServiceError(error);
-		}
-		throw error;
-	}
-}
+const catchAllErrors = P.union(
+	P.instanceOf(DeepLError),
+	P.instanceOf(ConnectionError),
+	P.instanceOf(AuthorizationError),
+	P.instanceOf(Error)
+)
 
 export class TranslationServiceError<TError extends Error = Error> extends Error {
-	protected e: TError;
+	protected e: TError
 
 	constructor(error: TError) {
-		super(error.message);
-		this.message = error.message;
-		this.name = error.name;
-		this.e = error;
+		super(error.message)
+		this.message = error.message
+		this.name = error.name
+		this.e = error
+	}
+
+	static fromError(error: unknown) {
+		return match(error)
+			.with(P.instanceOf(TranslationServiceError), (e) => e)
+			.with(P.instanceOf(ZodError), (e) => new TranslationValidationError(e))
+			.with(P.instanceOf(AxiosError), (e) => new TranslationNetworkError(e))
+			.with(catchAllErrors, (e) => new TranslationServiceError(e))
+			.otherwise(() => {
+				throw error
+			})
 	}
 
 	isNetworkError(): this is TranslationNetworkError {
-		return (this.e as unknown as AxiosError).isAxiosError;
+		return this.e instanceof AxiosError
 	}
 
 	isValidationError(): this is TranslationValidationError {
-		return this.e instanceof ZodError;
+		return this.e instanceof ZodError
 	}
 
 	autoResolve() {
@@ -43,36 +45,32 @@ export class TranslationServiceError<TError extends Error = Error> extends Error
 				return {
 					status: 500,
 					message: "Unknown error at DeepL API interface",
-				};
+				} as const
 			}
 			return {
 				status: parseInt(this.statusCode),
 				message: this.message,
-			};
+			} as const
 		}
 		if (this.isValidationError()) {
 			return {
 				status: 400,
 				message: this.friendlyErrorMessage,
-			};
+			} as const
 		}
-		this.message = `Could not auto resolve error. Original error message: ${this.message}`;
-		throw this;
-		// return {
-		// 	status: 500,
-		// 	message: "Unknown server error."
-		// }
+		this.message = `Could not auto resolve error. Original error message: ${this.message}`
+		throw this
 	}
 }
 
 export class TranslationNetworkError extends TranslationServiceError<AxiosError> {
 	get statusCode() {
-		return this.e.code;
+		return this.e.code
 	}
 }
 
 export class TranslationValidationError extends TranslationServiceError<ZodError> {
 	get friendlyErrorMessage() {
-		return this.e.issues.map((issue) => issue.message).join("\n");
+		return this.e.issues.map((issue) => issue.message).join("\n")
 	}
 }

@@ -1,12 +1,14 @@
-import { GuildBasedChannel } from "discord.js";
+import { Prisma } from "@prisma/client"
+import { GuildBasedChannel } from "discord.js"
 
 export function createDiscordChannelArg(channel: GuildBasedChannel) {
-	const channelId = channel.id;
-	const guildId = channel.id;
-	const ownerId = channel.id;
+	const channelId = channel.id
+	const guildId = channel.id
+	const ownerId = channel.id
 	const res = {
 		id: channelId,
 		name: channel.name,
+
 		discord_guilds: {
 			connectOrCreate: {
 				where: {
@@ -28,6 +30,9 @@ export function createDiscordChannelArg(channel: GuildBasedChannel) {
 				},
 			},
 		},
-	};
-	return res;
+	} as const satisfies Prisma.XOR<
+		Prisma.discord_channelsCreateInput,
+		Prisma.discord_channelsUncheckedCreateInput
+	>
+	return res
 }

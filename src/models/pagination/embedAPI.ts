@@ -75,12 +75,10 @@ const APIEmbedSchema = z
 const reminderEmbedBuilderPipeline = z.instanceof(EmbedBuilder).transform((embed, ctx) => {
 	const result = APIEmbedSchema.safeParse(embed.data)
 	if (!result.success) {
-		for (const issue of result.error.issues) {
-			ctx.addIssue(issue)
-		}
+		result.error.issues.forEach(ctx.addIssue.bind(ctx))
 		return z.NEVER
 	}
-	return result
+	return result.data
 })
 
 const pageSchema = z

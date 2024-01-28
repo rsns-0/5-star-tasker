@@ -1,15 +1,13 @@
-import { ApplyOptions } from "@sapphire/decorators";
+import { ApplyOptions } from "@sapphire/decorators"
 
-import { Listener, Store } from "@sapphire/framework";
+import { Listener, Store } from "@sapphire/framework"
 
-import { blue, gray, green, magenta, magentaBright, white, yellow } from "colorette";
-import { GuildAndChannelService } from "../services/guild-and-channel-service"
+import { blue, gray, green, magenta, magentaBright, white, yellow } from "colorette"
 
 const dev = process.env.NODE_ENV !== "production"
 
 @ApplyOptions<Listener.Options>({ once: true })
 export class UserEvent extends Listener {
-	private guildAndChannelService = new GuildAndChannelService()
 	private readonly style = dev ? yellow : blue
 
 	public override run() {
@@ -58,12 +56,21 @@ ${line03}${dev ? ` ${pad}${blc("<")}${llc("/")}${blc(">")} ${llc("DEVELOPMENT MO
 	}
 
 	private async runStartupTasks() {
-		const c = this.container
-		c.dbLogger.info("Starting startup tasks...")
+		this.container.dbLogger.info("Starting startup tasks...")
 
-		setInterval(() => this.guildAndChannelService.updateDb(), 1000 * 60 * 10) // every 10 minutes
-		setInterval(() => c.prisma.reminders.sendDueReminders(), 1000 * 60) // every minute, exact interval will deviate gradually in a long running server but since precision is not important this is fine
-		await this.guildAndChannelService.updateDb()
-		c.dbLogger.info("Finished startup tasks.")
+		await Promise.all(Object.values(this.jobs).map((s) => s()))
+		this.startCronJobs()
+
+		this.container.dbLogger.info("Finished startup tasks.")
+	}
+
+	private startCronJobs() {
+		setInterval(this.jobs.updateDb, 1000 * 60 * 10)
+		setInterval(this.jobs.sendReminders, 1000 * 60)
+	}
+
+	private jobs = {
+		updateDb: () => this.container.updaterService.updateDb(),
+		sendReminders: async () => this.container.prisma.reminders.sendDueReminders(),
 	}
 }

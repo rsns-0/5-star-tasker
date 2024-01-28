@@ -1,19 +1,24 @@
-import { err, ok } from "@sapphire/framework";
+import { err, ok } from "@sapphire/framework"
 
-import { Prisma } from "@prisma/client";
-import { GuildMember, User } from "discord.js"
+import { Prisma } from "@prisma/client"
+import { GuildMember } from "discord.js"
+import { timeToDayjs } from "../../services/timezoneService"
+import { db2 } from "../kyselyInstance"
 
-export default Prisma.defineExtension((prisma) => {
-	return prisma.$extends({
+export default Prisma.defineExtension((db) => {
+	return db.$extends({
 		name: "userExtension",
 		model: {
 			discord_user: {
-				async registerUserWithTimezone(user: User, timezoneId: number | bigint | string) {
+				async registerUserWithTimezone(
+					user: { id: string; username: string },
+					timezoneId: number | bigint | string
+				) {
 					if (typeof timezoneId === "string") {
 						timezoneId = BigInt(timezoneId)
 					}
 
-					return prisma.discord_user.upsert({
+					return db.discord_user.upsert({
 						where: {
 							id: user.id,
 						},
@@ -37,8 +42,8 @@ export default Prisma.defineExtension((prisma) => {
 					})
 				},
 
-				async getUserTimezone(user: User) {
-					const result = await prisma.discord_user.findUnique({
+				async getUserTimezone(user: { id: string }) {
+					const result = await db.discord_user.findUnique({
 						where: {
 							id: user.id,
 						},
@@ -60,7 +65,7 @@ export default Prisma.defineExtension((prisma) => {
 				},
 
 				async getUserTimezoneById(userId: string) {
-					const result = await prisma.discord_user.findUnique({
+					const result = await db.discord_user.findUnique({
 						where: {
 							id: userId,
 						},
@@ -81,28 +86,53 @@ export default Prisma.defineExtension((prisma) => {
 					return ok(result.timezones.value)
 				},
 
+				async localizedParseTimeInput(userInput: string, userId: string) {
+					const result = await this.getUserTimezoneById(userId)
+					return result.map((s) => timeToDayjs(userInput, s))
+				},
+
 				unsafeRegister(member: GuildMember) {
-					return prisma.discord_user.upsert({
+					const update = {
+						username: member.user.username,
+						discord_guilds_joined: {
+							connect: {
+								id: member.guild.id,
+							},
+						},
+					}
+
+					return db.discord_user.upsert({
 						select: { id: true },
 						where: { id: member.id },
 						create: {
 							id: member.id,
-							username: member.user.username,
-							discord_guilds_joined: {
-								connect: {
-									id: member.guild.id,
-								},
-							},
+							...update,
 						},
-						update: {
-							username: member.user.username,
-							discord_guilds_joined: {
-								connect: {
-									id: member.guild.id,
-								},
-							},
-						},
+						update,
 					})
+				},
+
+				async upsertMany(members: GuildMember[]) {
+					return db2
+						.insertInto("discord_user")
+						.values(members.map((s) => ({ id: s.id, username: s.user.username })))
+						.onConflict((s) =>
+							s
+								.column("id")
+								.doUpdateSet((s) => ({ username: s.ref("excluded.username") }))
+						)
+						.returning("id")
+						.execute()
+				},
+
+				async connectManyToGuilds(members: GuildMember[]) {
+					const edges = members.map((mem) => ({ A: mem.guild.id, B: mem.id }) as const)
+					return db2
+						.insertInto("_discord_guilds_members")
+						.values(edges)
+						.onConflict((s) => s.doNothing())
+						.returning(["A", "B"])
+						.execute()
 				},
 			},
 		},

@@ -8,7 +8,7 @@ import users from "./extensions/users";
 import utils from "./extensions/utills";
 import webhooks from "./extensions/webhooks";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({ log: ["query"] })
 	.$extends(utils)
 	.$extends(logging)
 	.$extends(reminders)
@@ -16,6 +16,6 @@ const prisma = new PrismaClient()
 	.$extends(guildsAndChannels)
 	.$extends(webhooks)
 	.$extends(pagination)
-	.$extends(users);
+	.$extends(users)
 
-export default prisma;
+export default prisma

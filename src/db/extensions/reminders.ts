@@ -1,67 +1,41 @@
-import { CreateReminderFactoryFn } from "./../../types/types"
-import { Prisma, webhooks } from "@prisma/client"
-import { Channel, User, time, userMention } from "discord.js"
+import { Prisma } from "@prisma/client"
+import { User } from "discord.js"
 
 import { container } from "@sapphire/framework"
 
-import extension from "prisma-paginate"
-import { logger } from "../../logger/logger"
-import { CreateReminderDTOBuilderFactory } from "../../models/reminders/create-reminder-dto"
-
-export default Prisma.defineExtension((prisma) => {
-	const paginatePrisma = prisma.$extends(extension)
-	return prisma.$extends({
+import { AsyncReturnType, SetOptional } from "type-fest"
+import { db2 } from "../kyselyInstance"
+import { jsonArrayFrom } from "kysely/helpers/postgres"
+import { sql } from "kysely"
+import { reminderToReminderUserMessage } from "../../models/reminders/reminderMessage"
+import { isNotUndefined, mergeMap, then, thenMergeMap } from "utils/utils"
+import { map, partition, pipe } from "remeda"
+export default Prisma.defineExtension((db) => {
+	return db.$extends({
 		name: "reminderExtension",
 		model: {
 			reminders: {
-				async createReminder(fn: CreateReminderFactoryFn) {
-					const builder =
-						await CreateReminderDTOBuilderFactory.createBuilderFromFunction(fn)
-
-					return prisma.reminders.create(builder.generateCreateReminderInput())
-				},
-				/**
-				 * Retrieves reminders of a specific user.
-				 *
-				 * @param user - The user object.
-				 * @returns A promise that resolves to an array of reminders.
-				 */
-				async getAllRemindersOfUser(user: User) {
-					logger.emit(
-						"info",
+				async getUserReminders(
+					user: SetOptional<Pick<User, "id" | "globalName">, "globalName">
+				) {
+					container.dbLogger.info(
 						`Retrieving reminders for user:\nID: ${user.id}\nGlobal Name: ${user.globalName}`
 					)
-					return prisma.reminders.findMany({
-						where: {
-							discord_user: {
-								id: user.id,
-							},
-						},
-					})
+
+					return createGetUserRemindersByIdQuery(user.id)
+						.executeTakeFirstOrThrow()
+						.then(adjustGetUserRemindersByIdOutput)
 				},
 
-				async getUserRemindersPaginated(user: User) {
-					return paginatePrisma.reminders.paginate({
-						where: {
-							discord_user: {
-								id: user.id,
-							},
-						},
-						limit: 10,
-					})
-				},
-				/**
-				 * Retrieves expired reminders from the database.
-				 *
-				 * @returns A promise that resolves to an array of expired reminders.
-				 */
 				async getExpiredReminders() {
-					type _hook = webhooks & { token: string }
-					type _res = (typeof res)[0]
-					type _reminderWithWebhookWithoutNullToken = _res & {
-						webhook: _hook
-					}
-					const res = await prisma.reminders.findMany({
+					return await db.reminders.findMany({
+						select: {
+							id: true,
+							webhook_id: true,
+							reminder_message: true,
+							user_id: true,
+							time: true,
+						},
 						where: {
 							time: {
 								lte: new Date(),
@@ -72,12 +46,7 @@ export default Prisma.defineExtension((prisma) => {
 								},
 							},
 						},
-						include: {
-							webhook: true,
-						},
 					})
-
-					return res as _reminderWithWebhookWithoutNullToken[]
 				},
 				/**
 				 * Deletes a reminder by its ID.
@@ -86,57 +55,106 @@ export default Prisma.defineExtension((prisma) => {
 				 * @returns A promise that resolves to the deleted reminder.
 				 */
 				async deleteReminderById(id: number) {
-					return prisma.reminders.delete({
+					return db.reminders.delete({
 						where: {
 							id,
 						},
 					})
 				},
 
-				/**
-				 * Retrieves expired reminders from the database and deletes them.
-				 *
-				 * @returns {Promise<Reminder[]>} A promise that resolves to an array of expired
-				 *   reminders.
-				 */
-				async getExpiredRemindersAndDelete() {
-					const res = await this.getExpiredReminders()
-
-					if (!res.length) {
-						return res
-					}
-					await prisma.reminders.deleteMany({
-						where: {
-							id: {
-								in: res.map((reminder) => reminder.id),
-							},
-						},
-					})
-					return res
-				},
-
 				async sendDueReminders() {
-					const reminders = await this.getExpiredRemindersAndDelete()
-					if (!reminders.length) {
-						return false
-					}
-					const promises = reminders.map(async (res) => {
-						const webhookClient = await container.client.fetchWebhook(res.webhook.id)
-						const message = `
-						${userMention(res.user_id)}\nTIME: ${time(res.time)}\nREMINDER: ${res.reminder_message}
-						`
-						return webhookClient.send(message)
-					})
-					return await Promise.all(promises)
+					container.dbLogger.info("Checking for expired reminders...")
+					return await db2
+						.transaction()
+						.setIsolationLevel("repeatable read")
+						.execute(async (tx) => {
+							return await pipe(
+								await createGetExpiredRemindersQuery(tx).execute(),
+								map(reminderToReminderUserMessage),
+								mergeMap((s) => container.userService.sendReminder(s)),
+								thenMergeMap(({ state, id }) => {
+									if (state === "failed") {
+										container.dbLogger.error(`Failed to send reminder ${id}`)
+										return
+									}
+									return createDeleteReminderByIdQuery(tx, id)
+										.executeTakeFirstOrThrow()
+										.catch((e) => {
+											container.dbLogger.error(e)
+										})
+								}),
+								then(partition(isNotUndefined)),
+								then(([successes, failures]) => {
+									container.dbLogger.info("Finished processing reminders.")
+									container.dbLogger.info(
+										`Deleted ${successes.length} reminders.`
+									)
+									failures.length &&
+										container.dbLogger.error(
+											`Failed to delete ${failures.length} reminders.`
+										)
+									return successes
+								})
+							)
+						})
 				},
 			},
 		},
 	})
 })
 
-export function resolveChannelName(channel: Channel): string {
-	if (!("name" in channel) || !channel.name) {
-		return ""
+const createGetExpiredRemindersQuery = (db: typeof db2) => {
+	return db
+		.selectFrom("reminders")
+		.where("time", "<=", new Date())
+		.select([
+			"reminders.id",
+			"reminders.user_id",
+			"time",
+			"reminders.reminder_message",
+			"webhook_id",
+		])
+		.limit(10_000)
+}
+
+const createDeleteReminderByIdQuery = (db: typeof db2, id: number) => {
+	return db.deleteFrom("reminders").where("id", "=", id).returning("id")
+}
+
+const createGetUserRemindersByIdQuery = (id: string) => {
+	const reminders = jsonArrayFrom(
+		db2
+			.selectFrom("discord_user")
+			.innerJoin("reminders", "discord_user.id", "reminders.user_id")
+			.where("discord_user.id", "=", id)
+			.select([
+				"reminders.id",
+				sql<string>`reminders.time`.as("time"),
+				"reminders.reminder_message",
+			])
+			.orderBy("reminders.time", "asc")
+			.limit(100)
+	).as("reminders")
+
+	return db2
+		.selectFrom("reminders")
+		.where("reminders.user_id", "=", id)
+		.select([(eb) => eb.fn.count("reminders.id").as("count"), reminders])
+}
+
+const adjustGetUserRemindersByIdOutput = (
+	result: AsyncReturnType<
+		ReturnType<typeof createGetUserRemindersByIdQuery>["executeTakeFirstOrThrow"]
+	>
+) => {
+	return {
+		reminders: result.reminders.map((s) => {
+			// https://github.com/kysely-org/kysely/issues/482
+			return {
+				...s,
+				time: new Date(s.time),
+			}
+		}),
+		count: Number(result.count),
 	}
-	return channel.name
 }

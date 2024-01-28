@@ -1,13 +1,12 @@
-import { Prisma } from "@prisma/client";
-import { Dayjs } from "dayjs";
-import { EmbedBuilder } from "discord.js";
+import { Dayjs } from "dayjs"
+import { EmbedBuilder } from "discord.js"
 
-const DEFAULT_IDLE_COLOR = 0x0099ff;
-const DEFAULT_CONFIRMED_COLOR = 0x00ff62;
-const DEFAULT_NEGATIVE_COLOR = 0x00ff62;
+const DEFAULT_IDLE_COLOR = 0x0099ff
+const DEFAULT_CONFIRMED_COLOR = 0x00ff62
+const DEFAULT_NEGATIVE_COLOR = 0x00ff62
 
 export const reminderExplanationEmbed = (): EmbedBuilder => {
-	const embed = new EmbedBuilder()
+	const reminderExplanation = new EmbedBuilder()
 		.setColor(DEFAULT_IDLE_COLOR)
 		.setTitle("EXPLANATION")
 		.setDescription(
@@ -34,33 +33,32 @@ export const reminderExplanationEmbed = (): EmbedBuilder => {
 			inline: false,
 		})
 		.setThumbnail("https://i.imgur.com/cHfyNQu.png")
-		.setImage("https://i.imgur.com/LGzUbus.png");
-
-	return embed;
-};
+		.setImage("https://i.imgur.com/LGzUbus.png")
+	return reminderExplanation
+}
 
 export const reminderSelectTimezoneEmbed = (): EmbedBuilder => {
-	const embed = new EmbedBuilder()
+	const reminderSelectTimezone = new EmbedBuilder()
 		.setColor(DEFAULT_IDLE_COLOR)
 		.setTitle("SELECT YOUR TIMEZONE")
 		.setDescription(
 			"Since it's your first time doing this command, " +
 				"I need to know your timezone, to return a more" +
 				" precise date specially for you"
-		);
-	return embed;
-};
+		)
+	return reminderSelectTimezone
+}
 
 export const reminderTimezoneRegisteredEmbed = (
-	tzinfo: Prisma.timezonesGetPayload<true>,
+	tzinfo: { emoji: string; label: string; description: string },
 	timeString: string
 ): EmbedBuilder => {
 	const embed = new EmbedBuilder()
 		.setColor(DEFAULT_CONFIRMED_COLOR)
-		.setTitle("DONE")
+		.setTitle("Success!")
 		.setDescription(
 			"Your timezone is now set to " +
-				`${tzinfo?.emoji} **${tzinfo?.label}** (${tzinfo?.description})` +
+				`${tzinfo.emoji} **${tzinfo.label}** (${tzinfo.description})` +
 				"\n\nuse `/implementCommand` to change it" +
 				"\n\nYou can now use the `/reminder` command, here's your string so you can copy:"
 		)
@@ -68,37 +66,40 @@ export const reminderTimezoneRegisteredEmbed = (
 			name: timeString,
 			value: "*For mobile: Tap and hold to copy your time above*",
 			inline: false,
-		});
-	return embed;
-};
+		})
+	return embed
+}
 
-export const reminderFinishedEmbed = (date: Dayjs, reminder: string): EmbedBuilder => {
+export const reminderFinishedEmbed = (
+	date: Dayjs,
+	reminder: string,
+	channelName: string
+): EmbedBuilder => {
 	const embed = new EmbedBuilder()
 		.setColor(DEFAULT_CONFIRMED_COLOR)
-		.setTitle("DONE")
+		.setTitle("Success!")
 		.setDescription(
 			"Your reminder has been set to " +
 				`<t:${date.unix()}:F>` +
 				" and you'll be pinged with " +
-				`\`${reminder}\``
-		);
-	return embed;
-};
+				`\`${reminder}\`` +
+				`in \`${channelName}\``
+		)
+	return embed
+}
 
 export const reminderSomethingWrongEmbed = (): EmbedBuilder => {
-	const embed = new EmbedBuilder()
+	const reminderSomethingWrong = new EmbedBuilder()
 		.setColor(DEFAULT_NEGATIVE_COLOR)
 		.setTitle("ERROR")
-		.setDescription(
-			"Something went wrong while creating the reminder. Please try again later."
-		);
-	return embed;
-};
+		.setDescription("Something went wrong while creating the reminder. Please try again later.")
+	return reminderSomethingWrong
+}
 
 export const reminderEditEmbed = (reminder: string, date: Dayjs, id: number): EmbedBuilder => {
 	const embed = new EmbedBuilder()
 		.setColor(DEFAULT_CONFIRMED_COLOR)
-		.setTitle("DONE")
+		.setTitle("Success!")
 		.setDescription(
 			"Your reminder has been edited to " +
 				`<t:${date.unix()}:F>` +
@@ -116,6 +117,6 @@ export const reminderEditEmbed = (reminder: string, date: Dayjs, id: number): Em
 				value: `<t:${date.unix()}:F>`,
 				inline: false,
 			}
-		);
-	return embed;
-};
+		)
+	return embed
+}

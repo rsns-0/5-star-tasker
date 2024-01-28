@@ -4,6 +4,7 @@ import { CreateReminderDTOBuilderFactory } from "../../models/reminders/create-r
 import { WebhookService } from "../../services/webhookService"
 
 import { Prisma } from "@prisma/client"
+import { SuiteCollector } from "vitest"
 
 const reminderMessage = "testremindermessage"
 const userId = "userid123"
@@ -99,9 +100,8 @@ const expected = {
 	},
 } satisfies Prisma.remindersCreateArgs
 
-export const testCreateReminderDTOFactory = describe.skipIf(!process.env.RUN_BOT_TESTS)(
-	"fromGeneral",
-	() => {
+export const testCreateReminderDTOFactory = (): SuiteCollector<{}> =>
+	describe.skipIf(!process.env.RUN_BOT_TESTS)("fromGeneral", () => {
 		let factory: CreateReminderDTOBuilderFactory
 
 		beforeAll(() => {
@@ -144,5 +144,4 @@ export const testCreateReminderDTOFactory = describe.skipIf(!process.env.RUN_BOT
 			const res = dto.generateCreateReminderInput()
 			expect(res).toEqual(expected)
 		}, 60000)
-	}
-)
+	})

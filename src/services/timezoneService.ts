@@ -2,8 +2,8 @@ import dayjs, { Dayjs } from "dayjs"
 
 import timezonePlugin from "dayjs/plugin/timezone"
 import utcPlugin from "dayjs/plugin/utc"
-import { ok } from "@sapphire/framework"
-import prisma from "../db/prismaInstance"
+
+
 
 dayjs.extend(utcPlugin)
 dayjs.extend(timezonePlugin)
@@ -15,7 +15,7 @@ dayjs.extend(timezonePlugin)
  * @param timezone
  * @returns
  */
-export const timeStringToDayjsObj = (userInput: string, timezone: string): Dayjs => {
+export const timeToDayjs = (userInput: string, timezone: string): Dayjs => {
 	const timeParsed: Dayjs = dayjs(userInput).tz(timezone)
 
 	if (!timeParsed.isValid()) {
@@ -24,21 +24,6 @@ export const timeStringToDayjsObj = (userInput: string, timezone: string): Dayjs
 	} else {
 		return timeParsed
 	}
-}
-
-/**
- * Converts a time input into a dayjs object localized to the user's timezone.
- *
- * @param userInput
- * @param userId
- */
-export async function localizedParseTimeInput(userInput: string, userId: string) {
-	const result = await prisma.discord_user.getUserTimezoneById(userId)
-	if (result.isErr()) {
-		return result
-	}
-	const timezone = result.unwrap()
-	return ok(timeStringToDayjsObj(userInput, timezone))
 }
 
 // to do: check result and stop in middle
@@ -53,8 +38,7 @@ const userStringToTimeData = (userInput: string): RegExpMatchArray[] => {
 		"(?:(\\d+)ms)?", // Capture milliseconds
 	].join("")
 	const regex = new RegExp(timeParsedPattern, "g")
-	const matches = Array.from(userInput.matchAll(regex))
-	return matches
+	return Array.from(userInput.matchAll(regex))
 }
 
 const constructDateFromTimeData = (matches: RegExpMatchArray[]): Dayjs => {

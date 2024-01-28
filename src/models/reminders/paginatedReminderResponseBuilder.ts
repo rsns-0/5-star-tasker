@@ -1,8 +1,10 @@
-import { reminders } from "@prisma/client"
-
-import { ReminderPages } from "./ReminderPaginationDataCollection"
 import { pageSchema } from "../pagination/embedAPI"
 import { PaginatedMessage } from "@sapphire/discord.js-utilities"
+import { ReminderData, ReminderPage, createPaginatedReminders } from "./ReminderPage"
+
+import * as R from "remeda"
+
+const WEBSITE_URL = "https://5-star-frontend.vercel.app/reminder-table" as const
 
 /**
  * @example
@@ -62,70 +64,64 @@ import { PaginatedMessage } from "@sapphire/discord.js-utilities"
  * 		return message
  * 	}
  */
-export class ReminderPaginatedResponseBuilder extends PaginatedMessage {
-	public isExceeded = false
-	public static fromReminderData(reminders: reminders[], pageSize = 5) {
-		if (reminders.length >= 100) {
-			reminders = reminders.slice(0, 100)
-		}
-		const _pre = new this(ReminderPages.fromReminders(reminders, { pageSize }))
-		_pre.isExceeded = true
-		return this.generatePages(_pre).addEndingMessages()
+export class ReminderPaginatedMessage extends PaginatedMessage {
+	public static fromReminderData(
+		reminders: ReminderData[],
+		{ pageSize = 5, isExcess = false } = {}
+	) {
+		return R.pipe(
+			reminders,
+			(reminders) => createPaginatedReminders(reminders, { pageSize }),
+			(pages) => new this(pages).setIsExcess(isExcess).generatePages().addEndingMessages()
+		)
+	}
+	private _isExcess = false
+
+	public constructor(public readonly reminderPages: ReminderPage[]) {
+		super()
 	}
 
-	/**
-	 * Constructs a new instance of the PaginatedReminderResponseBuilder class.
-	 *
-	 * @param reminderPageData Contains a map of page index to reminder data, which is another map
-	 *   of reminder ID to reminder data.
-	 */
-	public constructor(public readonly reminderPages: ReminderPages) {
-		super()
+	get isExcess() {
+		return this._isExcess
+	}
+
+	setIsExcess(exceeded: boolean) {
+		this._isExcess = exceeded
+		return this
 	}
 
 	public addEndingMessages() {
 		if (this.pages.length === 1) {
-			this.addPageEmbed((embed) => embed.setDescription("No further reminders to load."))
-		} else if (this.isExceeded) {
-			//TODO add website link
-			this.addPageEmbed((embed) =>
+			// this is a workaround for a bug
+			return this.addPageEmbed((embed) =>
+				embed.setDescription("No further reminders to load.")
+			)
+		} else if (this.isExcess) {
+			return this.addPageEmbed((embed) =>
 				embed.setDescription(
-					"Max reminder display reached. Please use the website to view all of your reminders."
+					`Max reminder display reached. Please use the website to view all of your reminders. ${WEBSITE_URL}`
 				)
 			)
 		}
 		return this
 	}
 
-	private static generatePages(_pre: ReminderPaginatedResponseBuilder) {
-		for (const page of _pre.reminderPages) {
-			const embed = page.toEmbedBuilder()
-			_pre.addPageEmbed(embed)
-			_pre.addPageActions(page.getActions(), page.index)
+	generatePages() {
+		for (const page of this.reminderPages) {
+			this.addPageEmbed(page.toEmbedBuilder()).addPageActions(page.getActions(), page.index)
 		}
-
-		return _pre
+		return this
 	}
 
 	public getEmbedDataOfAllPages() {
-		const res = pageSchema
-			.array()
-			.parse(this.pages)
-			.map((page) => {
-				return page.embeds
-			})
+		return this.getParsedPages().map(({ embeds }) => embeds)
+	}
 
-		return res
+	public getParsedPages() {
+		return pageSchema.array().parse(this.pages)
 	}
 
 	public getEmbedFieldsOfFirstPage() {
-		const res = pageSchema
-			.array()
-			.parse(this.pages)
-			.flatMap((page) => {
-				return page.embeds[0].data.fields
-			})
-
-		return res
+		return this.getParsedPages().flatMap((page) => page.embeds[0].fields)
 	}
 }

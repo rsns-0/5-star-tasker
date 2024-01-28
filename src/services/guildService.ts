@@ -2,16 +2,16 @@ import { container } from "@sapphire/framework";
 import { Channel } from "discord.js"
 
 export class GuildService {
-	getBotGuildById(id: string) {
+	getGuildById(id: string) {
 		return container.client.guilds.cache.get(id)
 	}
 
-	getBotGuilds() {
+	getGuilds() {
 		return container.client.guilds.cache
 	}
 
 	findChannelInGuilds(channelId: string) {
-		const guilds = this.getBotGuilds().filter((guild) => {
+		const guilds = this.getGuilds().filter((guild) => {
 			const channel = guild.channels.cache.get(channelId)
 			return channel !== undefined
 		})

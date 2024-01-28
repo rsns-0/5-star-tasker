@@ -23,7 +23,7 @@ describe("parseToCleanedStackframe", () => {
 		(str) => {
 			const stackFrames = parseToCleanedStackFrame(str);
 			for (const { file } of stackFrames) {
-				const firstPart = file.slice(0, projectName.length);
+				const firstPart = file!.slice(0, projectName.length)
 				expect(firstPart).toBe(projectName);
 			}
 		}

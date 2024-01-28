@@ -1,38 +1,21 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client"
 
-export default Prisma.defineExtension((prisma) => {
-	return prisma.$extends({
+export default Prisma.defineExtension((db) => {
+	return db.$extends({
 		name: "languageExtension",
 		model: {
 			languages: {
-				async isDiscordReactionSupportedByDeepL(reaction: string) {
-					const res1 = await prisma.discord_flag_emojis.findUnique({
-						where: {
-							value: reaction,
-							language: {
-								is_supported_by_deep_l: true,
+				async getDeepLIsoCode(reaction: string) {
+					return db.flag_key_to_deep_l_iso_code_materialized
+						.findFirst({
+							select: { iso_code: true },
+							where: {
+								flag_key: reaction.toLowerCase(),
 							},
-						},
-
-						select: {
-							language: {
-								select: {
-									iso_639_1: true,
-								},
-							},
-						},
-					});
-					if (!res1) {
-						return null;
-					}
-					if (!res1.language) {
-						throw new Error(
-							"Assertion Error: Check query where clause, may be invalid."
-						);
-					}
-					return res1.language.iso_639_1.toUpperCase();
+						})
+						.then((s) => s?.iso_code ?? null)
 				},
 			},
 		},
-	});
-});
+	})
+})

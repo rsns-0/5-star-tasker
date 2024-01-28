@@ -4,9 +4,10 @@ import {
 	ActionRowBuilder,
 	ChatInputCommandInteraction,
 	DiscordAPIError,
+	Message,
 	PermissionFlagsBits,
-	SlashCommandBuilder,
 	StringSelectMenuBuilder,
+	StringSelectMenuInteraction,
 } from "discord.js"
 import {
 	reminderExplanationEmbed,
@@ -23,47 +24,21 @@ import {
 import { Subcommand } from "@sapphire/plugin-subcommands"
 
 import prisma from "../../db/prismaInstance"
-import { timeStringToDayjsObj } from "../../services/timezoneService"
+import { timeToDayjs } from "../../services/timezoneService"
 
 import { container } from "@sapphire/framework"
-import { ReminderPaginatedResponseBuilder } from "../../models/reminders/paginatedReminderResponseBuilder"
+import { ReminderPaginatedMessage } from "../../models/reminders/paginatedReminderResponseBuilder"
 
-const reminderData = new SlashCommandBuilder()
-	.setName("reminder")
-	.setDescription("Create a reminder")
-	.addSubcommand((subcommand) => subcommand.setName("edit").setDescription("Edit your reminders"))
-	.addSubcommand((subcommand) =>
-		subcommand
-			.setName("set")
-			.setDescription("Info about a user")
-			.addStringOption((option) =>
-				option
-					.setName("time")
-					.setDescription("set the time for the reminder, more info in /reminder help")
-					.setRequired(true)
-					.setMaxLength(25)
-			)
-			.addStringOption((option) =>
-				option
-					.setName("message")
-					.setDescription("What do you want to be pinged for? (200 chars limit)")
-					.setRequired(false)
-			)
-			.addChannelOption((option) =>
-				option
-					.setName("channel")
-					.setDescription("What channel do you want the reminder to be sent in?")
-					.setRequired(false)
-			)
-	)
-	.addSubcommand((subcommand) =>
-		subcommand.setName("help").setDescription("Explanation of how to use /reminder")
-	)
+import { assertWebhookChannel } from "../../services/webhookService"
+import { channelToPrismaConnectOrCreate } from "../../models/mappers/channels"
+import { userToPrismaConnectOrCreate } from "../../models/mappers/users"
+import { webhookToPrismaConnectOrCreate } from "../../models/mappers/webhooks"
+import { Prisma } from "@prisma/client"
+import { AsyncReturnType } from "type-fest"
 
 @ApplyOptions<Subcommand.Options>({
 	name: "reminder",
 	description: "Manage reminders. Use help for more information.",
-
 	subcommands: [
 		{
 			name: "help",
@@ -81,9 +56,47 @@ const reminderData = new SlashCommandBuilder()
 })
 export class UserCommand extends Subcommand {
 	public override registerApplicationCommands(registry: Subcommand.Registry) {
-		// Register slash command
-
-		registry.registerChatInputCommand(reminderData)
+		registry.registerChatInputCommand((b) => {
+			return b
+				.setName("reminder")
+				.setDescription("Create a reminder")
+				.addSubcommand((subcommand) =>
+					subcommand.setName("edit").setDescription("Edit your reminders")
+				)
+				.addSubcommand((subcommand) =>
+					subcommand
+						.setName("set")
+						.setDescription("Info about a user")
+						.addStringOption((option) =>
+							option
+								.setName("time")
+								.setDescription(
+									"set the time for the reminder, more info in /reminder help"
+								)
+								.setRequired(true)
+								.setMaxLength(25)
+						)
+						.addStringOption((option) =>
+							option
+								.setName("message")
+								.setDescription(
+									"What do you want to be pinged for? (200 chars limit)"
+								)
+								.setRequired(false)
+						)
+						.addChannelOption((option) =>
+							option
+								.setName("channel")
+								.setDescription(
+									"What channel do you want the reminder to be sent in?"
+								)
+								.setRequired(false)
+						)
+				)
+				.addSubcommand((subcommand) =>
+					subcommand.setName("help").setDescription("Explanation of how to use /reminder")
+				)
+		})
 	}
 
 	@RequiresClientPermissions([PermissionFlagsBits.EmbedLinks])
@@ -93,113 +106,26 @@ export class UserCommand extends Subcommand {
 		})
 	}
 
-	@RequiresClientPermissions([PermissionFlagsBits.EmbedLinks])
+	@RequiresClientPermissions([PermissionFlagsBits.Administrator])
 	public async set(interaction: ChatInputCommandInteraction) {
 		try {
 			await interaction.deferReply({ ephemeral: true })
-
-			// * Check db for user timezone data
-			const timeString = interaction.options.getString("time")!
-			const result = await prisma.discord_user.findUnique({
-				where: {
-					id: interaction.user.id,
-					timezones: {
-						isNot: null,
-					},
-				},
-				include: {
-					timezones: {
-						select: {
-							value: true,
-						},
-					},
-				},
-			})
-			const userTimezone = result?.timezones?.value
-			//* If user doesn't exist or has no timezone data, prompt user and persist data.
-			if (userTimezone === undefined || userTimezone === null) {
-				const row1 = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-					timezonesNegatives
-				)
-				const row2 = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-					timezonesPositives
-				)
-				const embedToUpdate = reminderSelectTimezoneEmbed()
-				const response = await interaction.editReply({
-					embeds: [reminderSelectTimezoneEmbed()],
-					components: [row1.toJSON(), row2.toJSON()],
-				})
-				container.dbLogger.emit("info", "Waiting for user to select timezone.")
-				const confirmation = await response.awaitMessageComponent({
-					filter: (i): boolean => i.user.id === interaction.user.id,
-					time: 60000,
-				})
-				if (
-					confirmation.isStringSelectMenu() &&
-					(confirmation.customId === "positives" || confirmation.customId === "negatives")
-				) {
-					await confirmation.update({
-						embeds: [
-							embedToUpdate.setTitle("Saving your timezone...").setDescription(" "),
-						],
-						components: [],
-					})
-
-					container.dbLogger.emit(
-						"info",
-						`User ${interaction.user.id} ${interaction.user.globalName} selected timezone ${confirmation.values[0]}`
-					)
-
-					const tzinfo = await prisma.timezones.findFirst({
-						where: {
-							value: confirmation.values[0],
-						},
-					})
-					if (!tzinfo) {
-						throw new Error(
-							"Assertion error: Timezone not found. Check to make sure the form field options align with the database data."
-						)
-					}
-					await prisma.discord_user.registerUserWithTimezone(interaction.user, tzinfo.id)
-
-					await interaction.followUp({
-						embeds: [reminderTimezoneRegisteredEmbed(tzinfo, timeString)],
-						ephemeral: true,
-					})
-				}
+			container.dbLogger.info(`User ${interaction.user.username} is setting a reminder.`)
+			const userTimezone = await getUserTimezoneValue(interaction.user.id)
+			if (!userTimezone) {
+				return await new UserRegistrationRunner(interaction).run()
 			}
-			// * Else create reminder for user.
-			else {
-				const reminder = interaction.options.getString("message") ?? "Pong 🏓"
-				if (!interaction.channel) {
-					throw new Error("Unexpected missing channel")
-				}
-
-				const date = timeStringToDayjsObj(timeString, userTimezone)
-				await prisma.reminders.createReminder((factory) => {
-					return factory.fromDiscord({
-						channel: interaction.channel!,
-						user: interaction.user,
-						time: date.toDate(),
-						guild: interaction.guild!,
-						reminderMessage: reminder,
-					})
-				})
-
-				await interaction.editReply({
-					embeds: [reminderFinishedEmbed(date, reminder)],
-				})
-			}
+			const getUserAdjustedTimezone: UserDateGetter = () =>
+				timeToDayjs(interaction.options.getString("time")!, userTimezone)
+			return await new SetReminderRunner(interaction, getUserAdjustedTimezone).run()
 		} catch (e) {
 			container.dbLogger.emit("error", e)
-			if (e instanceof DiscordAPIError) {
-				throw e
-			} else {
+			if (!(e instanceof DiscordAPIError)) {
 				await interaction.editReply({
 					embeds: [reminderSomethingWrongEmbed()],
 				})
-				throw e
 			}
+			throw e
 		}
 	}
 
@@ -207,18 +133,20 @@ export class UserCommand extends Subcommand {
 	public async edit(interaction: ChatInputCommandInteraction) {
 		try {
 			await interaction.deferReply({ ephemeral: true })
-			const reminders = await prisma.reminders.getAllRemindersOfUser(interaction.user)
-			if (!reminders.length) {
+
+			const results = await prisma.reminders.getUserReminders(interaction.user)
+
+			if (!results.reminders.length) {
 				await interaction.editReply({
 					message: "You have no reminders set.",
 				})
 				return
 			}
 
-			await ReminderPaginatedResponseBuilder.fromReminderData(reminders).run(
-				interaction,
-				interaction.user
-			)
+			await ReminderPaginatedMessage.fromReminderData(results.reminders!, {
+				pageSize: 5,
+				isExcess: results.count > 100,
+			}).run(interaction, interaction.user)
 		} catch (e) {
 			container.dbLogger.emit("error", e)
 			if (e instanceof DiscordAPIError) {
@@ -229,5 +157,207 @@ export class UserCommand extends Subcommand {
 				})
 			}
 		}
+	}
+}
+
+async function getUserTimezoneValue(id: string) {
+	return await prisma.discord_user
+		.findUnique({
+			select: {
+				timezones: {
+					select: {
+						value: true,
+					},
+				},
+			},
+			where: {
+				id,
+				timezones: {
+					isNot: null,
+				},
+			},
+		})
+		.then((s) => s?.timezones?.value)
+}
+
+type UserDateGetter = () => ReturnType<typeof timeToDayjs>
+
+class SetReminderRunner {
+	constructor(
+		public interaction: ChatInputCommandInteraction,
+		public getDate: UserDateGetter
+	) {}
+
+	async run() {
+		const channelData = this.getChannelData()
+		const date = this.getDate()
+		const webhookClient = await this.getWebhookClient(channelData.channel)
+		const data = this.createReminderData(channelData, webhookClient, date.toDate())
+		await this.createReminder(data)
+		await this.interaction.editReply({
+			embeds: [reminderFinishedEmbed(date, this.getMessage(), channelData.channelName)],
+		})
+	}
+
+	createReminderData(
+		channelData: ReturnType<typeof this.getChannelData>,
+		webhookClient: AsyncReturnType<typeof this.getWebhookClient>,
+		time: Date
+	) {
+		const discord_channels = channelToPrismaConnectOrCreate({
+			id: channelData.channel.id,
+			name: channelData.channelName,
+			guildId: this.getGuild().id,
+		})
+
+		const webhook = webhookToPrismaConnectOrCreate(webhookClient, discord_channels)
+
+		const discord_user = userToPrismaConnectOrCreate({
+			id: this.interaction.user.id,
+			username: this.interaction.user.username,
+		})
+
+		return {
+			discord_channels,
+			discord_user,
+			webhook,
+			time,
+			reminder_message: this.getMessage(),
+		} as const satisfies Prisma.remindersCreateInput
+	}
+
+	async createReminder(data: ReturnType<typeof this.createReminderData>) {
+		return await prisma.reminders.create({
+			select: {
+				id: true,
+			},
+			data,
+		})
+	}
+
+	async getWebhookClient(channel: ReturnType<typeof this.getChannelData>["channel"]) {
+		return await container.webhookService.getOrCreateAnyOwnedWebhookInChannel(channel)
+	}
+
+	getMessage() {
+		return this.interaction.options.getString("message") ?? "Ping! 🏓"
+	}
+
+	getChannelData() {
+		const channel = this.interaction.options.getChannel("channel") ?? this.interaction.channel
+
+		if (!channel) {
+			throw new Error("Unexpected missing channel")
+		}
+
+		assertWebhookChannel(channel)
+
+		const channelName = (() => {
+			if (!("name" in channel) || channel.name === null || channel.name === undefined) {
+				return ""
+			}
+			return channel.name
+		})()
+
+		return {
+			channel,
+			channelName,
+		}
+	}
+
+	getGuild() {
+		const guild = this.interaction.guild
+		if (!guild) {
+			throw new Error("Unexpected missing guild")
+		}
+		return guild
+	}
+}
+
+const reminderSelectTimezoneComponent = {
+	embeds: [reminderSelectTimezoneEmbed()],
+	components: [
+		new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(timezonesNegatives),
+		new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(timezonesPositives),
+	],
+}
+
+const savingTimezoneComponent = {
+	embeds: [reminderSelectTimezoneEmbed().setTitle("Saving your timezone...").setDescription(" ")],
+	components: [],
+}
+
+class UserRegistrationRunner {
+	timeString
+	constructor(public readonly interaction: ChatInputCommandInteraction) {
+		this.timeString = interaction.options.getString("time")!
+	}
+
+	confirmationIsValid(
+		confirmation: Awaited<ReturnType<Message["awaitMessageComponent"]>>
+	): confirmation is StringSelectMenuInteraction {
+		return (
+			confirmation.isStringSelectMenu() &&
+			(confirmation.customId === "positives" || confirmation.customId === "negatives")
+		)
+	}
+
+	async promptTimezone() {
+		const { interaction } = this
+		const message = await interaction.editReply(reminderSelectTimezoneComponent)
+
+		return await message.awaitMessageComponent({
+			filter: (i_1): boolean => i_1.user.id === interaction.user.id,
+			time: 60_000,
+		})
+	}
+
+	getTimezoneData(timezoneValue: string) {
+		return prisma.timezones.findFirstOrThrow({
+			select: {
+				id: true,
+				emoji: true,
+				description: true,
+				label: true,
+			},
+
+			where: {
+				value: timezoneValue,
+			},
+		})
+	}
+
+	async run() {
+		const { interaction } = this
+		container.dbLogger.emit(
+			"info",
+			`Waiting for user ${interaction.user.globalName} to select timezone.`
+		)
+		const confirmation = await this.promptTimezone()
+
+		if (!this.confirmationIsValid(confirmation)) {
+			return
+		}
+		const timezoneValue = confirmation.values[0]
+		container.dbLogger.emit(
+			"info",
+			`User ${interaction.user.id} ${interaction.user.globalName} selected timezone ${timezoneValue}`
+		)
+		await confirmation.update(savingTimezoneComponent)
+
+		const timezoneData = await this.getTimezoneData(timezoneValue).catch((e) => {
+			container.dbLogger.error({
+				message: `User ${interaction.user.id} selected a timezone that does not exist. ${timezoneValue}`,
+				errorMessage: e.message,
+			})
+			throw e
+		})
+
+		await prisma.discord_user.registerUserWithTimezone(interaction.user, timezoneData.id)
+
+		await interaction.followUp({
+			embeds: [reminderTimezoneRegisteredEmbed(timezoneData, this.timeString)],
+			ephemeral: true,
+		})
 	}
 }
