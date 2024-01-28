@@ -8,7 +8,7 @@ import { db2 } from "../kyselyInstance"
 import { jsonArrayFrom } from "kysely/helpers/postgres"
 import { sql } from "kysely"
 import { reminderToReminderUserMessage } from "../../models/reminders/reminderMessage"
-import { isNotUndefined, mergeMap, then, thenMergeMap } from "utils/utils"
+import { isNotUndefined, mergeMap, then, thenMergeMap } from "../../utils/utils"
 import { map, partition, pipe } from "remeda"
 export default Prisma.defineExtension((db) => {
 	return db.$extends({
