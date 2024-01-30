@@ -57,8 +57,8 @@ export default Prisma.defineExtension((db) => {
 					})
 				},
 
-				unsafeUpsertMany(channels: GuildBasedChannel[]) {
-					return db2
+				async unsafeUpsertMany(channels: GuildBasedChannel[]) {
+					return await db2
 						.insertInto("discord_channels")
 						.values(
 							channels.map((s) => ({
@@ -75,6 +75,16 @@ export default Prisma.defineExtension((db) => {
 						)
 						.returning("id")
 						.execute()
+				},
+
+				async deleteExcept(channelIds: string[]) {
+					return await db.discord_channels.deleteMany({
+						where: {
+							id: {
+								notIn: channelIds,
+							},
+						},
+					})
 				},
 
 				upsertFromDiscord(channel: GuildBasedChannel) {
@@ -151,16 +161,22 @@ export default Prisma.defineExtension((db) => {
 					} as const satisfies Prisma.discord_guildsCreateInput
 				},
 
-				unsafeUpsertMany(guilds: Guild[]) {
-					return db2
+				async unsafeUpsertMany(guilds: Guild[]) {
+					return await db2
 						.insertInto("discord_guilds")
 						.values(
-							guilds.map((s) => ({ id: s.id, name: s.name, owner_id: s.ownerId }))
+							guilds.map((s) => ({
+								id: s.id,
+								name: s.name,
+								owner_id: s.ownerId,
+								iconURL: s.iconURL(),
+							}))
 						)
 						.onConflict((s) =>
 							s.column("id").doUpdateSet((s) => ({
 								name: s.ref("excluded.name"),
 								owner_id: s.ref("excluded.owner_id"),
+								iconURL: s.ref("excluded.iconURL"),
 							}))
 						)
 						.returning("id")
@@ -176,6 +192,16 @@ export default Prisma.defineExtension((db) => {
 						update: guild,
 						select: {
 							id: true,
+						},
+					})
+				},
+
+				async deleteExcept(guildIds: string[]) {
+					return await db.discord_guilds.deleteMany({
+						where: {
+							id: {
+								notIn: guildIds,
+							},
 						},
 					})
 				},
