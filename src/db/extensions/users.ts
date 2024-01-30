@@ -113,9 +113,18 @@ export default Prisma.defineExtension((db) => {
 				},
 
 				async upsertMany(members: GuildMember[]) {
-					return db2
+					const values = R.pipe(
+						members,
+						R.map((s) => ({
+							id: s.id,
+							username: s.user.username,
+						})),
+						R.uniqBy((s) => s.id)
+					)
+
+					return await db2
 						.insertInto("discord_user")
-						.values(members.map((s) => ({ id: s.id, username: s.user.username })))
+						.values(values)
 						.onConflict((s) =>
 							s
 								.column("id")
