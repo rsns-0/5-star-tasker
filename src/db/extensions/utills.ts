@@ -3,6 +3,17 @@ import * as R from "remeda"
 
 export default Prisma.defineExtension((client) => {
 	return client.$extends({
+		client: {
+			whereIdNotIn<T extends string | number>(ids: T[]) {
+				return {
+					where: {
+						id: {
+							notIn: ids,
+						},
+					},
+				} as const
+			},
+		},
 		model: {
 			$allModels: {
 				/**
