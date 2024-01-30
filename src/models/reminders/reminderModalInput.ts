@@ -1,9 +1,8 @@
 import z from "zod"
-import { stringToBigIntPipeline } from "../time/bigIntTransforms"
 
 export const reminderForm = z.object({
 	type: z.literal("reminder"),
-	reminderId: stringToBigIntPipeline,
+	reminderId: z.coerce.number(),
 })
 
 export const reminderModalIdPipeline = z
