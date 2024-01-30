@@ -10,7 +10,9 @@ import { reminderModalIdPipeline } from "../models/reminders/reminderModalInput"
 })
 export class ModalHandler extends InteractionHandler {
 	public async run(interaction: ModalSubmitInteraction, reminderId: number) {
-		await new ReminderModalRunner(interaction, reminderId).run()
+		await new ReminderModalRunner(interaction, reminderId)
+			.run()
+			.catch((e) => this.container.dbLogger.error(e))
 	}
 
 	public override parse(interaction: ModalSubmitInteraction) {
