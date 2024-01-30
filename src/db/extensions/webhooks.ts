@@ -89,11 +89,12 @@ export default Prisma.defineExtension((prisma) => {
 					})
 				},
 
+
 				async upsertMany(webhooks: Webhook[]) {
 					if (!webhooks.length) {
 						return []
 					}
-					return db2
+					return await db2
 						.insertInto("webhooks")
 						.values(
 							webhooks.map((s) => ({

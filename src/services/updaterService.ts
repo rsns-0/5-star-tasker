@@ -12,9 +12,13 @@ export class UpdaterService {
 		// upsert implementations are dependent on topological order
 		const members = await this.getMembers(guilds)
 		const updatedMembers = await this.updateMembers(members)
+		const deletedChannels = await this.deleteChannels(channels)
+		const deletedGuilds = await this.deleteGuilds(guilds)
 		const updatedGuilds = await this.updateGuilds(guilds)
 		const updatedChannels = await this.updateChannels(channels)
 		const updatedGuildsToMembers = await this.updateGuildsToMembers(members)
+		const deletedGuildsToMembers = await this.deleteGuildsToMembers(guilds)
+
 		const createdWebhooks = await this.createWebhooksIfNotExists()
 		const ownedWebhooks = await this.getOwnedWebhooks()
 		const updatedWebhooks = await this.updateWebhooks(ownedWebhooks)
@@ -32,11 +36,19 @@ export class UpdaterService {
 			createdWebhooks,
 			updatedWebhooks,
 			deletedWebhooks,
+			deletedChannels,
+			deletedGuilds,
+			deletedGuildsToMembers,
 		}
 
 		pipe(
 			results,
-			mapValues((s) => s.length),
+			mapValues((s) => {
+				if ("length" in s) {
+					return s.length
+				}
+				return s.count
+			}),
 			container.dbLogger.info
 		)
 		container.dbLogger.info("Finished updating database.")
@@ -46,17 +58,21 @@ export class UpdaterService {
 
 	private async getMembers(guilds: ReturnType<typeof container.guildService.getGuilds>) {
 		const guildMemberPromises = guilds.map((guild) => guild.members.fetch())
-		return Promise.all(guildMemberPromises).then((s) =>
+		return await Promise.all(guildMemberPromises).then((s) =>
 			s.flatMap((guild) => [...guild.values()])
 		)
 	}
 
 	private async updateGuildsToMembers(members: AsyncReturnType<typeof this.getMembers>) {
-		return container.prisma.discord_user.connectManyToGuilds(members)
+		return await container.prisma.discord_user.connectManyToGuilds(members)
+	}
+
+	private async deleteGuildsToMembers(guilds: ReturnType<typeof container.guildService.getGuilds>) {
+		return await container.prisma.discord_user.disconnectGuildMembers(guilds.toJSON())
 	}
 
 	private async updateMembers(members: AsyncReturnType<typeof this.getMembers>) {
-		return container.prisma.discord_user.upsertMany(members)
+		return await container.prisma.discord_user.upsertMany(members)
 	}
 
 	private getChannels(guilds: ReturnType<typeof container.guildService.getGuilds>) {
@@ -64,11 +80,19 @@ export class UpdaterService {
 	}
 
 	private async updateChannels(channels: ReturnType<typeof this.getChannels>) {
-		return container.prisma.discord_channels.unsafeUpsertMany(channels.toJSON())
+		return await container.prisma.discord_channels.unsafeUpsertMany(channels.toJSON())
+	}
+
+	private async deleteChannels(channels: ReturnType<typeof this.getChannels>) {
+		return await container.prisma.discord_channels.deleteExcept(channels.map((s) => s.id))
+	}
+
+	private async deleteGuilds(guilds: ReturnType<typeof container.guildService.getGuilds>) {
+		return await container.prisma.discord_guilds.deleteExcept(guilds.map((s) => s.id))
 	}
 
 	private async updateGuilds(guilds: ReturnType<typeof container.guildService.getGuilds>) {
-		return container.prisma.discord_guilds.unsafeUpsertMany(guilds.toJSON())
+		return await container.prisma.discord_guilds.unsafeUpsertMany(guilds.toJSON())
 	}
 
 	private async clearWebhooks(webhooks: AsyncReturnType<typeof this.getOwnedWebhooks>) {

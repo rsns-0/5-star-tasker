@@ -100,6 +100,12 @@ export type deep_l_supported_languages = {
 	abbreviation: string
 	languages_id: string | null
 }
+export type deleted_discord_user_to_guilds = {
+	id: Generated<number>
+	created_at: Generated<Timestamp>
+	discord_user_id: string
+	discord_guild_id: string
+}
 export type deleted_webhooks = {
 	db_id: Generated<number>
 	id: string | null
@@ -463,6 +469,7 @@ export type DB = {
 	country_primary_languages: country_primary_languages
 	country_primary_languages_resolved_ties: country_primary_languages_resolved_ties
 	deep_l_supported_languages: deep_l_supported_languages
+	deleted_discord_user_to_guilds: deleted_discord_user_to_guilds
 	deleted_webhooks: deleted_webhooks
 	discord_channels: discord_channels
 	discord_flag_emojis: discord_flag_emojis

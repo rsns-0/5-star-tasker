@@ -1,50 +1,62 @@
 import { createLogger, format, transports } from "winston"
-
+import Transport from "winston-transport"
 import prisma from "../db/prismaInstance"
-import serializeJavascript from "serialize-javascript"
+import { parseToCleanedStackFrameString } from "../utils/stackUtils"
 
-const dirname = "testLogs"
+interface ILogInfo {
+	level: string
+	message: string
+	meta?: Record<string, unknown>
+	stack?: string
+}
 
-const errorFileTransport = new transports.File({
-	filename: "error.log",
-	dirname,
-	level: "error",
-})
-const combinedFileTransport = new transports.File({
-	filename: "combined.log",
-	dirname,
-	level: "debug",
-})
-const infoFileTransport = new transports.File({
-	filename: "info.log",
-	dirname,
-	level: "info",
-})
-const consoleTransport = new transports.Console({})
+class PrismaTransport extends Transport {
+	override log(info: ILogInfo, callback?: (error?: Error, value?: unknown) => void): void {
+		const { level, message, meta } = info
+
+		process.nextTick(() => {
+			const cb = callback ?? (() => {})
+
+			if (level === "error") {
+				const data = meta ?? ({} as Record<string, any>)
+				data.stack = parseToCleanedStackFrameString(info.stack)
+				console.error(info)
+
+				prisma.logs
+					.logEvent(message, data, 1)
+					.then(() => {
+						setImmediate(() => {
+							this.emit("logged", info)
+						})
+						cb(undefined, true)
+					})
+					.catch((err: Error) => {
+						setImmediate(() => {
+							this.emit("error", err)
+						})
+						cb(err, null)
+					})
+			} else {
+				cb(undefined, true)
+			}
+		})
+	}
+}
+
+const consoleTransport = new transports.Console()
+
 const logger = createLogger({
-	transports: [consoleTransport, errorFileTransport, combinedFileTransport, infoFileTransport],
-	format: format.combine(format.timestamp(), format.json(), format.prettyPrint()),
-	level: "debug",
+	transports: [consoleTransport, new PrismaTransport()],
+	format: format.combine(
+		format.timestamp(),
+		format.json(),
+		format.prettyPrint(),
+		format.errors({ stack: true })
+	),
+	level: "info",
+	exitOnError: false,
 })
 
-logger.on("error", async (err) => {
-	logger.error(`${err.message} ${err.stack}`)
-	await prisma.logs.logError(err)
-})
-
-logger.on("warn", async (warn) => {
-	logger.warn(warn.message)
-	await prisma.logs.dump(warn)
-})
-
-logger.on("info", async (info) => {
-	logger.info(info.message)
-	await prisma.logs.dump(info)
-})
-
-logger.on("debug", async (debug) => {
-	logger.debug(serializeJavascript(debug, { space: 4 }))
-	await prisma.logs.dump(debug)
-})
+logger.exceptions.handle(consoleTransport)
 
 export { logger }

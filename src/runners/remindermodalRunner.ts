@@ -1,5 +1,5 @@
 import { formDataSchema } from "../models/reminders/reminderModalInput"
-import { ModalSubmitInteraction } from "discord.js"
+import { ModalSubmitInteraction, time as toTime } from "discord.js"
 import { container } from "@sapphire/framework"
 import { mapModalToSchema } from "../utils/utils"
 
@@ -21,12 +21,6 @@ export class ReminderModalRunner {
 			interaction.user.id
 		)
 
-		if (date.isErr()) {
-			return await this.rejectResponse(
-				"You have not yet registered your timezone. Please set your timezone first." as const
-			)
-		}
-
 		return await date.match({
 			err: async () => {
 				return await this.rejectResponse(
@@ -34,6 +28,18 @@ export class ReminderModalRunner {
 				)
 			},
 			ok: async (date) => {
+				const reminder = await container.prisma.reminders.findUnique({
+					where: {
+						id: reminderId,
+					},
+				})
+				if (!reminder) {
+					await interaction.reply({
+						content:
+							"The reminder you are trying to update does not exist. Did you try to update a reminder that was just sent to you?",
+						ephemeral: true,
+					})
+				}
 				await container.prisma.reminders.update({
 					select: { id: true },
 					where: {
@@ -45,7 +51,9 @@ export class ReminderModalRunner {
 					},
 				})
 				return await interaction.reply({
-					content: "Success!",
+					content: `Success! Your reminder will be sent to you at ${toTime(
+						date.toDate()
+					)} with the message:\n\n\`${reminder_message}\``,
 					ephemeral: true,
 				})
 			},

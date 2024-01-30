@@ -1,8 +1,4 @@
-import { Prisma } from "@prisma/client";
-import { err, ok } from "@sapphire/framework"
-
-import serializeJavascript from "serialize-javascript"
-import { O } from "ts-toolbelt"
+import { Prisma } from "@prisma/client"
 
 export default Prisma.defineExtension((prisma) => {
 	return prisma.$extends({
@@ -16,12 +12,15 @@ export default Prisma.defineExtension((prisma) => {
 				 * @returns A promise that resolves when the log entry is created.
 				 */
 				async logError(err: Error) {
+					const { SuperJSON } = await import("superjson")
 					return prisma.logs.create({
+						select: {
+							id: true,
+						},
 						data: {
-							level: 0,
+							level: 1,
 							message: err.message,
-							unsafe_json: serializeJavascript(err),
-							json: JSON.parse(JSON.stringify(err, Object.getOwnPropertyNames(err))),
+							json: SuperJSON.serialize(err) as object,
 						},
 					})
 				},
@@ -32,33 +31,21 @@ export default Prisma.defineExtension((prisma) => {
 				 * @param meta - The metadata associated with the event.
 				 * @returns A promise that resolves to the created log entry.
 				 */
-				async logEvent(message: string, meta: Prisma.JsonObject) {
-					return prisma.logs.create({
-						data: {
-							level: 6,
-							message,
-							json: meta,
-						},
-					})
-				},
+				async logEvent(message: string | object, meta?: object, level = 6) {
+					const { SuperJSON } = await import("superjson")
 
-				/**
-				 * The function "dump" takes an object, converts it to a JSON string, parses it back
-				 * to a JSON object, and then creates a log entry with the original message and the
-				 * parsed JSON object.
-				 *
-				 * @param obj - The parameter `obj` is of type `O.Object`.
-				 * @returns The result of the `client.logs.create()` method, which is a promise.
-				 */
-				async dump(obj: O.Object) {
-					const result = tryParse(obj)
-					const message = result.intoOkOrErr()
-					const json = result.unwrapOr(undefined)
-					return prisma.logs.create({
+					if (typeof message === "object") {
+						message = SuperJSON.stringify(message)
+					}
+					const json = SuperJSON.serialize(meta) as object
+
+					await prisma.logs.create({
+						select: {
+							id: true,
+						},
 						data: {
-							level: 6,
+							level,
 							message,
-							unsafe_json: message,
 							json,
 						},
 					})
@@ -67,10 +54,3 @@ export default Prisma.defineExtension((prisma) => {
 		},
 	})
 })
-function tryParse(obj: any) {
-	try {
-		return ok(JSON.stringify(obj))
-	} catch (e) {
-		return err(serializeJavascript(obj))
-	}
-}

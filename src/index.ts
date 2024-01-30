@@ -34,22 +34,18 @@ const client = new SapphireClient({
 
 const main = async () => {
 	try {
-		try {
-			client.logger.info("Logging in")
-			await client.login()
-			client.logger.info("logged in")
-		} catch (error) {
-			if (!client.isReady()) {
-				client.logger.fatal(error)
-				client.destroy()
-				process.exit(1)
-			} else {
-				logger.emit("error", error)
-				client.logger.error(error)
-			}
-		}
+		client.logger.info("Logging in")
+		await client.login()
+		client.logger.info("logged in")
 	} catch (error) {
-		client.logger.error(error)
+		if (!client.isReady()) {
+			client.logger.fatal(error)
+			client.destroy()
+			process.exit(1)
+		} else {
+			logger.emit("error", error)
+			client.logger.error(error)
+		}
 	}
 }
 
