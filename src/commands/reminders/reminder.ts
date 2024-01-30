@@ -119,7 +119,7 @@ export class UserCommand extends Subcommand {
 				timeToDayjs(interaction.options.getString("time")!, userTimezone)
 			return await new SetReminderRunner(interaction, getUserAdjustedTimezone).run()
 		} catch (e) {
-			container.dbLogger.emit("error", e)
+			container.dbLogger.error(e)
 			if (!(e instanceof DiscordAPIError)) {
 				await interaction.editReply({
 					embeds: [reminderSomethingWrongEmbed()],
@@ -148,13 +148,15 @@ export class UserCommand extends Subcommand {
 				isExcess: results.count > 100,
 			}).run(interaction, interaction.user)
 		} catch (e) {
-			container.dbLogger.emit("error", e)
+			container.dbLogger.error(e)
 			if (e instanceof DiscordAPIError) {
 				throw e
 			} else {
-				await interaction.editReply({
-					embeds: [reminderSomethingWrongEmbed()],
-				})
+				await interaction
+					.editReply({
+						embeds: [reminderSomethingWrongEmbed()],
+					})
+					.catch((e) => container.dbLogger.error(e))
 			}
 		}
 	}
