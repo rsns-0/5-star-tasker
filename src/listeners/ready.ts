@@ -13,7 +13,9 @@ export class UserEvent extends Listener {
 	public override run() {
 		this.printBanner()
 		this.printStoreDebugInformation()
-		this.runStartupTasks()
+		this.runStartupTasks().catch((e) => {
+			this.container.logger.error(e)
+		})
 	}
 
 	private printBanner() {
@@ -70,7 +72,11 @@ ${line03}${dev ? ` ${pad}${blc("<")}${llc("/")}${blc(">")} ${llc("DEVELOPMENT MO
 	}
 
 	private jobs = {
-		updateDb: () => this.container.updaterService.updateDb(),
-		sendReminders: async () => this.container.prisma.reminders.sendDueReminders(),
+		updateDb: () =>
+			this.container.updaterService.updateDb().catch((e) => this.container.logger.error(e)),
+		sendReminders: async () =>
+			this.container.prisma.reminders
+				.sendDueReminders()
+				.catch((e) => this.container.logger.error(e)),
 	}
 }
