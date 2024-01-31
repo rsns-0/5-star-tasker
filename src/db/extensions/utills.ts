@@ -46,18 +46,15 @@ export default Prisma.defineExtension((client) => {
 				},
 
 				selectExcept<
-					T extends Record<string, any>,
-					T2 extends Partial<Record<keyof Prisma.Payload<T>["scalars"], true>>,
-					_T3 = keyof {
-						[K in keyof T2]: T2[K] extends true ? never : true
+					TModel extends Record<string, any>,
+					TSelect extends Partial<Record<keyof Prisma.Payload<TModel>["scalars"], true>>,
+					_TOmitKeys extends string | number | symbol = keyof {
+						[K in keyof TSelect]: TSelect[K] extends true ? never : true
 					},
-				>(
-					this: T,
-					select: T2
-				): Omit<Record<keyof T["fields"], true>, _T3 extends string ? _T3 : never> {
+				>(this: TModel, select: TSelect): Omit<Record<keyof TModel["fields"], true>, _TOmitKeys> {
 					return R.pipe(
 						select,
-						() => R.pickBy(select, (v) => v === true),
+						R.pickBy(Boolean),
 						R.keys,
 						(keys) => R.omit(Prisma.getExtensionContext(this).fields, keys),
 						R.mapValues(() => true)

@@ -44,28 +44,6 @@ export default Prisma.defineExtension((db) => {
 					})
 				},
 
-				async getUserTimezone(user: { id: string }) {
-					const result = await db.discord_user.findUnique({
-						where: {
-							id: user.id,
-						},
-						select: {
-							timezones: {
-								select: {
-									value: true,
-								},
-							},
-						},
-					})
-					if (!result) {
-						return err("User was not found in database." as const)
-					}
-					if (!result.timezones) {
-						return err("User has not registered their timezone." as const)
-					}
-					return ok(result.timezones.value)
-				},
-
 				async getUserTimezoneById(userId: string) {
 					const result = await db.discord_user.findUnique({
 						where: {
@@ -115,6 +93,9 @@ export default Prisma.defineExtension((db) => {
 				},
 
 				async upsertMany(members: GuildMember[]) {
+					if (!members.length) {
+						return []
+					}
 					const values = R.pipe(
 						members,
 						R.map((s) => ({
@@ -138,6 +119,9 @@ export default Prisma.defineExtension((db) => {
 
 				async connectManyToGuilds(members: GuildMember[]) {
 					const edges = members.map((mem) => ({ A: mem.guild.id, B: mem.id }) as const)
+					if (!edges.length) {
+						return []
+					}
 
 					return await db2
 						.insertInto("_discord_guilds_members")
@@ -148,17 +132,26 @@ export default Prisma.defineExtension((db) => {
 				},
 
 				async disconnectGuildMembers(guilds: Guild[]) {
-					return await createDisconnectGuildMembersQuery(guilds).execute()
+					const query = createDisconnectGuildMembersQuery(guilds)
+					if (!query) {
+						return []
+					}
+					return await query.execute()
 				},
 			},
 		},
 	})
 })
 
+/** Returns nothing if there is there are no guilds or there are no members in the guild. */
 function createDisconnectGuildMembersQuery(guilds: Guild[]) {
 	const res = guilds.flatMap((guild) =>
 		guild.members.cache.map((member) => ({ A: guild.id, B: member.id }) as const)
 	)
+	if (!res.length) {
+		// values impl assumes there's at least one record
+		return
+	}
 
 	const data = db2.selectFrom(values(res, "data")).selectAll()
 

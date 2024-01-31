@@ -3,6 +3,7 @@ import { Guild, GuildBasedChannel } from "discord.js"
 import { Prisma } from "@prisma/client"
 import { createDiscordChannelArg } from "../argUtils/discordChannels"
 import { db2 } from "../kyselyInstance"
+import * as R from "remeda"
 
 export default Prisma.defineExtension((db) => {
 	return db.$extends({
@@ -162,16 +163,22 @@ export default Prisma.defineExtension((db) => {
 				},
 
 				async unsafeUpsertMany(guilds: Guild[]) {
+					if (!guilds.length) {
+						return []
+					}
+					const values = R.pipe(
+						guilds,
+						R.uniqBy((s) => s.id),
+						R.map((s) => ({
+							id: s.id,
+							name: s.name,
+							owner_id: s.ownerId,
+							iconURL: s.iconURL(),
+						}))
+					)
 					return await db2
 						.insertInto("discord_guilds")
-						.values(
-							guilds.map((s) => ({
-								id: s.id,
-								name: s.name,
-								owner_id: s.ownerId,
-								iconURL: s.iconURL(),
-							}))
-						)
+						.values(values)
 						.onConflict((s) =>
 							s.column("id").doUpdateSet((s) => ({
 								name: s.ref("excluded.name"),
