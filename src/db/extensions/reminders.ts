@@ -127,6 +127,7 @@ const createGetUserRemindersByIdQuery = (id: string) => {
 			.selectFrom("discord_user")
 			.innerJoin("reminders", "discord_user.id", "reminders.user_id")
 			.where("discord_user.id", "=", id)
+			.where("reminders.time", ">", new Date())
 			.select([
 				"reminders.id",
 				sql<string>`reminders.time`.as("time"),
