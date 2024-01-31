@@ -13,7 +13,7 @@ export default Prisma.defineExtension((db) => {
 								flag_key: reaction.toLowerCase(),
 							},
 						})
-						.then((s) => s?.iso_code ?? null)
+						.then((s) => s?.iso_code)
 				},
 			},
 		},
