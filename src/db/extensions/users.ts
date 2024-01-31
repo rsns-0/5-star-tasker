@@ -44,28 +44,6 @@ export default Prisma.defineExtension((db) => {
 					})
 				},
 
-				async getUserTimezone(user: { id: string }) {
-					const result = await db.discord_user.findUnique({
-						where: {
-							id: user.id,
-						},
-						select: {
-							timezones: {
-								select: {
-									value: true,
-								},
-							},
-						},
-					})
-					if (!result) {
-						return err("User was not found in database." as const)
-					}
-					if (!result.timezones) {
-						return err("User has not registered their timezone." as const)
-					}
-					return ok(result.timezones.value)
-				},
-
 				async getUserTimezoneById(userId: string) {
 					const result = await db.discord_user.findUnique({
 						where: {
