@@ -8,8 +8,8 @@ import { db2 } from "../kyselyInstance"
 import { jsonArrayFrom } from "kysely/helpers/postgres"
 import { sql } from "kysely"
 import { reminderToReminderUserMessage } from "../../models/reminders/reminderMessage"
-import { isNotUndefined, mergeMap, then, thenMergeMap } from "../../utils/utils"
-import { map, partition, pipe } from "remeda"
+import { isNotUndefined, mergeMap, then } from "../../utils/utils"
+import * as R from "remeda"
 export default Prisma.defineExtension((db) => {
 	return db.$extends({
 		name: "reminderExtension",
@@ -64,46 +64,75 @@ export default Prisma.defineExtension((db) => {
 
 				async sendDueReminders() {
 					container.dbLogger.info("Checking for expired reminders...")
-					return await db2
-						.transaction()
-						.setIsolationLevel("repeatable read")
-						.execute(async (tx) => {
-							return await pipe(
-								await createGetExpiredRemindersQuery(tx).execute(),
-								map(reminderToReminderUserMessage),
-								mergeMap((s) => container.userService.sendReminder(s)),
-								thenMergeMap(({ state, id }) => {
-									if (state === "failed") {
-										container.dbLogger.error(`Failed to send reminder ${id}`)
-										return
-									}
-									return createDeleteReminderByIdQuery(tx, id)
-										.executeTakeFirstOrThrow()
-										.catch((e) => {
-											container.dbLogger.error(e)
-										})
-								}),
-								then(partition(isNotUndefined)),
-								then(([successes, failures]) => {
-									container.dbLogger.info("Finished processing reminders.")
-									container.dbLogger.info(
-										`Deleted ${successes.length} reminders.`
-									)
-									failures.length &&
-										container.dbLogger.error(
-											`Failed to delete ${failures.length} reminders.`
-										)
-									return successes
-								})
-							)
-						})
+					return await R.pipe(
+						await createGetExpiredRemindersQuery().execute(),
+						R.tap((s) => {
+							if (s.length === 0) {
+								container.dbLogger.info("No expired reminders found.")
+							}
+						}),
+						R.map(reminderToReminderUserMessage),
+						R.map(container.userService.sendReminder.bind(container.userService)),
+						mergeMap(then(deleteReminder)),
+						then(R.groupBy((s) => s.state)),
+						then(R.toPairs),
+						then(
+							R.flatMap(([state, reminders]) => {
+								const message = {
+									state,
+									count: reminders.length,
+									ids: reminders.map((s) => s.id),
+								}
+								if (message.state.includes("fail")) {
+									container.dbLogger.error(message)
+									return
+								}
+								container.dbLogger.info(message)
+								return message.ids
+							})
+						),
+						R.tap(() => container.dbLogger.info("Finished processing reminders.")),
+						then(R.filter(isNotUndefined))
+					)
 				},
 			},
 		},
 	})
 })
 
-const createGetExpiredRemindersQuery = (db: typeof db2) => {
+function deleteReminder({ state, id }: AsyncReturnType<typeof container.userService.sendReminder>) {
+	if (state === "failed") {
+		container.dbLogger.error(`Failed to send reminder ${id}`)
+		return {
+			id,
+			state,
+		} as const
+	}
+	return createDeleteReminderByIdQuery(id)
+		.execute()
+		.then((s) => {
+			const first = s[0]
+			if (!first) {
+				return {
+					id,
+					state: "alreadyDeleted",
+				} as const
+			}
+			return {
+				...first,
+				state: "success",
+			} as const
+		})
+		.catch((e) => {
+			container.dbLogger.error(e)
+			return {
+				id,
+				state: "failedToDelete",
+			} as const
+		})
+}
+
+const createGetExpiredRemindersQuery = (db = db2) => {
 	return db
 		.selectFrom("reminders")
 		.where("time", "<=", new Date())
@@ -117,7 +146,7 @@ const createGetExpiredRemindersQuery = (db: typeof db2) => {
 		.limit(10_000)
 }
 
-const createDeleteReminderByIdQuery = (db: typeof db2, id: number) => {
+const createDeleteReminderByIdQuery = (id: number, db = db2) => {
 	return db.deleteFrom("reminders").where("id", "=", id).returning("id")
 }
 
