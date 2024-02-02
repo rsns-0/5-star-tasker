@@ -19,6 +19,8 @@ env:
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
   TEST_VAR: ${{ secrets.TEST_VAR }}
   DISABLE_LOGGING: ${{ secrets.DISABLE_LOGGING }}
+  TEST_USER: ${{ secrets.TEST_USER }}
+  TEST_USER_ID: ${{ secrets.TEST_USER_ID }}
 
 jobs:
   test:
