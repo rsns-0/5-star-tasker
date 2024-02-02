@@ -18,6 +18,7 @@ env:
   SUPABASE_POSTGRES_URL: ${{ secrets.SUPABASE_POSTGRES_URL }}
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
   TEST_VAR: ${{ secrets.TEST_VAR }}
+  DISABLE_LOGGING: ${{ secrets.DISABLE_LOGGING }}
 
 jobs:
   test:
