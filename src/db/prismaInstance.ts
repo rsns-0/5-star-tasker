@@ -7,8 +7,9 @@ import reminders from "./extensions/reminders";
 import users from "./extensions/users";
 import utils from "./extensions/utills";
 import webhooks from "./extensions/webhooks";
-
-const prisma = new PrismaClient({ log: ["query"] })
+import { config } from "dotenv"
+config()
+export const prisma = new PrismaClient({ log: process.env.DISABLE_LOGGING ? [] : ["query"] })
 	.$extends(utils)
 	.$extends(logging)
 	.$extends(reminders)
@@ -19,3 +20,4 @@ const prisma = new PrismaClient({ log: ["query"] })
 	.$extends(users)
 
 export default prisma
+

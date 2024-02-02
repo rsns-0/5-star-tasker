@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { TranslationService, TranslationServiceError } from "../../features/translation"
-
+import "../../lib/setup.js"
 describe("TranslationService", () => {
 	it("should return hola mundo when translating hello world", async () => {
 		const translator = new TranslationService()

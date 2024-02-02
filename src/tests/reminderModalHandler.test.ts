@@ -6,7 +6,7 @@ import prisma from "../db/prismaInstance"
 import { ReminderModalRunner } from "../runners/remindermodalRunner"
 import { mapModalToSchema } from "../utils/utils"
 import { formDataSchema } from "../models/reminders/reminderModalInput"
-
+import "../lib/setup.js"
 describe("ReminderModalInteractionHandler", () => {
 	describe("createReminderDataFromInteraction", () => {
 		beforeAll(() => {

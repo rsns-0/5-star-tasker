@@ -22,7 +22,7 @@ describe("logging", () => {
 			if (!(err instanceof Error)) {
 				throw err
 			}
-			const res = await prisma.logs.logError(err).then((res) => res.json)
+			const res = await prisma.logs.logError(err).then((res) => res)
 			expect(res).not.toEqual({})
 			expect(res).toBeDefined()
 		}

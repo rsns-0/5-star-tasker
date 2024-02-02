@@ -8,8 +8,9 @@ import { db2 } from "../kyselyInstance"
 import { jsonArrayFrom } from "kysely/helpers/postgres"
 import { sql } from "kysely"
 import { reminderToReminderUserMessage } from "../../models/reminders/reminderMessage"
-import { isNotUndefined, mergeMap, then } from "../../utils/utils"
+import { isNotUndefined, mergeMap, andThen } from "../../utils/utils"
 import * as R from "remeda"
+
 export default Prisma.defineExtension((db) => {
 	return db.$extends({
 		name: "reminderExtension",
@@ -73,10 +74,10 @@ export default Prisma.defineExtension((db) => {
 						}),
 						R.map(reminderToReminderUserMessage),
 						R.map(container.userService.sendReminder.bind(container.userService)),
-						mergeMap(then(deleteReminder)),
-						then(R.groupBy((s) => s.state)),
-						then(R.toPairs),
-						then(
+						mergeMap(andThen(deleteReminder)),
+						andThen(R.groupBy((s) => s.state)),
+						andThen(R.toPairs),
+						andThen(
 							R.flatMap(([state, reminders]) => {
 								const message = {
 									state,
@@ -92,7 +93,7 @@ export default Prisma.defineExtension((db) => {
 							})
 						),
 						R.tap(() => container.dbLogger.info("Finished processing reminders.")),
-						then(R.filter(isNotUndefined))
+						andThen(R.filter(isNotUndefined))
 					)
 				},
 			},

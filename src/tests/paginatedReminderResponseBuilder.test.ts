@@ -12,6 +12,8 @@ import { describe, expect, it, beforeEach } from "vitest"
 import prisma from "../db/prismaInstance"
 import { config } from "dotenv"
 
+import "../lib/setup.js"
+
 config()
 
 describe("page data generation", () => {
@@ -74,6 +76,7 @@ describe("page data generation", () => {
 			id: process.env.TEST_USER_ID!,
 			globalName: "test user global name",
 		})
+
 		expect(res.count).toBeGreaterThan(res.reminders.length)
 		expect(res.reminders.length).toBe(100)
 	})
