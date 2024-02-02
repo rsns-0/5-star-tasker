@@ -1,8 +1,9 @@
 import { createLogger, format, transports } from "winston"
 import Transport from "winston-transport"
 import prisma from "../db/prismaInstance"
-import { parseToCleanedStackFrameString } from "../utils/stackUtils"
+import { config } from "dotenv"
 
+config()
 interface ILogInfo {
 	level: string
 	message: string
@@ -17,9 +18,9 @@ class PrismaTransport extends Transport {
 		process.nextTick(() => {
 			const cb = callback ?? (() => {})
 
-			if (level === "error") {
+			if (level === "error" && process.env.LOGGING) {
 				const data = meta ?? ({} as Record<string, any>)
-				data.stack = parseToCleanedStackFrameString(info.stack)
+				data.stack = info.stack
 				console.error(info)
 
 				prisma.logs
@@ -53,7 +54,7 @@ const logger = createLogger({
 		format.prettyPrint(),
 		format.errors({ stack: true })
 	),
-	level: "info",
+	level: process.env.DISABLE_LOGGING ? "fatal" : "info",
 	exitOnError: false,
 })
 

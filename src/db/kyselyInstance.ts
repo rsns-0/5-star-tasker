@@ -11,4 +11,5 @@ export const db2 = new Kysely<DB>({
 			connectionString: process.env.DATABASE_URL,
 		}),
 	}),
+	log: process.env.DISABLE_LOGGING ? [] : ["query", "error"],
 })
