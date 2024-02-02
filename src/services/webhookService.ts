@@ -3,7 +3,7 @@ import * as R from "remeda"
 import { container } from "@sapphire/pieces"
 import { type WebhookChannel } from "types/channelTypes"
 import { OwnedWebhook } from "../types/webhookTypes"
-import { mergeMap, then, thenMergeMap } from "../utils/utils"
+import { mergeMap, andThen, thenMergeMap } from "../utils/utils"
 
 function defaultWebhookName() {
 	return `5StarWebhook-${new Date().getTime()}`
@@ -22,7 +22,7 @@ export class WebhookService {
 					webhooks: await channel.fetchWebhooks().then((s) => s.filter(isOwnedWebhook)),
 				}
 			}),
-			then(R.filter(({ webhooks }) => webhooks.size === 0)),
+			andThen(R.filter(({ webhooks }) => webhooks.size === 0)),
 			thenMergeMap(({ channel }) => this.createWebhookInChannel(channel))
 		)
 	}

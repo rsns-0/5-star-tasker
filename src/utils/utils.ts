@@ -48,7 +48,7 @@ export async function retry<R>({
 	throw new Error(`Tried ${tries} times but failed.`)
 }
 
-export function then<T, R>(
+export function andThen<T, R>(
 	fn: (a: T extends Promise<infer S> ? S : never) => R
 ): (a: T) => Promise<R> {
 	return async (promise: any) => fn(await promise)
@@ -72,7 +72,7 @@ export function mergeMap<T, R>(
 export function thenMergeMap<T, R>(
 	fn: (item: T, index: number, collection: T[]) => R
 ): (items: Promise<T[]>) => Promise<Awaited<R>[]> {
-	const f = then(mergeMap(fn))
+	const f = andThen(mergeMap(fn))
 	return (items: Promise<T[]>) => flattenPromises(f(items))
 }
 
