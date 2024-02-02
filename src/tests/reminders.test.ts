@@ -1,6 +1,6 @@
 import { config } from "dotenv"
 import prisma from "../db/prismaInstance"
-
+import "../lib/setup.js"
 config()
 describe("getUserReminders", () => {
 	it("should deserialize dates", async () => {
