@@ -1,7 +1,10 @@
 Backend server for the 5-stars project.
 
+# Website
+https://5-star-frontend.vercel.app/
+
 # Project architecture
-https://excalidraw.com/#json=tffz_3ZE5uTafwcyWyT6m,aLvwWggkfsSxTNs_KGRGPA
+https://excalidraw.com/#json=Jp4hEtzsThzOICTl3z77J,uf8Oh8_BLD3O7LrvkPB16Q
 
 # Invite to your server
 - Visit the homepage at https://5-star-frontend.vercel.app/ which will contain a button to invite the bot to your server.
