@@ -7,7 +7,7 @@ https://github.com/rsns-0/5-star-frontend
 https://5-star-frontend.vercel.app/
 
 # Project architecture
-[https://excalidraw.com/#json=Jp4hEtzsThzOICTl3z77J,uf8Oh8_BLD3O7LrvkPB16Q](https://excalidraw.com/#json=JgmXo2G0n_rad139bkyhA,MOHZshoRvyVgS1uC8tl8KA)
+https://excalidraw.com/#json=gZ8Bi1icYQ3HxR8SQ2mhp,WTdu6qzzrdu_NhIFcr3kiw
 
 # Invite to your server
 - Visit the homepage at https://5-star-frontend.vercel.app
